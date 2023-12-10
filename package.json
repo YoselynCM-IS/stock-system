@@ -1,0 +1,58 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "npm run development",
+    "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch": "npm run development -- --watch",
+    "watch-poll": "npm run watch -- --watch-poll",
+    "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "prod": "npm run production",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "postinstall": "npm run prod"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "devDependencies": {
+    "axios": "^0.18.1",
+    "bootstrap": "^4.6.2",
+    "cross-env": "^5.2.1",
+    "jquery": "^3.7.1",
+    "laravel-echo": "^1.15.3",
+    "laravel-mix": "^4.1.4",
+    "lodash": "^4.17.21",
+    "pusher-js": "^8.0.0",
+    "resolve-url-loader": "^2.3.1",
+    "sass": "^1.15.2",
+    "sass-loader": "^7.1.0",
+    "vue": "^2.7.15",
+    "vue-template-compiler": "^2.7.15"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap-vue": "^2.23.1",
+    "laravel-vue-pagination": "^2.3.1",
+    "numeral": "^2.0.6",
+    "sweetalert2": "^11.10.1",
+    "vue-moment": "^4.0.0",
+    "vue-resource": "^1.5.1",
+    "vuejs-datepicker": "^1.6.2"
+  },
+  "name": "inventariome",
+  "description": "<p align=\"center\"><img src=\"https://laravel.com/assets/img/components/logo-laravel.svg\"></p>",
+  "version": "1.0.0",
+  "main": "webpack.mix.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yose30/inventariomajestic.git"
+  },
+  "author": "Yoselyn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yose30/inventariomajestic/issues"
+  },
+  "homepage": "https://github.com/Yose30/inventariomajestic#readme"
+}
