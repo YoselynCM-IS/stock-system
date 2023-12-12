@@ -193,16 +193,22 @@ class EntradaController extends Controller
     }
 
     public function upload_comprobante($file, $entrada){
-        $extension = $file->getClientOriginalExtension();
-        $name_file = time().".".$extension;
+        // $extension = $file->getClientOriginalExtension();
+        // $name_file = time().".".$extension;
         $ruta = str_replace(' ', '-', env('APP_NAME')).'/entradas/comprobantes/';
-        // $public_url = null;
+        // // $public_url = null;
 
-        Storage::disk('dropbox')->putFileAs($ruta, $file, $name_file);
+        // Storage::disk('dropbox')->putFileAs($ruta, $file, $name_file);
         
-        // if($extension == 'pdf'){
-            $public_url = $this->getSharedLink($ruta.$name_file)['url'];
-        // }
+        // // if($extension == 'pdf'){
+        //     $public_url = $this->getSharedLink($ruta.$name_file)['url'];
+        // // }
+
+        // TEMPORAL
+        $public_url = $ruta.$entrada->id;
+        $name_file = $ruta.$entrada->id;
+        $extension = 'pendiente';
+        // TEMPORAL
 
         Comprobante::create([
             'entrada_id' => $entrada->id,
