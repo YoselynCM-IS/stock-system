@@ -632,23 +632,18 @@ class CorteController extends Controller
         \DB::beginTransaction();
         try {
             $remdeposito = Remdeposito::find($request->pagoid);
-            // // SUBIR IMAGEN
-            // $file = $request->file('file');
-            // $extension = $file->getClientOriginalExtension();
-            // $name_file = "id-".$remdeposito->id."_".time().".".$extension;
+            // SUBIR IMAGEN
+            $file = $request->file('file');
+            $extension = $file->getClientOriginalExtension();
+            $name_file = "id-".$remdeposito->id."_".time().".".$extension;
             
             $ruta = str_replace(' ', '-', env('APP_NAME')).'/clientes/pagos/';
-            // Storage::disk('dropbox')->putFileAs($ruta, $request->file('file'), $name_file);
-            // $client = new ClienteDropbox(env('DROPBOX_TOKEN'));
-            // $response = $client->createSharedLinkWithSettings(
-            //     $ruta.$name_file, ["requested_visibility" => "public"]
-            // );
-            // $public_url = $response['url'];
-            // TEMPORAL
-            $public_url = $ruta.$remdeposito->id;
-            $name_file = $ruta.$remdeposito->id;
-            $extension = 'pendiente';
-            // TEMPORAL
+            Storage::disk('dropbox')->putFileAs($ruta, $request->file('file'), $name_file);
+            $client = new ClienteDropbox(env('DROPBOX_TOKEN'));
+            $response = $client->createSharedLinkWithSettings(
+                $ruta.$name_file, ["requested_visibility" => "public"]
+            );
+            $public_url = $response['url'];
 
             // $image = Image::make($request->file('file'));
             // $image->resize(1280, null, function ($constraint) {
