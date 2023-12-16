@@ -272,7 +272,7 @@ class PagoController extends Controller
             'total_fechas' => $fechas->sum('total'),
             'total_remdepositos' => $remdepositos->sum('pago') + $depositos->sum('pago')
         ];
-        $pdf = PDF::loadView('download.excel.pagos.edo_cuenta', $data);
+        $pdf = Pdf::loadView('download.excel.pagos.edo_cuenta', $data);
         return $pdf->download('edo-cuenta.pdf');
         // return Excel::download(new EdoCuentaExport($cliente_id), 'edo-de-cuenta.xlsx');
     }
