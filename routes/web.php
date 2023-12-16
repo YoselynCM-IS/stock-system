@@ -649,6 +649,16 @@ Route::name('cortes.')->prefix('cortes')->group(function () {
 
     Route::post('/upload_payment', 'CorteController@upload_payment')->name('upload_payment');
     Route::get('/image_url', 'CorteController@image_url')->name('image_url');
+
+    // ADEUDOS
+    Route::name('adeudos.')->prefix('adeudos')->group(function () {
+        Route::post('/save', 'CorteController@save_adeudo')->name('save');
+        // ABONOS
+        Route::name('abonos.')->prefix('abonos')->group(function () {
+            Route::post('/save', 'CorteController@save_abono')->name('save');
+            Route::get('/get', 'CorteController@get_abonos')->name('get');
+        });
+    });
 });
 
 Route::get('/information/majestic', function () {

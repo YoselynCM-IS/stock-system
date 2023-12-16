@@ -2,13 +2,14 @@
     <div>
         <b-table v-if="remdepositos.length > 0"
             :items="remdepositos" :fields="fieldsPagos" responsive>
+            <template v-slot:cell(created_at)="row">
+                {{ row.item.created_at | momentDet }}
+            </template>
             <template v-slot:cell(pago)="row">
                 ${{ row.item.pago | formatNumber }}
             </template>
             <template v-if="showTitle" #thead-top="row">
-                <tr>
-                    <th colspan="5" class="text-center">Pagos</th>
-                </tr>
+                <tr><th colspan="5" class="text-center">Pagos</th></tr>
             </template>
             <template v-if="role_id == 1 || role_id == 2 || role_id == 6" 
                 v-slot:cell(fotos)="row">
@@ -83,18 +84,19 @@ import setCortes from '../../../mixins/setCortes';
 import toast from '../../../mixins/toast';
 import EditPagoComponent from './EditPagoComponent.vue';
 import sweetAlert from '../../../mixins/sweetAlert';
+import moment from '../../../mixins/moment';
 export default {
     components: {AlertVComponent, EditPagoComponent, SubirFotoComponent},
     props: ['remdepositos', 'cortePagar', 'showTitle', 'cliente_id','role_id'],
-    mixins: [formatNumber, setCortes, toast, sweetAlert],
+    mixins: [formatNumber, setCortes, toast, sweetAlert, moment],
     data(){
         return {
             fieldsPagos: [
-                {key: 'created_at', label: 'Fecha de registro'},
-                'pago',
-                {key: 'ingresado_por', label: 'Ingresado por'},
-                'nota',
-                {key: 'fecha', label: 'Fecha del pago'},
+                { key: 'created_at', label: 'Fecha de registro' },
+                { key: 'fecha', label: 'Fecha del pago' },
+                { key: 'ingresado_por', label: 'Ingresado por' },
+                { key: 'pago', label: 'Pago' },
+                { key: 'nota', label: 'Concepto' },
                 { key: 'fotos', label: '' },
                 { key: 'actions', label: '' }
             ],

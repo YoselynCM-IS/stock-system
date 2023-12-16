@@ -9,12 +9,15 @@ use Illuminate\Http\Request;
 use App\Remdeposito;
 use App\Remcliente;
 use App\Editoriale;
+use Carbon\Carbon;
 use App\Remisione;
 use App\Deposito;
 use App\Cctotale;
 use App\Ectotale;
 use App\Reporte;
 use App\Cliente;
+use App\Adeudo;
+use App\Abono;
 use App\Corte;
 use App\Foto;
 
@@ -82,6 +85,7 @@ class CorteController extends Controller
             $remcliente = Remcliente::where('cliente_id', $cctotale->cliente_id)->first();
             $remdepositos = Remdeposito::where('remcliente_id', $remcliente->id)
                                 ->where('corte_id', $cctotale->corte_id)
+                                ->whereNotIn('tipo', ['adeudo'])
                                 ->with('foto')->orderBy('created_at', 'desc')->get();
             $remisiones = Remisione::where('corte_id', $cctotale->corte_id)
                             ->where('cliente_id', $cctotale->cliente_id)
@@ -362,6 +366,15 @@ class CorteController extends Controller
                         ->orderBy('cortes.inicio', 'desc')
                         ->get();
         $cortes = $this->org_remisiones($cctotales);
+        $hoy = Carbon::now();
+        $saldos = Adeudo::where('cliente_id', $cliente_id)->where('saldo_pendiente', '>', 0)->get();
+        $saldos->map(function($adeudo) use($hoy){
+            $diferencia = $adeudo->created_at->diffInDays($hoy);
+            $rango = $this->get_rango($diferencia);
+            $adeudo->update(['dias' => $diferencia, 'rango' => $rango]);
+        });
+        
+        $adeudos = Adeudo::where('cliente_id', $cliente_id)->with('corte')->orderBy('created_at', 'desc')->get();
         $data = [
             'cliente_id' => $cliente_id,
             'name'  => $remcliente->cliente->name,
@@ -369,9 +382,21 @@ class CorteController extends Controller
             'total_pagos' => $remcliente->total_pagos,
             'total_devolucion' => $remcliente->total_devolucion,
             'total_pagar' => $remcliente->total_pagar,
-            'cortes' => $cortes
+            'cortes' => $cortes,
+            'adeudos' => $adeudos
         ];    
         return response()->json($data);
+    }
+
+    // OBTENER RANGO
+    public function get_rango($dias){
+        // ['0-29', '30-59', '60-89', '90-119', '120-149', '+150']
+        if($dias >= 0 && $dias <= 29) return 1;
+        if($dias >= 30 && $dias <= 59) return 2;
+        if($dias >= 60 && $dias <= 89) return 3;
+        if($dias >= 90 && $dias <= 119) return 4;
+        if($dias >= 120 && $dias <= 149) return 5;
+        if($dias >= 150) return 6;
     }
 
     // PAGO AL CORTE
@@ -386,16 +411,8 @@ class CorteController extends Controller
             \DB::beginTransaction();
 
             $monto = (float) $request->pago;
-            $remdeposito = Remdeposito::create([
-                'remcliente_id' => $remcliente->id,
-                'corte_id' => $corte_id,
-                'pago' => $monto,
-                'fecha' => $request->fecha,
-                'nota' => $request->nota,
-                'tipo' => $request->tipo,
-                'ingresado_por' => auth()->user()->name
-            ]);
-
+            $remdeposito = $this->save_remdeposito($remcliente->id, $corte_id, $monto, $request->fecha, $request->nota, $request->tipo);
+            
             $this->validate_favor($corte_id, $cliente_id, $corte_id_favor, $monto);
 
             $total_pagar = $remcliente->total_pagar - $monto;
@@ -416,6 +433,18 @@ class CorteController extends Controller
             return response()->json($exception->getMessage());
         }
         return response()->json();
+    }
+
+    public function save_remdeposito($remcliente_id, $corte_id, $pago, $fecha, $nota, $tipo){
+        return Remdeposito::create([
+            'remcliente_id' => $remcliente_id,
+            'corte_id' => $corte_id,
+            'pago' => $pago,
+            'fecha' => $fecha,
+            'nota' => $nota,
+            'tipo' => $tipo,
+            'ingresado_por' => auth()->user()->name
+        ]);
     }
 
     // HISTORIAL
@@ -708,5 +737,92 @@ class CorteController extends Controller
             'remdepositos' => $remdepositos,
             'total' => $remdepositos->sum('pago')
         ]);
+    }
+
+    // GUARDAR ADEUDO
+    public function save_adeudo(Request $request){
+        \DB::beginTransaction();
+        try {
+            $cliente_id = (int)$request->cliente_id;
+            $remcliente = Remcliente::where('cliente_id', $cliente_id)->first();
+            $corte_id = (int)$request->corte_id;
+            $total_pagar = (double) $request->total_pagar;
+            $hoy = Carbon::now();
+            $nota = $hoy->format('Y-m-d H:i:s').' SALDO DEUDOR';
+
+            $remdeposito = $this->save_remdeposito($remcliente->id, $corte_id, $total_pagar, $hoy->format('Y-m-d'), $nota, 'adeudo');
+            $cctotale = $this->get_cctotale($corte_id, $cliente_id);
+            $this->update_cctotale($cctotale, $total_pagar);
+            $remcliente->update([
+                'total_pagos' => $remcliente->total_pagos + $total_pagar, 
+                'total_pagar' => $remcliente->total_pagar - $total_pagar
+            ]);
+
+            $adeudo = Adeudo::create([
+                'cliente_id' => $cliente_id, 
+                'corte_id' => $corte_id, 
+                'remdeposito_id' => $remdeposito->id,
+                'saldo_inicial' => $total_pagar, 
+                'saldo_pendiente' => $total_pagar,  
+                'ingresado_por' => auth()->user()->name
+            ]);
+            \DB::commit();
+        }  catch (Exception $e) {
+            \DB::rollBack();
+        }
+        return response()->json($remcliente);
+    }
+
+    // GUARDAR ABONO
+    public function save_abono(Request $request){
+        $this->validate($request, [
+            'pago' => 'required|numeric|min:0.1',
+            'fecha' => 'required|date',
+            'nota' => 'required|min:5'
+        ]);
+
+        $adeudo_id = (int) $request->adeudo_id;
+        $fecha = $request->fecha;
+        $pago = (double) $request->pago;
+        $nota = $request->nota;
+        $adeudo = Adeudo::find($adeudo_id);
+
+        if($pago <= $adeudo->saldo_pendiente){
+            \DB::beginTransaction();
+            try {
+                Abono::create([
+                    'adeudo_id' => $adeudo_id, 
+                    'fecha' => $fecha,
+                    'pago' => $pago, 
+                    'nota' => $nota, 
+                    'ingresado_por' => auth()->user()->name
+                ]);
+
+                $adeudo->update([
+                    'saldo_pagado' => $adeudo->saldo_pagado + $pago,
+                    'saldo_pendiente' => $adeudo->saldo_pendiente - $pago
+                ]);
+                
+                $hoy = Carbon::now();
+                $saldo_deudor = Remdeposito::find($adeudo->remdeposito_id);
+                $saldo_deudor->update([
+                    'pago' => $saldo_deudor->pago - $pago,
+                    'nota' => $saldo_deudor->nota.' / '.$hoy->format('Y-m-d H:i:s').' abono $'.$pago
+                ]);
+                $remdeposito = $this->save_remdeposito($saldo_deudor->remcliente_id, $adeudo->corte_id, $pago, $fecha, $nota, 'real');
+                \DB::commit();
+            }  catch (Exception $e) {
+                \DB::rollBack();
+            }
+            return response()->json(['status' => true, 'message' => 'El pago se guardó correctamente.']);
+        }
+
+        return response()->json(['status' => false, 'message' => 'El pago tiene que ser menor o igual al saldo pendiente.']);
+    }
+
+    // OBTENER ABONOS
+    public function get_abonos(Request $request){
+        $abonos = Abono::where('adeudo_id', $request->adeudo_id)->orderBy('created_at', 'desc')->get();
+        return response()->json($abonos);
     }
 }

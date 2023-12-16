@@ -1,69 +1,87 @@
 <template>
     <div>
         <div v-if="!load">
-            <!-- FUNCIONES (ENCABEZADO) -->
-            <b-row>
-                <b-col>
-                    <h5><b>Cliente: {{ datosCortes.name }}</b></h5>
-                </b-col>
+            <b-row class="mb-2">
+                <b-col><h5><b>{{ datosCortes.name }}</b></h5></b-col>
                 <b-col sm="2">
-                    <b-button class="btn btn-dark" pill block @click="showFicticios()">
-                        <i class="fa fa-money"></i> Ficticios
-                    </b-button>
-                </b-col>
-                <b-col sm="2">
-                    <!-- :href="`/pagos/download_edocuenta/${datosCortes.cliente_id}`" -->
-                    <b-button class="btn btn-dark" pill block
-                        href="#">
-                        <i class="fa fa-download"></i> Edo. Cuenta
-                    </b-button>
-                </b-col>
-                <b-col sm="2" class="text-right">
-                    <b-button variant="secondary" pill block @click="goBack()">
+                    <b-button variant="secondary" pill block size="sm" @click="goBack()">
                         <i class="fa fa-arrow-left"></i> Regresar
                     </b-button>
                 </b-col>
             </b-row>
-            <!-- TOTAL GENERAL DEL CLIENTE -->
-            <div>
-                <h6><strong>Cuenta general</strong></h6>
-                <table-totals :dato="datosCortes" :variant="'dark'"></table-totals>
-            </div>
-            <!-- DATOS DE LOS CORTES -->
-            <div v-for="(corte, i) in datosCortes.cortes" v-bind:key="i">
-                <div class="mb-3">
-                    <b-row>
-                        <b-col sm="2"><b>Temporada {{ corte.corte }}</b></b-col>
-                        <b-col><b>{{ corte.inicio }} - {{ corte.final }}</b></b-col>
-                        <b-col sm="2">
-                            <b-button v-if="corte.total_pagar > 0" @click="registrarPago(corte)"
-                                pill block size="sm" variant="primary">
-                                Realizar pago
-                            </b-button>
-                        </b-col>
-                        <b-col sm="2" class="text-right">
-                            <b-button :class="corte.visible ? null : 'collapsed'" pill variant="info"
-                                size="sm" :aria-expanded="corte.visible ? 'true' : 'false'"
-                                aria-controls="collapse-1" @click="corte.visible = !corte.visible">
-                                {{ !corte.visible ? 'Mostrar':'Ocultar' }}
-                            </b-button>
-                        </b-col>
-                    </b-row>
-                    <table-totals :dato="corte" :variant="'info'" :favor="true"></table-totals>
-                    <b-collapse id="collapse-1" v-model="corte.visible" class="mt-2">
-                        <b-tabs content-class="mt-3" fill>
-                            <b-tab title="Remisiones" active>
-                                <table-remisiones :remisiones="corte.remisiones" :showTitle="false" :role_id="role_id"></table-remisiones>
-                            </b-tab>
-                            <b-tab title="Pagos">
-                                <table-pagos :cortePagar="corte.total_pagar"
-                                    :remdepositos="corte.remdepositos" :role_id="role_id"
-                                    :cliente_id="corte.cliente_id" :showTitle="false"></table-pagos>
-                            </b-tab>
-                        </b-tabs>
-                    </b-collapse>
-                </div>
-            </div>
+            <!-- FUNCIONES (ENCABEZADO) -->
+            <b-row>
+                <b-col><h6 class="mt-3"><strong>Cuenta general</strong></h6></b-col>
+                <b-col sm="2">
+                    <b-button class="btn btn-dark" pill block
+                        :href="`/pagos/download_edocuenta/${datosCortes.cliente_id}`">
+                        Edo. de cuenta
+                    </b-button>
+                </b-col>
+                <b-col sm="2">
+                    <b-button variant="dark" pill block @click="showFicticios()">
+                        <i class="fa fa-money"></i> Ficticios
+                    </b-button>
+                </b-col>
+                <b-col  v-if="datosCortes.adeudos.length > 0" sm="2">
+                    <b-button variant="dark" pill block @click="viewAdeudos = !viewAdeudos">
+                        <b-icon-eye-slash-fill v-if="viewAdeudos"></b-icon-eye-slash-fill>
+                        <b-icon-eye-fill v-else></b-icon-eye-fill> 
+                        Adeudos
+                    </b-button>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col :sm="(viewAdeudos && datosCortes.adeudos.length > 0) ? '6':'12'">
+                    <!-- TOTAL GENERAL DEL CLIENTE -->
+                    <table-totals :dato="datosCortes" :variant="'dark'" :favor="false"></table-totals>
+                    <!-- DATOS DE LOS CORTES -->
+                    <div v-for="(corte, i) in datosCortes.cortes" v-bind:key="i">
+                        <div class="mb-3">
+                            <b-row>
+                                <b-col class="text-left">
+                                    <a type="button" :class="corte.visible ? null : 'collapsed'"
+                                        :aria-expanded="corte.visible ? 'true' : 'false'"
+                                        aria-controls="collapse-1" @click="corte.visible = !corte.visible">
+                                        <!-- {{ corte.visible ? 'Ocultar' : 'Mostrar' }} -->
+                                        <b-icon-caret-down-fill v-if="!corte.visible"></b-icon-caret-down-fill>
+                                        <b-icon-caret-up-fill v-else></b-icon-caret-up-fill>
+                                        <b>Temporada {{ corte.corte }} {{ corte.inicio }} - {{ corte.final }}</b>
+                                    </a>
+                                </b-col>
+                                <b-col sm="2">
+                                    <b-button v-if="corte.total_pagar > 0" @click="registrarPago(corte)"
+                                        pill block size="sm" variant="dark">
+                                        Pago
+                                    </b-button>
+                                </b-col>
+                                <b-col sm="2">
+                                    <b-button v-if="corte.total_pagar > 0" @click="addAdeudo(corte)"
+                                        pill block size="sm" variant="dark">
+                                        Adeudo
+                                    </b-button>
+                                </b-col>
+                            </b-row>
+                            <table-totals :dato="corte" :variant="'info'" :favor="true"></table-totals>
+                            <b-collapse id="collapse-1" v-model="corte.visible" class="mt-2">
+                                <b-tabs content-class="mt-3" fill>
+                                    <b-tab title="Pagos" active>
+                                        <table-pagos :cortePagar="corte.total_pagar"
+                                            :remdepositos="corte.remdepositos" :role_id="role_id"
+                                            :cliente_id="corte.cliente_id" :showTitle="false"></table-pagos>
+                                    </b-tab>
+                                    <b-tab title="Remisiones">
+                                        <table-remisiones :remisiones="corte.remisiones" :showTitle="false" :role_id="role_id"></table-remisiones>
+                                    </b-tab>
+                                </b-tabs>
+                            </b-collapse>
+                        </div>
+                    </div>
+                </b-col>
+                <b-col v-if="viewAdeudos && datosCortes.adeudos.length > 0" sm="6">
+                    <adeudos-component :adeudos="datosCortes.adeudos"></adeudos-component>
+                </b-col>
+            </b-row>
         </div>
         <load-component v-else></load-component>
         <!-- MODALS -->
@@ -73,6 +91,9 @@
         </b-modal>
         <b-modal ref="modal-ficticios" title="Pagos pendientes (ficticios)" hide-footer size="xl">
             <b-table :items="ficticios" :fields="fieldsFic" responsive>
+                <template v-slot:cell(created_at)="row">
+                    {{ row.item.created_at | momentDet }}
+                </template>
                 <template v-slot:cell(pago)="row">
                     ${{ row.item.pago | formatNumber }}
                 </template>
@@ -99,10 +120,12 @@ import RegPagoComponent from '../partials/RegPagoComponent.vue';
 import toast from '../../../mixins/toast';
 import LoadComponent from '../partials/LoadComponent.vue';
 import sweetAlert from '../../../mixins/sweetAlert';
+import moment from '../../../mixins/moment';
+import AdeudosComponent from '../partials/AdeudosComponent.vue';
 export default {
-    components: {TableTotals, TableRemisiones, TablePagos, RegPagoComponent, LoadComponent},
+    components: {TableTotals, TableRemisiones, TablePagos, RegPagoComponent, LoadComponent, AdeudosComponent},
     props: ['clienteid', 'role_id'],
-    mixins: [formatNumber, toast, sweetAlert],
+    mixins: [formatNumber, toast, sweetAlert, moment],
     data(){
         return {
             datosCortes: {
@@ -135,7 +158,8 @@ export default {
                 { key: 'fecha', label: 'Fecha del pago' },
                 'nota', 'pago',
             ],
-            total_ficticios: 0
+            total_ficticios: 0,
+            viewAdeudos: true
         }
     },
     created: function(){
@@ -143,14 +167,13 @@ export default {
     },
     methods: {
         // PAGOS POR CLIENTE
-        verPagos(){
+        verPagos() {
             this.load = true;
-            axios.get('/cortes/by_cliente', {params: {cliente_id: this.clienteid}}).then(response => {
-                if(response.data.cortes.length > 0){
+            axios.get('/cortes/by_cliente', { params: { cliente_id: this.clienteid } }).then(response => {
+                if (response.data.cortes.length > 0)
                     this.datosCortes = response.data;
-                } else {
+                else
                     this.makeToast('warning', `El cliente no cuenta con cortes.`);
-                }
                 this.load = false;
             }).catch(error => {
                 this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
@@ -201,6 +224,34 @@ export default {
                 this.load = false;
             }).catch(error => {
                 this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                this.load = false;
+            });
+        },
+        // AGREGAR AL SALDO DEUDOR
+        addAdeudo(corte) {
+            this.messageOptions("¿Agregar saldo pendiente a saldo deudor?", "SI", "NO")
+                .then((result) => {
+                    if (result.isConfirmed) {
+                        this.messageOptions(`Saldo: $${numeral(corte.total_pagar).format("0,0[.]00")}`, "Confirmar", "Cancelar")
+                        .then((result) => {
+                            if (result.isConfirmed) {
+                                this.saveAdeudo(corte);
+                            }
+                        });
+                    }
+                });
+        },
+        saveAdeudo(corte) {
+            this.load = true;
+            let form = {
+                cliente_id: corte.cliente_id,
+                corte_id: corte.corte_id,
+                total_pagar: corte.total_pagar
+            };
+            axios.post('/cortes/adeudos/save', form).then(response => {
+                this.messageAlert('center', 'success', 'El saldo se agrego correctamente a adeudos', null, 'reload');
+                this.load = false;
+            }).catch(error => {
                 this.load = false;
             });
         }

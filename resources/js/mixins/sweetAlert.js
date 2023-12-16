@@ -19,6 +19,14 @@ export default {
                 swal.then((result) => window.close());
             if (tipo == 'reload') 
                 swal.then((result) => location.reload());
+        },
+        messageOptions(title, confirmText, cancelText) {
+            return Swal.fire({
+                title: title,
+                showDenyButton: true,
+                confirmButtonText: confirmText,
+                denyButtonText: cancelText
+            });
         }
     },
 }
