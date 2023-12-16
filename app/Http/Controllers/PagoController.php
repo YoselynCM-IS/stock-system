@@ -16,7 +16,7 @@ use App\Fecha;
 use App\Pago;
 use App\Dato;
 use Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
+use PDF;
 
 class PagoController extends Controller
 {
@@ -272,7 +272,7 @@ class PagoController extends Controller
             'total_fechas' => $fechas->sum('total'),
             'total_remdepositos' => $remdepositos->sum('pago') + $depositos->sum('pago')
         ];
-        $pdf = Pdf::loadView('download.excel.pagos.edo_cuenta', $data);
+        $pdf = PDF::loadView('download.excel.pagos.edo_cuenta', $data);
         return $pdf->download('edo-cuenta.pdf');
         // return Excel::download(new EdoCuentaExport($cliente_id), 'edo-de-cuenta.xlsx');
     }
