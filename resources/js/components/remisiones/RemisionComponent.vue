@@ -91,7 +91,7 @@
                     required :disabled="load"  v-model="remision.fecha_entrega" :state="state"></b-form-datepicker>
                 <div class="col-md-4"></div>
                 <div class="col-md-2" align="right">
-                    <b-button variant="dark" pill block @click="showScratch()">
+                    <b-button v-if="role_id == 6" variant="dark" pill block @click="showScratch()">
                         Scratch
                     </b-button>
                 </div>
@@ -667,7 +667,7 @@
                 if(check == undefined && check_f == undefined && check_d == undefined){
                     if(this.temporalScratch.unidades > 0){
                         if(this.temporalScratch.unidades <= this.temporalScratch.piezas){
-                            if(this.temporalScratch.costo_f > 0 && this.temporalScratch.costo_d > 0){
+                            if(this.temporalScratch.costo_f >= 0 && this.temporalScratch.costo_d >= 0){
                                 axios.get('/libro/scratch_libros', {params: {
                                     f: this.temporalScratch.libro_fisico, d: this.temporalScratch.libro_digital}})
                                 .then(response => {
