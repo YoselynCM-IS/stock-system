@@ -229,13 +229,19 @@ class EntradaController extends Controller
     // OBTENER URL DE LA FOTO
     public function comprobante_url(Request $request){
         $comprobante = Comprobante::find($request->comprobante_id);
+        $public_url = $comprobante->public_url;
+        
+        if($public_url == NULL){
+            $ruta = str_replace(' ', '-', env('APP_NAME')).'/entradas/comprobantes/'.$comprobante->name;
+            $url = Storage::disk('dropbox')->url($ruta);
+        } else {
+            $url = str_replace('www.dropbox.com', 'dl.dropboxusercontent.com', $public_url);
+        }
+
         // if($comprobante->extension == 'pdf'){
         //     $url = $comprobante->public_url;
         //     // $url = str_replace('www.dropbox.com', 'dl.dropboxusercontent.com', $public_url);
-        // } else {
-            $ruta = str_replace(' ', '-', env('APP_NAME')).'/entradas/comprobantes/'.$comprobante->name;
-            $url = Storage::disk('dropbox')->url($ruta);
-        // }
+        // } else { }
         
         return response()->json($url);
     }
