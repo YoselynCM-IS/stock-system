@@ -104,7 +104,7 @@ export default {
                 {key:'index', label:'N.'},
                 {key:'codigo', label:'Código'},
             ],
-            allowExt: /(\.pdf)$/i
+            allowExt: /(\.jpg|\.jpeg|\.png|\.pdf)$/i
         }
     },
     created: function(){
