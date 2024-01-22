@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-form @submit.prevent="saveEnvio()">
+        <b-form @submit="saveEnvio" enctype="multipart/form-data">
             <b-row>
                 <b-col>
                     <div v-if="envio == null">
@@ -84,6 +84,8 @@
                         <b-form-group label="Número de guía">
                             <b-form-textarea v-model="form.paqueteria.guia" :disabled="load" required rows="3" max-rows="6"></b-form-textarea>
                         </b-form-group>
+                        <subir-foto-component :disabled="load" :allowExt="allowExt"
+                            :titulo="'Subir guía'" @uploadImage="uploadImage"></subir-foto-component>
                     </div>
                 </b-col>
             </b-row>
@@ -107,7 +109,9 @@
 </template>
 
 <script>
+import SubirFotoComponent from '../../funciones/SubirFotoComponent.vue';
 export default {
+  components: { SubirFotoComponent },
     props: ['remisione_id'],
     data(){
         return {
@@ -122,7 +126,8 @@ export default {
                     tipo_envio: null,
                     precio: 0,
                     fecha_envio: null,
-                    guia: null
+                    guia: null,
+                    file: null,
                 },
                 destinatario: {
                     id: null,
@@ -146,20 +151,40 @@ export default {
                 {value: 'aereo', text: 'Aéreo'}
             ],
             queryDestinatario: null,
-            destinatarios: []
+            destinatarios: [],
+            allowExt: /(\.jpg|\.jpeg|\.png|\.pdf)$/i
         }
     },
     methods: {
         // GUARDAR INFORMACION DE PAQUETERIA DE LA REMISION
-        saveEnvio(){
+        saveEnvio(e) {
+            e.preventDefault();
             this.load = true;
             this.form.remisione_id = this.remisione_id;
-            axios.post('/remisiones/save_envio', this.form).then(response => {
+            axios.post('/remisiones/save_envio', this.set_append()).then(response => {
                 this.$emit('savedEnvio', response.data);
                 this.load = false;
             }).catch(error => {
                 this.load = false;
             });
+        },
+        set_append() {
+            let formData = new FormData();
+            formData.append('remisione_id', this.form.remisione_id);
+            formData.append('p_paqueteria', this.form.paqueteria.paqueteria);
+            formData.append('p_tipo_envio', this.form.paqueteria.tipo_envio);
+            formData.append('p_precio', this.form.paqueteria.precio);
+            formData.append('p_fecha_envio', this.form.paqueteria.fecha_envio);
+            formData.append('p_guia', this.form.paqueteria.guia);
+            formData.append('p_file', this.form.paqueteria.file, this.form.paqueteria.file.name);
+            formData.append('d_id', this.form.destinatario.id);
+            formData.append('d_destinatario', this.form.destinatario.destinatario);
+            formData.append('d_rfc', this.form.destinatario.rfc);
+            formData.append('d_telefono', this.form.destinatario.telefono);
+            formData.append('d_direccion', this.form.destinatario.direccion);
+            formData.append('d_regimen_fiscal', this.form.destinatario.regimen_fiscal);
+
+            return formData;
         },
         mostrarCDests(){
             if(this.queryDestinatario.length > 0){
@@ -179,6 +204,9 @@ export default {
             this.form.destinatario.regimen_fiscal = destinatario.regimen_fiscal;
             this.queryDestinatario = destinatario.destinatario;
             this.destinatarios = [];
+        },
+        uploadImage(file) {
+            this.form.paqueteria.file = file;
         }
     }
 }

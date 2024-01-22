@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Spatie\Dropbox\Client as ClienteDropbox;
+use Illuminate\Support\Facades\Storage;
 use App\Exports\RemisionesExport;
 use App\Exports\RemisionExport;
 use App\Exports\RemisionesGExport;
@@ -946,29 +948,46 @@ class RemisionController extends Controller
         \DB::beginTransaction();
         try {
             $paqueteria_id = 0;
-            $precio = (double) $request->paqueteria['precio'];
+            $precio = (double) $request->p_precio;
             if($precio > 0){
-                $id = $request->destinatario['id'];
+                $id = $request->d_id;
                 if($id == null){
                     $destinatario = Destinatario::create([
-                        'destinatario' => strtoupper($request->destinatario['destinatario']), 
-                        'rfc' => strtoupper($request->destinatario['rfc']), 
-                        'direccion' => strtoupper($request->destinatario['direccion']), 
-                        'regimen_fiscal' => $request->destinatario['regimen_fiscal'], 
-                        'telefono' => $request->destinatario['telefono']
+                        'destinatario' => strtoupper($request->d_destinatario), 
+                        'rfc' => strtoupper($request->d_rfc), 
+                        'direccion' => strtoupper($request->d_direccion), 
+                        'regimen_fiscal' => $request->d_regimen_fiscal, 
+                        'telefono' => $request->d_telefono
                     ]);
                     $reporte = 'creo el destinatario '.$destinatario->destinatario;
                     $this->create_report($destinatario->id, $reporte, 'cliente', 'destinatarios');
                 } else {
                     $destinatario = Destinatario::find($id);
                 }
+
+                // SUBIR COMPORBANTE
+                $file = $request->file('p_file');
+                $extension = $file->getClientOriginalExtension();
+                $name_file = "rem-".$remision->id."_".time().".".$extension;
+                $ruta = str_replace(' ', '-', env('APP_NAME')).'/remisiones/guias/';
+                
+                Storage::disk('dropbox')->putFileAs($ruta, $request->file('p_file'), $name_file);
+                $client = new ClienteDropbox(env('DROPBOX_TOKEN'));
+                $response = $client->createSharedLinkWithSettings(
+                    $ruta.$name_file, ["requested_visibility" => "public"]
+                );
+                $public_url = $response['url'];
+
                 $paqueteria = Paqueteria::create([
                     'destinatario_id' => $destinatario->id,
-                    'paqueteria' => strtoupper($request->paqueteria['paqueteria']), 
-                    'fecha_envio' => $request->paqueteria['fecha_envio'], 
-                    'tipo_envio' => $request->paqueteria['tipo_envio'], 
+                    'paqueteria' => strtoupper($request->p_paqueteria), 
+                    'fecha_envio' => $request->p_fecha_envio, 
+                    'tipo_envio' => $request->p_tipo_envio, 
                     'precio' => $precio,
-                    'guia' => $request->paqueteria['guia']
+                    'guia' => $request->p_guia,
+                    'name' => $name_file, 
+                    'extension' => $extension, 
+                    'public_url' => $public_url
                 ]);
                 $paqueteria_id = $paqueteria->id;
 
