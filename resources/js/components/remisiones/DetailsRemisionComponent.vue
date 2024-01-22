@@ -230,11 +230,20 @@
                 </b-row>
                 <b-row>
                     <b-col sm="3" class="text-right"><b>Costo de envió:</b></b-col>
-                    <b-col>{{ remision.paqueteria.precio }}</b-col>
+                    <b-col>${{ remision.paqueteria.precio | formatNumber }}</b-col>
                 </b-row>
                 <b-row>
                     <b-col sm="3" class="text-right"><b>Número de guía:</b></b-col>
                     <b-col>{{ remision.paqueteria.guia }}</b-col>
+                </b-row>
+                <b-row v-if="remision.paqueteria.public_url !== null">
+                    <b-col sm="3" class="text-right"><b>Comprobante guía:</b></b-col>
+                    <b-col>
+                        <b-button pill size="sm" variant="dark" 
+                            :href="remision.paqueteria.public_url" target="_blank">
+                            <i class="fa fa-eye"></i>
+                        </b-button>
+                    </b-col>
                 </b-row>
             </div>
         </b-modal>
