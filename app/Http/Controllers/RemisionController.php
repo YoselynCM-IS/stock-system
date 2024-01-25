@@ -673,8 +673,9 @@ class RemisionController extends Controller
     public function store(Request $request){
         \DB::beginTransaction();
         try {
+            // OBTENER LA FECHA ACTUAL
             $hoy = Carbon::now();
-            $fecha_hoy = $hoy->format('Y-m-d');
+            // OBTENER EL PERIODO ACTUAL
             $corte_id = $this->search_corte_actual();
             
             $total = (double) $request->total;
@@ -687,12 +688,19 @@ class RemisionController extends Controller
                 'total_pagar' => $total,
                 'fecha_entrega' => $request->fecha_entrega,
                 'estado' => 'Proceso',
-                'fecha_creacion' => $fecha_hoy,
-                'fecha_devolucion' => $fecha_hoy
+                'fecha_creacion' => $hoy->format('Y-m-d'),
+                'fecha_devolucion' => $hoy->format('Y-m-d')
             ]);
             
-            $this->save_datos($request->datos, $remision);
-            
+            // GUARDAR DATOS Y DEVOLUCIONES DE LA REMISIÓN
+            $this->save_datos($request->datos, $remision, $hoy);
+            // DISMINUIR PIEZAS DE PACK
+            $packs = collect($request->packs);
+            $packs->map(function($pack) use (&$prueba){
+                \DB::table('packs')->whereId($pack['id'])
+                                    ->decrement('piezas',  (int) $pack['unidades']);
+            });
+
             // ACTUALIZA LA CUENTA DEL CORTE CORRESPONDIENTE
             $cctotale = $this->get_cctotale($remision, $remision->cliente_id);
             $cctotale->update([
@@ -726,16 +734,16 @@ class RemisionController extends Controller
         return response()->json();
     }
 
-    public function save_datos($req_datos, $remision){
+    public function save_datos($req_datos, $remision, $hoy){
         $lista_datos = [];
-        $scratch = collect();
+        // PASAR A COLLECT ARRAY DE DATOS
         $request_datos = collect($req_datos);
-        $hoy = Carbon::now();
-        $request_datos->map(function($dato) use (&$scratch, &$lista_datos, $remision, $hoy){
+        $request_datos->map(function($dato) use (&$lista_datos, $remision, $hoy){
             $libro_id = $dato['libro']['id'];
             $unidades = (int) $dato['unidades'];
             $lista_datos[] = [
                 'remisione_id' => $remision->id,
+                'pack_id' => $dato['pack_id'],
                 'libro_id'  => $libro_id,
                 'costo_unitario' => (float) $dato['costo_unitario'],
                 'unidades'  => $unidades,
@@ -743,22 +751,15 @@ class RemisionController extends Controller
                 'created_at' => $hoy,
                 'updated_at' => $hoy
             ];
-
-            if($dato['scratch']){
-                $scratch->push([
-                    'libro_id' => $libro_id,
-                    'unidades' => $unidades
-                ]);
-            }
         });
         
         // CREAR REGISTROS DE DATOS
         Dato::insert($lista_datos);
-
+        // GUARDAR LAS DEVOLUCIONES
         $lista_devoluciones = [];
         $lista_codes = collect();
         $datos = Dato::where('remisione_id', $remision->id)->get();
-        $datos->map(function($dato) use(&$scratch, &$lista_devoluciones, &$lista_codes, $hoy){
+        $datos->map(function($dato) use(&$lista_devoluciones, &$lista_codes, $hoy){
             $libro_id = $dato->libro_id;
             $lista_devoluciones[] = [
                 'remisione_id' => $dato->remisione_id,
@@ -770,28 +771,12 @@ class RemisionController extends Controller
                 'updated_at' => $hoy
             ];
 
-            $s = $scratch->where('libro_id', $dato->libro_id)->first();
-            if($dato->libro->type == 'digital'){
-                // $s = $scratch->where('libro_id', $dato->libro_id)->first();
-                if($s == null){
-                    $lista_codes->push([
-                        'dato_id'   => $dato->id,
-                        'libro_id'  => $dato->libro_id,
-                        'unidades'  => $dato->unidades
-                    ]);
-                } else {
-                    $p = Pack::where('libro_digital', $dato->libro_id)
-                            ->whereIn('libro_fisico', $scratch->pluck('libro_id'))->first();
-                    $dato->update(['pack_id' => $p->id]);
-                    $p->update(['piezas' => $p->piezas - $s['unidades']]);
-                }
-            }
-            if($dato->libro->type == 'venta'){
-                if($s !== null){
-                    $p = Pack::where('libro_fisico', $dato->libro_id)
-                            ->whereIn('libro_digital', $scratch->pluck('libro_id'))->first();
-                    $dato->update(['pack_id' => $p->id]);
-                }
+            if($dato->libro->type == 'digital' && $dato->pack_id == null){
+                $lista_codes->push([
+                    'dato_id'   => $dato->id,
+                    'libro_id'  => $dato->libro_id,
+                    'unidades'  => $dato->unidades
+                ]);
             }
             
             // DISMINUIR PIEZAS DE LOS LIBROS
@@ -805,7 +790,7 @@ class RemisionController extends Controller
         // CREAR REGISTROS DE DEVOLUCION
         Devolucione::insert($lista_devoluciones);
 
-        $hoy = Carbon::now();
+        // OBTENER CODIGOS DE LOS LIBROS DIGITALES
         $lista_codes->map(function($lc, $hoy){
             $this->get_codes($lc['libro_id'], $lc['unidades'], $lc['dato_id']);
         });
@@ -1445,10 +1430,11 @@ class RemisionController extends Controller
         return view('information.historial.remisiones', compact('corte_id'));
     }
 
+    // OBTENER EL PERIODO ACTUAL
     public function search_corte_actual(){
         $hoy = Carbon::now();
-        $corte = Corte::where('inicio', '<', $hoy)
-                        ->where('final', '>', $hoy)
+        $corte = Corte::where('inicio', '<=', $hoy)
+                        ->where('final', '>=', $hoy)
                         ->first();  
         return $corte->id;
     }

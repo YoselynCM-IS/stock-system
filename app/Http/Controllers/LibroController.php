@@ -1383,19 +1383,34 @@ class LibroController extends Controller
         return view('information.libros.lista-sistemas');
     }
 
+    // BUSQUEDA DE SCRATCH, EN BASE AL LIBRO FISICO
     public function all_scratch(Request $request){
-        $libros = Libro::join('packs', 'libros.id', '=', 'packs.libro_fisico')
-                    ->select('libros.titulo', 'packs.*')
+        $query = \DB::table('libros')->join('packs', 'libros.id', '=', 'packs.libro_fisico')
+                    ->select('libros.titulo as lf_titulo', 'packs.*')
                     ->where('titulo','like','%'.$request->titulo.'%')
                     ->where('estado', 'activo')
                     ->where('type', 'venta')
                     ->orderBy('titulo', 'asc')
                     ->get();
+        $libros = collect();
+        $query->map(function($q) use (&$libros){
+            $ld_titulo = \DB::table('libros')->where('id', $q->libro_digital)->first();
+            $libros->push([
+                'lf_titulo' => $q->lf_titulo,
+                'ld_titulo' => $ld_titulo->titulo,
+                'id' => $q->id,
+                'libro_fisico' => $q->libro_fisico,
+                'libro_digital' => $q->libro_digital,
+                'piezas' => $q->piezas
+            ]);
+        });
         return response()->json($libros);
     }
 
+    // OBTENER LIBRO FISICO Y DIGITAL DE PACK SELECCIONADO
     public function scratch_libros(Request $request){
-        $libros = Libro::whereIn('id', [$request->f, $request->d])->get();
+        $libros = Libro::whereIn('id', [$request->f, $request->d])
+                    ->orderBy('type', 'asc')->get();
         return response()->json($libros);
     }
 

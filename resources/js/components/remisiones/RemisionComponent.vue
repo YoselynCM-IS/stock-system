@@ -91,7 +91,7 @@
                     required :disabled="load"  v-model="remision.fecha_entrega" :state="state"></b-form-datepicker>
                 <div class="col-md-4"></div>
                 <div class="col-md-2" align="right">
-                    <b-button v-if="role_id == 6" variant="dark" pill block @click="showScratch()">
+                    <b-button variant="dark" pill block @click="showScratch()">
                         Scratch
                     </b-button>
                 </div>
@@ -155,7 +155,7 @@
                         <td>{{ dato.libro.ISBN }}</td>
                         <td>
                             {{ dato.libro.titulo }}
-                            <b-badge v-if="dato.pack_id != null" variant="info">scratch</b-badge>
+                            <b-badge v-if="dato.scratch || dato.pack_id !== null" variant="info">scratch</b-badge>
                         </td>
                         <td>${{ dato.costo_unitario | formatNumber }}</td>
                         <td>{{ dato.unidades | formatNumber }}</td>
@@ -191,66 +191,69 @@
                 </tbody>
             </table>
             <!-- MODAL -->
-            <b-modal ref="modal-confirmar-remision" size="xl" title="Resumen de la remisión">
-                <b-row class="mb-3">
-                    <b-col><b>Cliente:</b> {{ remision.cliente.name }}</b-col>
-                    <b-col sm="4"><b>Fecha de entrega:</b> {{ remision.fecha_entrega }}</b-col>
-                </b-row>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="4"></th>
-                            <th><b>${{ remision.total | formatNumber }}</b></th>
-                        </tr>
-                        <tr>
-                            <th scope="col" style="width: 18%;">ISBN</th>
-                            <th scope="col" style="width: 37%;">Libro</th>
-                            <th scope="col" style="width: 15%;">Costo unitario</th>
-                            <th scope="col" style="width: 10%;">Unidades</th>
-                            <th scope="col" style="width: 15%;">Total</th>
-                            <th scope="col" style="width: 5%;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(dato, i) in remision.datos" v-bind:key="i">
-                            <td>{{ dato.libro.ISBN }}</td>
-                            <td>{{ dato.libro.titulo }}</td>
-                            <td>${{ dato.costo_unitario | formatNumber }}</td>
-                            <td>{{ dato.unidades | formatNumber }}</td>
-                            <td>${{ dato.total | formatNumber }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <table class="table">
-                    <tbody>
-                        <tr v-for="(nuevo, j) in remision.nuevos" v-bind:key="j">
-                            <td style="width: 18%;">{{ nuevo.libro.ISBN }}</td>
-                            <td style="width: 37%;">{{ nuevo.libro.titulo }}</td>
-                            <td style="width: 15%;">${{ nuevo.costo_unitario | formatNumber }}</td>
-                            <td style="width: 10%;">{{ nuevo.unidades | formatNumber }}</td>
-                            <td style="width: 15%;">${{ nuevo.total | formatNumber }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div slot="modal-footer">
-                    <b-row>
-                        <b-col sm="10">
-                            <b-alert show variant="info">
-                                <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la remisión.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
-                            </b-alert>
-                        </b-col>
-                        <b-col sm="2" align="right">
-                            <b-button v-if="!editar" :disabled="load" pill block
-                                @click="guardarRemision()" variant="success">
-                                <i class="fa fa-check"></i> Confirmar
-                            </b-button>
-                            <b-button v-else :disabled="load"  pill block
-                                @click="actualizarRemision()" variant="success">
-                                <i class="fa fa-check"></i> Confirmar
-                            </b-button>
-                        </b-col>
+            <b-modal ref="modal-confirmar-remision" size="xl" title="Resumen de la remisión" hide-footer>
+                <div v-if="!load">
+                    <b-row class="mb-3">
+                        <b-col><b>Cliente:</b> {{ remision.cliente.name }}</b-col>
+                        <b-col sm="4"><b>Fecha de entrega:</b> {{ remision.fecha_entrega }}</b-col>
                     </b-row>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th colspan="4"></th>
+                                <th><b>${{ remision.total | formatNumber }}</b></th>
+                            </tr>
+                            <tr>
+                                <th scope="col" style="width: 18%;">ISBN</th>
+                                <th scope="col" style="width: 37%;">Libro</th>
+                                <th scope="col" style="width: 15%;">Costo unitario</th>
+                                <th scope="col" style="width: 10%;">Unidades</th>
+                                <th scope="col" style="width: 15%;">Total</th>
+                                <th scope="col" style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(dato, i) in remision.datos" v-bind:key="i">
+                                <td>{{ dato.libro.ISBN }}</td>
+                                <td>{{ dato.libro.titulo }}</td>
+                                <td>${{ dato.costo_unitario | formatNumber }}</td>
+                                <td>{{ dato.unidades | formatNumber }}</td>
+                                <td>${{ dato.total | formatNumber }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <tbody>
+                            <tr v-for="(nuevo, j) in remision.nuevos" v-bind:key="j">
+                                <td style="width: 18%;">{{ nuevo.libro.ISBN }}</td>
+                                <td style="width: 37%;">{{ nuevo.libro.titulo }}</td>
+                                <td style="width: 15%;">${{ nuevo.costo_unitario | formatNumber }}</td>
+                                <td style="width: 10%;">{{ nuevo.unidades | formatNumber }}</td>
+                                <td style="width: 15%;">${{ nuevo.total | formatNumber }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div slot="modal-footer">
+                        <b-row>
+                            <b-col sm="10">
+                                <b-alert show variant="info">
+                                    <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la remisión.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
+                                </b-alert>
+                            </b-col>
+                            <b-col sm="2" align="right">
+                                <b-button v-if="!editar" :disabled="load" pill block
+                                    @click="guardarRemision()" variant="success">
+                                    <i class="fa fa-check"></i> Confirmar
+                                </b-button>
+                                <b-button v-else :disabled="load"  pill block
+                                    @click="actualizarRemision()" variant="success">
+                                    <i class="fa fa-check"></i> Confirmar
+                                </b-button>
+                            </b-col>
+                        </b-row>
+                    </div>
                 </div>
+                <load-component v-else></load-component>
             </b-modal>
             <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
                 <table class="table mb-2">
@@ -275,7 +278,7 @@
                                         href="#" v-bind:key="i" 
                                         v-for="(libro, i) in resultsScratch" 
                                         @click="selectScratch(libro)">
-                                        PACK: {{ libro.titulo }}
+                                        PACK: <b>{{ libro.lf_titulo }}</b> / <b>{{ libro.ld_titulo }}</b>
                                     </a>
                                 </div>
                             </td>
@@ -325,9 +328,11 @@
 </template>
 
 <script>
-    import getLibros from '../../mixins/getLibros';
-    import sweetAlert from '../../mixins/sweetAlert';
-    export default {
+import getLibros from '../../mixins/getLibros';
+import sweetAlert from '../../mixins/sweetAlert';
+import LoadComponent from '../cortes/partials/LoadComponent.vue';
+export default {
+    components: { LoadComponent },
         props: ['clientesall', 'editar', 'datoremision', 'role_id'],
         mixins: [getLibros, sweetAlert],
         data() {
@@ -366,7 +371,8 @@
                     datos: [],
                     nuevos: [],
                     eliminados: [],
-                    editados: []
+                    editados: [],
+                    packs: []
                 },
                 resultsScratch: [],
                 packs: [],
@@ -403,7 +409,8 @@
                     datos: this.datoremision.datos,
                     nuevos: [],
                     eliminados: [],
-                    editados: []
+                    editados: [],
+                    packs: []
                 };
             }
             this.mostrarBusqueda = true;
@@ -432,12 +439,12 @@
             // GUARDAR DATOS DE REMISIÓN
             guardarRemision(){
                 this.load = true;
+                this.remision.packs = this.packs;
                 this.$refs['modal-confirmar-remision'].hide();
                 axios.post('/remisiones/store', this.remision).then(response => {
                     this.load = false;
                     this.messageAlert('center', 'success', 'La remisión se creó correctamente.', '/login', 'close-opener');
-                })
-                .catch(error => {
+                }).catch(error => {
                     this.load = false;
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                 });
@@ -577,7 +584,7 @@
                     if(this.temporal.costo_unitario >= 0){
                         this.temporal.total = this.temporal.unidades * this.temporal.costo_unitario;
                         this.mostrarDatos = false;
-                        var insert = this.insert_datos(this.temporal.dato_id, this.temporal, this.temporal.costo_unitario, this.temporal.unidades, this.temporal.total, false);
+                        var insert = this.insert_datos(this.temporal.dato_id, this.temporal, this.temporal.costo_unitario, this.temporal.unidades, this.temporal.total, false, null);
                         if (!this.editar) {
                             this.remision.datos.push(insert);
                         } else {
@@ -643,48 +650,62 @@
                 if(this.role_id == 6) ruta = '/manager/remisiones/lista'; // MANAGER
                 window.opener.document.location=`${ruta}`;
             },
+            // MOSTRAR MODAL PARA AGREGAR PACKS
             showScratch(){
                 this.ini_temporalScratch();
                 this.$refs['modal-scratch'].show();
             },
+            // OBTENER PACK POR COINCIDENCIA
             librosScratch(){
                 axios.get('/libro/all_scratch', {params: {titulo: this.temporalScratch.titulo}}).then(response => {
                     this.resultsScratch = response.data;
                 }).catch(error => { });
             },
-            selectScratch(libro){
+            // ASIGNAR DATOS DEL PACK SELECCIONADO
+            selectScratch(libro) {
                 this.temporalScratch.id = libro.id;
                 this.temporalScratch.libro_fisico = libro.libro_fisico;
                 this.temporalScratch.libro_digital = libro.libro_digital;
                 this.temporalScratch.piezas = libro.piezas;
-                this.temporalScratch.titulo = `PACK: ${libro.titulo}`;
+                this.temporalScratch.titulo = `PACK: ${libro.lf_titulo}`;
                 this.resultsScratch = [];
             },
-            saveScratch(){
+            // GUARDAR PACK SELECCIONADO
+            saveScratch() {
+                // VERIFICA SI EL LIBRO DIGITAL O LIBRO FISICO NO SE HA AGREGADO A LA RMEISIÓN
                 var check_f = this.remision.datos.find(d => d.libro.id == this.temporalScratch.libro_fisico);
                 var check_d = this.remision.datos.find(d => d.libro.id == this.temporalScratch.libro_digital);
+                // VERIFICA SI EL PACK NO SE A AGREADO A LA LISTA
                 var check = this.packs.find(p => p.id == this.temporalScratch.id);
-                if(check == undefined && check_f == undefined && check_d == undefined){
-                    if(this.temporalScratch.unidades > 0){
-                        if(this.temporalScratch.unidades <= this.temporalScratch.piezas){
-                            if(this.temporalScratch.costo_f >= 0 && this.temporalScratch.costo_d >= 0){
-                                axios.get('/libro/scratch_libros', {params: {
+                // SI LAS TRES CONDIFICONES SON UNDEFINES, CONTINUA
+                if (check == undefined && check_f == undefined && check_d == undefined) {
+                    // SE VERIFICAR QUE LAS UNIDADES SEAN MAYOR QUE 0
+                    if (this.temporalScratch.unidades > 0) {
+                        // SE VERIFICA QUE LAS UNIDADES SEAN MENOR O IGUAL QUE LAS PIEZAS EN EXISTENCIA DE SCRATCH
+                        if (this.temporalScratch.unidades <= this.temporalScratch.piezas) {
+                            // SI EL COSTO ES IGUAL O MAYOR A 0, CONTINUA
+                            if (this.temporalScratch.costo_f >= 0 && this.temporalScratch.costo_d >= 0) {
+                                // GET PARA OBTENER LIBRO FISICO Y DIGITAL DEL PACK SELECCIONADO
+                                axios.get('/libro/scratch_libros', {
+                                    params: {
                                     f: this.temporalScratch.libro_fisico, d: this.temporalScratch.libro_digital}})
-                                .then(response => {
+                                    .then(response => {
+                                    // REALIZAR SUMA Y DE COSTOS, PARA OBTENER EL TOTAL DEL PACK
                                     this.temporalScratch.costo_total = parseFloat(this.temporalScratch.costo_f) + parseFloat(this.temporalScratch.costo_d);
                                     this.temporalScratch.total = this.temporalScratch.unidades * this.temporalScratch.costo_total;
-
+                                    // SE AGREGA EL PACK AL ARRAY PACKS
                                     this.packs.push(this.temporalScratch);
-
+                                    
                                     response.data.forEach(r => {
                                         var costo_unitario = 0;
+                                        // ASIGNAR COSTO A CADA LIBRO
                                         if(r.type == 'venta') costo_unitario = this.temporalScratch.costo_f;
                                         if(r.type == 'digital') costo_unitario = this.temporalScratch.costo_d;
-
+                                        // ASIGNAR TOTAL A CADA LIBRO Y AGREGAR AL ARRAY GENERAL DE LA REMISIÓN
                                         var total = this.temporalScratch.unidades * costo_unitario;
-                                        this.remision.datos.push(this.insert_datos(null, r, costo_unitario, this.temporalScratch.unidades, total, true));
+                                        this.remision.datos.push(this.insert_datos(null, r, costo_unitario, this.temporalScratch.unidades, total, true, this.temporalScratch.id));
                                     });
-
+                                    // AGREGAR AL TOTAL GENERAL E INICIALIZAR EL TEMPORALSCRATCH
                                     this.remision.total += this.temporalScratch.total;
                                     this.ini_temporalScratch();
                                 }).catch(error => { });
@@ -701,7 +722,7 @@
                     this.makeToast('warning', 'El libro ya ha sido agregado.');
                 }
             },
-            insert_datos(dato_id, libro, cu, u, t, scratch){
+            insert_datos(dato_id, libro, cu, u, t, scratch, pack_id) {
                 return {
                     dato_id: dato_id,
                     libro: {
@@ -712,7 +733,8 @@
                     costo_unitario: cu,
                     unidades: u,
                     total: t,
-                    scratch: scratch
+                    scratch: scratch,
+                    pack_id: pack_id 
                 };
             },
             ini_temporalScratch(){
@@ -730,21 +752,23 @@
                 };
                 this.resultsScratch = [];
             },
-            deleteScratch(libro, position){
+            // BORRAR PACK SELECCIONADO
+            deleteScratch(pack, position) {
                 let positions = [];
-                this.remision.datos.find(function(value, index) {
-                    if(value.libro.id == libro.libro_fisico) positions.push(index);
-                    if(value.libro.id == libro.libro_digital) positions.push(index);
+                // OBTENER POSICIONES DEL LIBRO FISICO Y DIGITAL
+                this.remision.datos.findIndex(function (value, index) {
+                    if (value.pack_id == pack.id) positions.push(index);
                 });
-
+                
+                // ELIMINAR AMBOS LIBROS DE LA LISTA GENERAL, EMPEZANDO DESDE EL ULTIMO
                 positions.reverse()
                 positions.forEach(p => {
                     this.remision.datos.splice(p, 1);
                 });
-
+                // ELIMAR DE LISTADO DE PACKS
                 this.packs.splice(position, 1);
-
-                this.remision.total = this.remision.total - libro.total;
+                // RESTAR EL TOTAL DEL PACK DE LA REMISIÓN
+                this.remision.total = this.remision.total - pack.total;
             }
         }
     }
