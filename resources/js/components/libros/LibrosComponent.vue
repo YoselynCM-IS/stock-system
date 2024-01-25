@@ -42,7 +42,7 @@
             </div>
         </div>
         <hr>
-        <b-row>
+        <b-row class="mb-1">
             <b-col sm="6">
                 <!-- PAGINACIÓN -->
                 <pagination size="default" :limit="1" :data="librosData" 
@@ -54,7 +54,7 @@
             <b-col sm="2" class="text-right">
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6"
                     variant="dark" pill block href="/libro/all_sistemas" target="_blank">
-                    <i class="fa fa-list"></i> Todo
+                    Sistemas
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
@@ -88,7 +88,7 @@
             </b-col>
         </b-row>
         <div v-if="!load">
-            <!-- LISTADO DE LIBROS -->
+            <!-- LISTADO DE LIBROS-->
             <b-table v-if="libros.length > 0" 
                     responsive :fields="fields" :items="libros">
                 <template v-slot:cell(index)="data">
@@ -195,12 +195,14 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 queryTitulo: '',
                 queryEditorial: 'TODO',
                 fields: [
-                    {key:'index', label:'N.'},
-                    {key:'type', label:'Tipo'},
+                    { key: 'index', label: 'N.' },
+                    'editorial',
                     'ISBN', 
                     'titulo', 
-                    'editorial', 
-                    'piezas', 
+                    { key: 'type', label: 'Tipo' },
+                    'piezas',
+                    { key: 'scratch', label: 'Scratch' },
+                    { key: 'count_solo', label: 'Digital / Físico' },
                     'defectuosos',
                     {key:'accion', label:''}
                 ],
@@ -217,7 +219,8 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     libro: null,
                     defectuosos: 0,
                     motivo: null
-                }
+                },
+                load: true
             }
         },
         created: function(){
@@ -244,8 +247,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
             http_libros(page = 1){
                 this.load = true;
                 axios.get(`/libro/index?page=${page}`).then(response => {
-                    this.librosData = response.data; 
-                    this.libros = response.data.data;
+                    this.assign_values(response.data, false, false, false);
                     this.load = false;   
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
@@ -256,7 +258,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
             http_titulo(page = 1){
                 this.load = true;
                 axios.get(`/libro/by_titulo?page=${page}`, {params: {titulo: this.queryTitulo}}).then(response => {
-                    this.assign_values(response, true, false, false);
+                    this.assign_values(response.data, true, false, false);
                     this.load = false;
                 }).catch(error => {
                     this.load = false;
@@ -267,7 +269,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
             http_isbn(page = 1) {
                 this.load = true;
                 axios.get(`/libro/by_isbn?page=${page}`, {params: {isbn: this.isbn}}).then(response => {
-                    this.assign_values(response, false, true, false);
+                    this.assign_values(response.data, false, true, false);
                     this.load = false;
                 }).catch(error => {
                     this.load = false;
@@ -278,7 +280,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
             http_editorial(page = 1){
                 this.load = true;
                 axios.get(`/libro/by_editorial?page=${page}`, {params: {editorial: this.queryEditorial}}).then(response => {
-                    this.assign_values(response, false, false, true);
+                    this.assign_values(response.data, false, false, true);
                     this.load = false;
                 }).catch(error => {
                     this.load = false;
@@ -286,8 +288,8 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 });
             },
             assign_values(response, sTLibro, sTIsbn, sTEditorial){
-                this.librosData = response.data;
-                this.libros = response.data.data;
+                this.librosData = response.paginate;
+                this.libros = response.libros;
                 this.sTLibro = sTLibro;
                 this.sTIsbn = sTIsbn;
                 this.sTEditorial = sTEditorial;
@@ -296,7 +298,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
             assign_editorial(){
                 this.options.push({
                     value: 'TODO',
-                    text: 'MOSTRAR TODO'
+                    text: 'Seleccionar una opción', disabled: true
                 });
                 this.editoriales.forEach(editorial => {
                     this.options.push({

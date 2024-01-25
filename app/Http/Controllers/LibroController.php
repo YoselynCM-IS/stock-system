@@ -28,53 +28,88 @@ Use App\Defectuoso;
 use App\Mail\movimientos\LibrosDay;
 use Illuminate\Support\Facades\Mail;
 use App\Pack;
+use App\Code;
 
 class LibroController extends Controller
 {
     // MOSTRAR TODOS LOS LIBROS
     public function index(){
-        $libros = $this->all_libros_paginate();
-        return response()->json($libros);
+        $libros = $this->all_libros_paginate()->paginate(20);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
 
     public function all_libros_paginate(){
         return Libro::orderBy('editorial', 'asc')
-                        ->where('estado', 'activo')->paginate(20);
+                        ->orderBy('titulo', 'asc')
+                        ->where('estado', 'activo');
+    }
+
+    public function get_all_detallado($libros){
+        $resultados = collect();
+        $libros->map(function($libro) use(&$resultados){
+            $sum_scratch = 0;
+            $count_solo = $libro->piezas;
+            if($libro->type != 'promocion'){
+                $sum_scratch = Pack::where('libro_fisico', $libro->id)
+                        ->OrWhere('libro_digital', $libro->id)
+                        ->sum('piezas');
+
+                if($libro->type == 'digital') {
+                    $count_solo = Code::where('libro_id', $libro->id)
+                                    ->where('tipo', 'alumno')
+                                    ->where('estado', 'inventario')->count();
+                }
+                if($libro->type == 'venta')
+                    $count_solo = $libro->piezas - $sum_scratch;
+            }
+            
+            $resultados->push([
+                'id' => $libro->id, 
+                'ISBN' => $libro->ISBN,  
+                'titulo' => $libro->titulo, 
+                'autor' => $libro->autor, 
+                'editorial' => $libro->editorial, 
+                'edicion' => $libro->edicion,
+                'piezas' => $libro->piezas,
+                'defectuosos' => $libro->defectuosos,
+                'estado' => $libro->estado,
+                'type' => $libro->type,
+                'externo' => $libro->externo,
+                'scratch' => (int) $sum_scratch,
+                'count_solo' => (int) $count_solo,
+                'check' => $libro->piezas == ($sum_scratch + $count_solo)
+            ]);
+        });
+        return $resultados;
     }
 
     // MOSTRAR COINCIDENCIAS DE TITULO PAGINADO
     public function by_titulo(Request $request){
-        $titulo = $request->titulo;
-        $libros = \DB::table('libros')
-                    ->where('titulo','like','%'.$titulo.'%')
-                    ->where('estado', 'activo')
-                    ->orderBy('titulo', 'asc')->paginate(20);
-        return response()->json($libros);
+        $libros = $this->all_libros_paginate()
+                    ->where('titulo','like','%'.$request->titulo.'%')
+                    ->paginate(20);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
 
     // MOSTRAR COINCIDENCIAS DE ISBN PAGINADO
     public function by_isbn(Request $request){
-        $isbn = $request->isbn;
-        $libros = \DB::table('libros')
-                    ->where('ISBN','like','%'.$isbn.'%')
-                    ->where('estado', 'activo')
-                    ->orderBy('titulo', 'asc')->paginate(20);
-        return response()->json($libros);
+        $libros = $this->all_libros_paginate()
+                    ->where('ISBN','like','%'.$request->isbn.'%')
+                    ->paginate(20);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
 
     // BUSCAR LIBRO POR EDITORIAL paginado
     // Función utilizada en LibrosComponent
     public function by_editorial(Request $request){
-        $editorial = $request->editorial;
-        if($editorial === 'TODO'){
-            $libros = $this->all_libros_paginate();
-        }
-        else{
-            $libros = Libro::where('editorial','like','%'.$editorial.'%')
-                ->where('estado', 'activo')
-                ->orderBy('titulo', 'asc')->paginate(20);
-        }
-        return response()->json($libros);
+        $libros = $this->all_libros_paginate()
+                    ->where('editorial', $request->editorial)
+                    ->paginate(20);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
 
     // BUSCAR LIBRO POR ISBN
