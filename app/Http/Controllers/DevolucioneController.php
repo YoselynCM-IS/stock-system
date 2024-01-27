@@ -25,7 +25,7 @@ class DevolucioneController extends Controller
     public function update(Request $request){
         try {
             \DB::beginTransaction();
-            // Buscar remisión
+            // BUSCAR REMISIÓN Y REMCLIENTE
             $remision = Remisione::whereId($request->id)->first();
             $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
 
@@ -41,8 +41,8 @@ class DevolucioneController extends Controller
                 $total_base = (double) $devolucion['total_base'];
                 $defectuosos = (int) $devolucion['defectuosos'];
                 $comentario = $devolucion['comentario'];
-
-                if($unidades_base != 0){
+                // UNIDADES MAYOR A 0
+                if($unidades_base > 0){
                     // Buscar devolución
                     $d = Devolucione::find($devolucion['id']);
                     // Crear registros de fecha de la devolución
@@ -81,6 +81,7 @@ class DevolucioneController extends Controller
                         'piezas' => $l->piezas + ($unidades_base - $defectuosos),
                         'defectuosos' => $l->defectuosos + $defectuosos
                     ]);
+                    // REGISTRAR LIBROS DEFECTUOSOS
                     if($defectuosos > 0){
                         Defectuoso::create([
                             'libro_id' => $d->libro->id, 
@@ -93,17 +94,19 @@ class DevolucioneController extends Controller
                     $codes = $d->dato->codes()->whereIn('code_id', $devolucion['code_dato'])->get();
                     $codes->map(function($code){
                         $code->update(['estado' => 'inventario']);
-                        $code->datos()
-                            ->updateExistingPivot($code->pivot->dato_id, [
-                                'devolucion' => true
-                            ]);
+                        $code->datos()->updateExistingPivot($code->pivot->dato_id, [
+                            'devolucion' => true
+                        ]);
                     });
                     
-                    if(($devolucion['scratch'] && $unidades_base > 0) || ($d->libro->type == 'digital' && $d->dato->pack_id != null)){
+                    // DEVOLUCIÓN DE SCRATCH
+                    if($unidades_base > 0 && ($devolucion['scratch'] || ($d->libro->type == 'digital' && $d->dato->pack_id != null))){
                         $scratchs->push([
                             'fecha_id' => $fecha->id,
                             'libro_digital' => $devolucion['libro_id'],
                             'unidades' => $unidades_base,
+                            'referencia' => $devolucion['referencia'],
+                            'pack_id' => $devolucion['dato']['pack_id']
                         ]);
                     }
                 } 
@@ -111,9 +114,14 @@ class DevolucioneController extends Controller
                 $total_devolucion += $total_base;
             });
             
-            $scratchs->map(function($scratch) use($devoluciones){
-                $p = Pack::where('libro_digital', $scratch['libro_digital'])
-                            ->whereIn('libro_fisico', $devoluciones->pluck('libro_id'))->first();
+            // AFECTAR INVENTARIO DE SCRATCH
+            $scratchs->map(function($scratch){
+                if($scratch['pack_id'] == null){
+                    $p = Pack::where('libro_digital', $scratch['libro_digital'])
+                            ->where('libro_fisico', $scratch['referencia'])->first();
+                } else {
+                    $p = Pack::whereId($scratch['pack_id'])->first();
+                }
                 Fecha::whereId($scratch['fecha_id'])->update(['pack_id' => $p->id]);
                 $p->update(['piezas' => $p->piezas + $scratch['unidades']]);
             });

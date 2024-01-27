@@ -306,9 +306,13 @@
                     </tr>
                 </template>
                 <template v-slot:cell(unidades_base)="row">
+                    <!-- INGRESAR UNIDADES PARA DEVOLUCIÓN -->
+                    <!-- LIBRO FISICO ó DIGITAL-->
+                    <!-- PRIMERA CONIDICON, SI EL LIBRO ES FISICO -->
+                    <!-- SEGUNDA CONDICIÓN, SI EL LIBRO ES DIGITAL PERO EN SCRATCH -->
                     <div v-if="row.item.libro.type !== 'digital' ||
                         (row.item.libro.type == 'digital' && row.item.dato.codes.length == 0)">
-                        <b-input v-if="row.item.status"
+                        <b-input v-if="row.item.status && row.item.unidades_resta > 0"
                             :id="`inpDev-${row.index}`" type="number" 
                             v-model="row.item.unidades_base" :disabled="load"
                             @change="guardarUnidades(row.item, row.index)"/>
@@ -316,6 +320,7 @@
                             {{ row.item.unidades_base }}
                         </label>
                     </div>
+                    <!-- LIBRO DIGITAL -->
                     <div v-if="row.item.libro.type == 'digital' && row.item.dato.codes.length > 0">
                         <b-input v-if="showSelectUnit && position == row.index" 
                             v-model="row.item.unidades_base" :disabled="load"
@@ -365,10 +370,12 @@
 </template>
 
 <script>
+import sweetAlert from '../../mixins/sweetAlert';
 import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
     export default {
         props: ['listresponsables', 'role_id'],
         components: { AddDefectuososComponent },
+        mixins: [sweetAlert],
         data() {
             return {
                 fields: [
@@ -513,16 +520,18 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
             porNumero(){
                 if(this.num_remision > 0){
                     axios.get('/buscar_por_numero', {params: {num_remision: this.num_remision}}).then(response => {
-                        // if(response.data.remision.estado == 'Iniciado')
-                        //     this.makeToast('warning', 'La remisión aún no ha sido marcada como entregada.');
-                        if(response.data.remision.estado == 'Cancelado')
-                            this.makeToast('warning', 'La remisión esta cancelada.');
-                        if(response.data.remision.total_pagar == 0 && (response.data.remision.estado == 'Proceso' || response.data.remision.estado == 'Terminado'))
-                            this.makeToast('warning', 'La remisión ya se encuentra pagada. Consultar en el apartado de remisiones.');
-                        if(response.data.remision.total_pagar > 0 && response.data.remision.estado != 'Cancelado'){
-                            this.remisionesData = {};
-                            this.remisiones = [];
-                            this.remisiones.push(response.data.remision);
+                        if (response.data.remision == null) {
+                            this.makeToast('warning', 'La remisión no existe.');
+                        } else {
+                            if (response.data.remision.estado == 'Cancelado')
+                                this.makeToast('warning', 'La remisión esta cancelada.');
+                            if (response.data.remision.estado == 'Terminado')
+                                this.makeToast('warning', 'La remisión ya se encuentra pagada. Consultar en el apartado de remisiones.');
+                            if (response.data.remision.total_pagar > 0 && response.data.remision.estado != 'Cancelado') {
+                                this.remisionesData = {};
+                                this.remisiones = [];
+                                this.remisiones.push(response.data.remision);
+                            }
                         }
                     }).catch(error => {
                         this.makeToast('danger', 'Error al consultar el numero de remisión ingresado.');
@@ -636,33 +645,6 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 this.total_devolucion = 0;
                 this.ini_entregado_por();
                 axios.get('/remisiones/obtener_devoluciones', {params: {remisione_id: remision.id}}).then(response => {
-                    // response.data.forEach(rd => {
-                    //     let cs = [];
-                    //     rd.dato.codes.forEach(c => {
-                    //         if(!c.pivot.devolucion) cs.push(c);
-                    //     });
-                    //     this.devoluciones.push({
-                    //         created_at: rd.created_at,
-                    //         dato: rd.dato,
-                    //         dato_id: rd.dato_id,
-                    //         id: rd.id,
-                    //         libro: rd.libro,
-                    //         libro_id: rd.libro_id,
-                    //         remisione_id: rd.remisione_id,
-                    //         total: rd.total,
-                    //         total_base: rd.total_base,
-                    //         total_resta: rd.total_resta,
-                    //         unidades: rd.unidades,
-                    //         unidades_base: rd.unidades_base,
-                    //         unidades_resta: rd.unidades_resta,
-                    //         updated_at: rd.updated_at,
-                    //         codes: cs,
-                    //         code_dato: [],
-                    //         scratch: false,
-                    //         defectuosos: 0,
-                    //         comentario: null
-                    //     });
-                    // });
                     this.devoluciones = response.data;
                     this.remision = remision;
                     this.acumularFinal();
@@ -742,23 +724,34 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 });
             },
             // VERIFICAR LAS UNIDADES INGRESADAS PARA OBTENER EL SUBTOTAL
-            guardarUnidades(devolucion, i){
+            guardarUnidades(devolucion, i) {
+                // UNIDADES MAYOR O IGUAL A 0
                 if (devolucion.unidades_base >= 0) {
+                    // UNIDADES MENORES O IGUAL A LAS UNIDADES PENDIENTES
                     if(devolucion.unidades_base <= devolucion.unidades_resta){
                         if (devolucion.unidades_base == 0) {
                             this.devoluciones[i].defectuosos = 0;
                             this.devoluciones[i].comentario = null;
                         }
 
-                        // let total_base = devolucion.dato.costo_unitario * devolucion.unidades_base;
+                        // OBTENER EL TOTAL DE LA DEVOLUCIÓN
                         this.devoluciones[i].total_base = devolucion.dato.costo_unitario * devolucion.unidades_base;
                         this.showSelectUnit = false;
-                        if (devolucion.libro.type == 'digital' && devolucion.referencia != null) {
-                            let pos = this.devoluciones.findIndex(d => d.libro_id == devolucion.referencia);
-                            let d = this.devoluciones[pos];
+                        // LIBRO DIGITAL EN SCRATCH
+                        if ((devolucion.libro.type == 'digital' && devolucion.referencia != null) ||
+                            (devolucion.dato.pack_id !== null)) {
+                            // OBTENER POSICIÓN DEL LIBRO FISICO
+                            let d = this.get_posRef(devolucion);
+                            // UNIDADES MENOR O IGUAL A LAS UNIDADES PENDIENTES DEL LIBRO FISICO
                             if (devolucion.unidades_base <= d.unidades_resta) {
                                 d.unidades_base = devolucion.unidades_base;
                                 d.total_base = d.dato.costo_unitario * d.unidades_base;
+                                // UNIDADES DE DEFECTUOSOS MAYOR A UNIDADES DE LIBRO FISICO
+                                if (d.defectuosos > d.unidades_base) {
+                                    d.defectuosos = 0;
+                                    d.comentario = null;
+                                    this.makeToast('warning', 'Defectuosos: Unidades mayores a unidades de libro físico.');
+                                }
                             } else {
                                 d.unidades_base = 0;
                                 d.total_base = 0;
@@ -767,20 +760,26 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                                 this.makeToast('warning', 'Libro físico: Unidades mayores a unidades pendientes.');
                             }
                         }
-                        // if(i + 1 < this.devoluciones.length){
-                        //     document.getElementById('inpDev-'+(i+1)).focus();
-                        //     document.getElementById('inpDev-'+(i+1)).select();
-                        // }
                     } else{
                         this.item = devolucion.id;
                         this.makeToast('warning', 'Unidades mayores a unidades pendientes.');
                         this.set_posDev(i);
+                        if (devolucion.libro.type == 'digital' && devolucion.referencia != null) {
+                            let d = this.get_posRef(devolucion);
+                            d.unidades_base = 0;
+                            d.total_base = 0;
+                        }
                     }
                 } else{
                     this.makeToast('warning', 'Las unidades no pueden ser menores a cero');
                     this.set_posDev(i);
+
                 }
                 this.acumularFinal();
+            },
+            get_posRef(devolucion) {
+                let pos = this.devoluciones.findIndex(d => d.libro_id == devolucion.referencia);
+                return this.devoluciones[pos];
             },
             set_posDev(i) {
                 this.devoluciones[i].unidades_base = 0;
@@ -809,7 +808,7 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 let form_close = {id: remision.id};
                 axios.put('/remisiones/close', form_close).then(response => {
                     this.load = false;
-                    this.makeToast('success', 'La remisión se actualizo correctamente.');
+                    this.messageAlert('center', 'success', 'La remisión se cerró correctamente.', null, 'info');
                     this.remisiones.splice(pos, 1);
                 }).catch(error => {
                     this.load = false;
