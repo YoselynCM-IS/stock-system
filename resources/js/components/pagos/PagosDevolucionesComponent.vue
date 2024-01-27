@@ -332,7 +332,7 @@
                 </template>
                 <template v-slot:cell(actions)="row">
                     <div v-if="row.item.libro.type == 'digital' && row.item.unidades_resta > 0 && row.item.dato.codes.length > 0">
-                        <b-button v-if="row.item.referencia != null && role_id == 6" 
+                        <b-button v-if="row.item.referencia != null" 
                                 pill small block variant="info" @click="selectUnidades(row.item, row.index)">
                             Scratch
                         </b-button>
