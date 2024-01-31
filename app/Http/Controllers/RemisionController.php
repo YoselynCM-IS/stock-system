@@ -936,7 +936,7 @@ class RemisionController extends Controller
             $precio = (double) $request->p_precio;
             if($precio > 0){
                 $id = $request->d_id;
-                if($id == null){
+                if($id == 'null'){
                     $destinatario = Destinatario::create([
                         'destinatario' => strtoupper($request->d_destinatario), 
                         'rfc' => strtoupper($request->d_rfc), 
