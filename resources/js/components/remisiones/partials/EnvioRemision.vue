@@ -176,7 +176,7 @@ export default {
             formData.append('p_precio', this.form.paqueteria.precio);
             formData.append('p_fecha_envio', this.form.paqueteria.fecha_envio);
             formData.append('p_guia', this.form.paqueteria.guia);
-            formData.append('p_file', this.form.paqueteria.file, this.form.paqueteria.file.name);
+            formData.append('p_file', this.form.paqueteria.file);
             formData.append('d_id', this.form.destinatario.id);
             formData.append('d_destinatario', this.form.destinatario.destinatario);
             formData.append('d_rfc', this.form.destinatario.rfc);
