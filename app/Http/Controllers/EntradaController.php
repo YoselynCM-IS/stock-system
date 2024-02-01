@@ -76,6 +76,7 @@ class EntradaController extends Controller
                 // CREAR LISTA DE REGISTROS
                 $registro = Registro::create([
                     'entrada_id' => $entrada->id,
+                    'pack_id' => $item->pack_id,
                     'libro_id'  => $libro_id,
                     'unidades'  => $unidades_base,
                     'unidades_que'  => $item->unidades_que,
@@ -92,6 +93,14 @@ class EntradaController extends Controller
                     ->increment('piezas', $unidades_base);   
                 
                 $unidades += $unidades_base;
+            });
+
+            // AUMENTAR PIEZAS EN PACK
+            $ps = json_decode($request->packs);
+            $packs = collect($ps);
+            $packs->map(function($pack){
+                \DB::table('packs')->whereId($pack->id)
+                                    ->increment('piezas',  (int) $pack->unidades);
             });
             
             $entrada->update(['unidades' => $unidades]);

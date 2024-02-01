@@ -269,18 +269,7 @@
                     <tbody>
                         <tr>
                             <td scope="col">
-                                <b-input style="text-transform:uppercase;"
-                                    v-model="temporalScratch.titulo" autofocus
-                                    @keyup="librosScratch()" placeholder="BUSCAR LIBRO"
-                                ></b-input>
-                                <div class="list-group" v-if="resultsScratch.length" id="listaL">
-                                    <a class="list-group-item list-group-item-action" 
-                                        href="#" v-bind:key="i" 
-                                        v-for="(libro, i) in resultsScratch" 
-                                        @click="selectScratch(libro)">
-                                        PACK: <b>{{ libro.lf_titulo }}</b> / <b>{{ libro.ld_titulo }}</b>
-                                    </a>
-                                </div>
+                                <busq-scratch-component @assignScracth="assignScracth"></busq-scratch-component>
                             </td>
                             <td scope="col">
                                 <b-input v-model="temporalScratch.unidades" type="number" min="1" max="9999"></b-input>
@@ -331,8 +320,9 @@
 import getLibros from '../../mixins/getLibros';
 import sweetAlert from '../../mixins/sweetAlert';
 import LoadComponent from '../cortes/partials/LoadComponent.vue';
+import BusqScratchComponent from '../funciones/scratch/busqScratchComponent.vue';
 export default {
-    components: { LoadComponent },
+    components: { LoadComponent, BusqScratchComponent },
         props: ['clientesall', 'editar', 'datoremision', 'role_id'],
         mixins: [getLibros, sweetAlert],
         data() {
@@ -374,7 +364,6 @@ export default {
                     editados: [],
                     packs: []
                 },
-                resultsScratch: [],
                 packs: [],
                 temporalScratch: {
                     id: null,
@@ -655,20 +644,13 @@ export default {
                 this.ini_temporalScratch();
                 this.$refs['modal-scratch'].show();
             },
-            // OBTENER PACK POR COINCIDENCIA
-            librosScratch(){
-                axios.get('/libro/all_scratch', {params: {titulo: this.temporalScratch.titulo}}).then(response => {
-                    this.resultsScratch = response.data;
-                }).catch(error => { });
-            },
             // ASIGNAR DATOS DEL PACK SELECCIONADO
-            selectScratch(libro) {
+            assignScracth(libro) {
                 this.temporalScratch.id = libro.id;
                 this.temporalScratch.libro_fisico = libro.libro_fisico;
                 this.temporalScratch.libro_digital = libro.libro_digital;
                 this.temporalScratch.piezas = libro.piezas;
                 this.temporalScratch.titulo = `PACK: ${libro.lf_titulo}`;
-                this.resultsScratch = [];
             },
             // GUARDAR PACK SELECCIONADO
             saveScratch() {

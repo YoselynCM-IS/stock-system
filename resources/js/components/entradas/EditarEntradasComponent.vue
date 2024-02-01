@@ -216,7 +216,10 @@
                 :fields="(entrada.lugar == 'DOS' || entrada.lugar == 'QUE') ? fieldsQUE:fieldsR">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(isbn)="row">{{ row.item.libro.ISBN }}</template>
-                <template v-slot:cell(titulo)="row">{{ row.item.libro.titulo }}</template>
+                <template v-slot:cell(titulo)="row">
+                    {{ row.item.libro.titulo }} 
+                    <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
+                </template>
                 <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
                 <template v-slot:cell(total)="row">${{ row.item.total | formatNumber }}</template>
                 <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>

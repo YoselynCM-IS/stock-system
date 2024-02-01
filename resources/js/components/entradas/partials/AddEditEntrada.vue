@@ -1,50 +1,50 @@
 <template>
     <div>
         <b-row>
-            <b-col sm="3">
+            <b-col sm="8">
                 <h4 style="color: #170057">{{ agregar ? 'Nueva' : 'Editar' }} entrada</h4>
             </b-col>
-            <b-col sm="6" class="text-right">
+            <b-col sm="2" class="text-right">
                 <b-button :disabled="load || form.registros.length == 0 || stateN != true ||
                         (form.editorial == 'MAJESTIC EDUCATION' && form.queretaro && total_unidades_que == 0)"
-                    @click="confirmarEntrada()" variant="success" pill>
+                    @click="confirmarEntrada()" variant="success" pill block>
                     <i v-if="agregar === true" class="fa fa-check"> {{ !load ? 'Guardar' : 'Guardando' }}</i>
                     <i v-else class="fa fa-check"> {{ !load ? 'Guardar  cambios' : 'Guardando' }}</i>
                 </b-button>
             </b-col>
-            <b-col sm="3" class="text-right">
+            <b-col sm="2" class="text-right">
                 <!-- PENDIENTE EL BOTON DE REGRESAR -->
-                <b-button variant="secondary" pill @click="goBack()">
+                <b-button variant="secondary" pill @click="goBack()" block>
                     <i class="fa fa-mail-reply"></i> Regresar
                 </b-button>
             </b-col>
         </b-row>
         <hr>
         <div>
-            <div>
-                <b-row>
-                    <b-col>
+            <b-row>
+                <b-col>
+                    <b-row>
+                        <b-col sm="2"><label>Editorial</label></b-col>
+                        <b-col>
+                            <b-form-select v-model="form.editorial" autofocus :state="stateE" 
+                                @change="editorialSelected()"
+                                :disabled="load || form.registros.length > 0" :options="options">
+                            </b-form-select>    
+                        </b-col>
+                    </b-row>
+                    <b-row>
+                        <b-col sm="2"><label>Folio</label></b-col>
+                        <b-col>
+                            <b-form-input style="text-transform:uppercase;"
+                                v-model="form.folio" :disabled="load" :state="stateN"
+                                @change="guardarNum()">
+                            </b-form-input>
+                        </b-col>
+                    </b-row>
+                </b-col>
+                <b-col class="text-right">
+                    <div v-if="form.editorial == 'MAJESTIC EDUCATION'">
                         <b-row>
-                            <b-col sm="2"><label>Editorial</label></b-col>
-                            <b-col>
-                                <b-form-select v-model="form.editorial" autofocus :state="stateE" 
-                                    @change="editorialSelected()"
-                                    :disabled="load || form.registros.length > 0" :options="options">
-                                </b-form-select>    
-                            </b-col>
-                        </b-row>
-                        <b-row>
-                            <b-col sm="2"><label>Folio</label></b-col>
-                            <b-col>
-                                <b-form-input style="text-transform:uppercase;"
-                                    v-model="form.folio" :disabled="load" :state="stateN"
-                                    @change="guardarNum()">
-                                </b-form-input>
-                            </b-col>
-                        </b-row>
-                    </b-col>
-                    <b-col class="text-right">
-                        <b-row v-if="form.editorial == 'MAJESTIC EDUCATION'">
                             <b-col sm="2"><label>Imprenta</label></b-col>
                             <b-col>
                                 <b-form-select v-model="form.imprenta_id" autofocus :state="stateE"
@@ -52,19 +52,30 @@
                                 </b-form-select>    
                             </b-col>
                         </b-row>
-                    </b-col>
-                </b-row>
-            </div>
+                        <b-row class="mt-3" v-if="!form.queretaro">
+                            <b-col></b-col>
+                            <b-col sm="4">
+                                <b-button variant="dark" pill block @click="showScratch()">
+                                    Scratch
+                                </b-button>
+                            </b-col>
+                        </b-row>
+                    </div>
+                </b-col>
+            </b-row>
             <hr>
             <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsRE">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
-                <template v-slot:cell(titulo)="row">{{ row.item.titulo }}</template>
+                <template v-slot:cell(titulo)="row">
+                    {{ row.item.titulo }}
+                    <b-badge v-if="row.item.scratch" variant="info">scratch</b-badge>
+                </template>
                 <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>
                 <template v-slot:cell(unidades_que)="row">{{ row.item.unidades_que | formatNumber }}</template>
                 <template v-slot:cell(total_unidades)="row">{{ row.item.total_unidades | formatNumber }}</template>
                 <template v-slot:cell(eliminar)="row">
-                    <b-button v-if="agregar == true" pill
+                    <b-button v-if="agregar == true && !row.item.scratch" pill size="sm"
                         variant="danger" @click="eliminarRegistro(row.item, row.index)">
                         <i class="fa fa-minus-circle"></i>
                     </b-button>
@@ -112,13 +123,13 @@
                             </b-form-input>
                         </th>
                         <th v-if="form.queretaro" colspan="2">
-                            <b-button :disabled="temporal.id == null"
+                            <b-button :disabled="temporal.id == null" size="sm"
                                 variant="success" pill @click="saveTemporal()">
                                 <i class="fa fa-level-down"></i>
                             </b-button>
                         </th>
                         <th v-else>
-                            <b-button :disabled="temporal.id == null || temporal.unidades <= 0"
+                            <b-button :disabled="temporal.id == null || temporal.unidades <= 0" size="sm"
                                 variant="success" pill @click="saveTemporal()">
                                 <i class="fa fa-level-down"></i>
                             </b-button>
@@ -163,7 +174,10 @@
                     <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsRE">
                         <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                         <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
-                        <template v-slot:cell(titulo)="row">{{ row.item.titulo }}</template>
+                        <template v-slot:cell(titulo)="row">
+                            {{ row.item.titulo }}
+                            <b-badge v-if="row.item.scratch" variant="info">scratch</b-badge>
+                        </template>
                         <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>
                         <template v-slot:cell(unidades_que)="row">{{ row.item.unidades_que | formatNumber }}</template>
                         <template v-slot:cell(total_unidades)="row">{{ row.item.total_unidades | formatNumber }}</template>
@@ -190,6 +204,25 @@
                     </b-row>
                 </form>
             </b-modal>
+            <!-- Agregar Scratch -->
+            <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
+                <!-- BUSCAR Y AGREGAR SCRATCH -->
+                <add-scratchs-component @addedScratch="addedScratch"></add-scratchs-component>
+                <!-- LISTAR PACKS AGREGADOS -->
+                <b-table :items="packs" :fields="fieldsScratch">
+                    <template v-slot:cell(index)="row">
+                        {{ row.index + 1 }}
+                    </template>
+                    <template v-slot:cell(unidades)="row">
+                        {{ row.item.unidades | formatNumber }}
+                    </template>
+                    <template v-slot:cell(actions)="row">
+                        <b-button variant="danger" pill size="sm" @click="deleteScratch(row.item, row.index)">
+                            <i class="fa fa-close"></i>
+                        </b-button>
+                    </template>
+                </b-table>
+            </b-modal>
         </div>
     </div>
 </template>
@@ -200,8 +233,9 @@ import sweetAlert from '../../../mixins/sweetAlert';
 import SubirFotoComponent from '../../funciones/SubirFotoComponent.vue';
 import formatNumber from './../../../mixins/formatNumber';
 import toast from './../../../mixins/toast';
+import AddScratchsComponent from '../../funciones/AddScratchsComponent.vue';
 export default {
-  components: { SubirFotoComponent },
+  components: { SubirFotoComponent, AddScratchsComponent },
     props: ['agregar', 'form', 'editoriales'],
     mixins: [formatNumber, toast, sweetAlert],
     data(){
@@ -240,7 +274,13 @@ export default {
             total_unidades_que: 0,
             total_unidades: 0,
             imprentas: [],
-            allowExt: /(\.jpg|\.jpeg|\.png|\.pdf)$/i
+            allowExt: /(\.jpg|\.jpeg|\.png|\.pdf)$/i,
+            packs: [],
+            fieldsScratch: [
+                { key: 'index', label: 'N.' },
+                'titulo', 'unidades',
+                { key: 'actions', label: '' }
+            ],
         }
     },
     created: function(){
@@ -306,7 +346,6 @@ export default {
         onSubmit(e){
             e.preventDefault();
             this.load = true;
-
             let formData = new FormData();
             // formData.append('file', this.form.file, this.form.file.name);
             for (var i = 0; i < this.form.files.length; i++) {
@@ -319,6 +358,7 @@ export default {
             formData.append('imprenta_id', this.form.imprenta_id);
             formData.append('queretaro', this.form.queretaro);
             formData.append('registros', JSON.stringify(this.form.registros));
+            formData.append('packs', JSON.stringify(this.packs));
             axios.post('/entradas/store', formData, { 
                 headers: { 'content-type': 'multipart/form-data' } })
                 .then(response => {
@@ -390,23 +430,35 @@ export default {
             this.resultsISBNS = [];
             this.inicializar_temporal(libro.id, libro.titulo, libro.ISBN);
         },
-        saveTemporal(){
-            let u = parseInt(this.temporal.unidades);
-            let uq = parseInt(this.temporal.unidades_que);
-            let total_unidades = u + uq;
-            if(total_unidades > 0){
-                this.form.registros.push({
-                    id: this.temporal.id,
-                    isbn: this.temporal.isbn,
-                    titulo: this.temporal.titulo,
-                    unidades: u,
-                    unidades_que: uq,
-                    total_unidades: total_unidades
-                });
-                this.acum_total();
-                this.inicializar_temporal(null, null, null);
+        // AGREGAR LIBRO AL LISTADO GENERAL
+        saveTemporal() {
+            // COMPROBAR QUE EL LIBRO NO ESTE EN LA LISTA GENERAL
+            var check = this.form.registros.find(r => r.id == this.temporal.id);
+            if (check == undefined) {
+                let u = parseInt(this.temporal.unidades);
+                let uq = parseInt(this.temporal.unidades_que);
+                let total_unidades = u + uq;
+                if (total_unidades > 0) {
+                    this.form.registros.push(this.assign_registro(this.temporal.id, this.temporal.isbn, this.temporal.titulo, u, uq, total_unidades, false, null));
+                    this.acum_total();
+                    this.inicializar_temporal(null, null, null);
+                } else {
+                    this.makeToast('warning', 'El total de unidades debe ser mayor a 0');
+                }
             } else {
-                this.makeToast('warning', 'El total de unidades debe ser mayor a 0');
+                this.makeToast('warning', 'El libro ya ha sido agregado.');
+            }
+        },
+        assign_registro(id, isbn, titulo, u, uq, total_unidades, scratch, pack_id) {
+            return {
+                id: id,
+                isbn: isbn,
+                titulo: titulo,
+                unidades: u,
+                unidades_que: uq,
+                total_unidades: total_unidades,
+                scratch: scratch,
+                pack_id: pack_id
             }
         },
         acum_total(){
@@ -435,6 +487,57 @@ export default {
             } else {
                 this.messageAlert('center', 'warning', 'Revisar formato de archivo. Formato de archivo no permitido', null, 'info');
             }
+        },
+        // MOSTRAR MODAL DE SCRATCH
+        showScratch() {
+            this.$refs['modal-scratch'].show();
+        },
+        // AGREGAR PACK A LA LISTA
+        addedScratch(temporal) {
+            // VERIFICA SI EL LIBRO DIGITAL O LIBRO FISICO NO SE HA AGREGADO A LA ENTRADA
+            var check_f = this.form.registros.find(d => d.id == temporal.libro_fisico);
+            var check_d = this.form.registros.find(d => d.id == temporal.libro_digital);
+            // VERIFICA SI EL PACK NO SE A AGREADO A LA LISTA
+            var check = this.packs.find(p => p.id == temporal.id);
+            // SI LAS TRES CONDIFICONES SON UNDEFINES, CONTINUA
+            if (check == undefined && check_f == undefined && check_d == undefined) { 
+                // SE VERIFICAR QUE LAS UNIDADES SEAN MAYOR QUE 0
+                if (temporal.unidades > 0) {
+                    // GET PARA OBTENER LIBRO FISICO Y DIGITAL DEL PACK SELECCIONADO
+                    axios.get('/libro/scratch_libros', { params: { f: temporal.libro_fisico, d: temporal.libro_digital }
+                    }).then(response => {
+                        // SE AGREGA EL PACK AL ARRAY PACKS
+                        this.packs.push(temporal);
+                        response.data.forEach(r => {
+                            // AGREGAR LOS 2 LIBROS A LA LISTA PRINCIPAL Y SUMAR UNIDADES
+                            this.form.registros.push(this.assign_registro(r.id, r.ISBN, r.titulo, temporal.unidades, 0, temporal.unidades, true, temporal.id));
+                            this.acum_total();
+                        });
+                    }).catch(error => { });
+                } else {
+                    this.makeToast('warning', 'Las unidades deben ser mayor a 0.');
+                }
+            } else {
+                this.makeToast('warning', 'El libro ya ha sido agregado.');
+            }
+        },
+        // ELIMINAR PACK DE LA LISTA
+        deleteScratch(pack, position) {
+            let positions = [];
+            // OBTENER POSICIONES DEL LIBRO FISICO Y DIGITAL
+            this.form.registros.findIndex(function (value, index) {
+                if (value.pack_id == pack.id) positions.push(index);
+            });
+            // ELIMINAR AMBOS LIBROS DE LA LISTA GENERAL, EMPEZANDO DESDE EL ULTIMO
+            positions.reverse()
+            positions.forEach(p => {
+                this.form.registros.splice(p, 1);
+            });
+
+            // ELIMAR DE LISTADO DE PACKS
+            this.packs.splice(position, 1);
+            // RESTAR EL TOTAL DE UNIDADES
+            this.acum_total();
         }
     }
 }

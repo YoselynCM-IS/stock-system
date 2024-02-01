@@ -18,6 +18,7 @@ class Registro extends Model
     protected $fillable = [
         'id', 
         'entrada_id', 
+        'pack_id',
         'libro_id',
         'costo_unitario', 
         'unidades', 
