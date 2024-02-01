@@ -56,6 +56,7 @@ export default {
         // GUARDAR PACK SELECCIONADO
         saveScratch() {
             this.$emit('addedScratch', this.temporalScratch);
+            this.ini_temporalScratch();
         },
         // INICIALIZAR EL TEMPORAL SCRACTH
         ini_temporalScratch() {
