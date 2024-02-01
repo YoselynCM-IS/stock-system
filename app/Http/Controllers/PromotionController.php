@@ -13,7 +13,6 @@ use App\Reporte;
 use App\Libro;
 use App\Code;
 use Excel;
-use PDF;
 // use App\Enteditoriale;
 // use App\Editoriale;
 // use App\Registro;

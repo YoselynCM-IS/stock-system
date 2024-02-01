@@ -12,7 +12,6 @@ use App\Regalo;
 use App\Libro;
 use App\Code;
 use Excel;
-use PDF;
 
 class DonacioneController extends Controller
 {

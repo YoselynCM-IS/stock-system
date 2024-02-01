@@ -8,7 +8,6 @@ use App\Libro;
 use App\Entrada;
 use App\Registro;
 use App\Devolucione;
-use PDF;
 use Carbon\Carbon;
 use App\Exports\LibrosExport;
 use App\Exports\MovLibrosExport;

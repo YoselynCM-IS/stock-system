@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Abono' => $baseDir . '/app/Abono.php',
     'App\\Actividade' => $baseDir . '/app/Actividade.php',
     'App\\Adeudo' => $baseDir . '/app/Adeudo.php',
     'App\\Cctotale' => $baseDir . '/app/Cctotale.php',
