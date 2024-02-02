@@ -9,6 +9,7 @@ use App\Remcliente;
 use App\Remisione;
 use App\Cctotale;
 use App\Deposito;
+use App\Adeudo;
 use App\Corte;
 
 class RemclienteController extends Controller
@@ -38,12 +39,30 @@ class RemclienteController extends Controller
 
     // OBTENER TOTALES
     public function get_totales(){
-        $totales = Remcliente::select(
+        $remclientes = Remcliente::select(
             \DB::raw('SUM(total) as total'),
             \DB::raw('SUM(total_devolucion) as total_devolucion'),
             \DB::raw('SUM(total_pagos) as total_pagos'),
             \DB::raw('SUM(total_pagar) as total_pagar')
         )->get();
+        $adeudos = Adeudo::select(
+            // \DB::raw('SUM(saldo_inicial) as saldo_inicial'),
+            // \DB::raw('SUM(saldo_pagado) as saldo_pagado'),
+            \DB::raw('SUM(saldo_pendiente) as saldo_pendiente')
+        )->get();
+
+        $total = $remclientes[0]->total - $adeudos[0]->saldo_pendiente;
+        $total_pagos = $remclientes[0]->total_pagos - $adeudos[0]->saldo_pendiente;
+        $total_pagar = $total - ($remclientes[0]->total_devolucion + $total_pagos);
+        $totales = [
+            'total' => $total,
+            'total_devolucion' => $remclientes[0]->total_devolucion,
+            'total_pagos' => $total_pagos,
+            'total_pagar' => $total_pagar, 
+            // 'saldo_inicial' => $adeudos[0]->saldo_inicial,
+            // 'saldo_pagado' => $adeudos[0]->saldo_pagado,
+            // 'saldo_pendiente' => 
+        ];
         return response()->json($totales);
     }
 

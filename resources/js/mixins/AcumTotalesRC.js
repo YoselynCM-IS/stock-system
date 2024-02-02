@@ -14,7 +14,7 @@ export default {
         // OBTENER TOTALES DE TODO 
         acumular_totales(){
             axios.get('/remcliente/get_totales').then(response => {
-                this.set_totales(response.data[0]); 
+                this.set_totales(response.data); 
             }).catch(error => { });
         }, 
         set_totales(r){
