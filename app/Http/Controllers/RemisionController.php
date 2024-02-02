@@ -310,7 +310,7 @@ class RemisionController extends Controller
                 $rc_ids[] = $cliente->remcliente->id;
             });
             $remdepositos = Remdeposito::whereIn('remcliente_id', $rc_ids)
-                    ->whereBetween('created_at', [$inicio.' 00:00:00', $final.' 23:59:59'])
+                    ->whereBetween('fecha', [$inicio, $final])
                     ->sum('pago');
             $totales = $this->f_totales($ids, $remdepositos, $depositos);
             // FIN TOTALES
@@ -324,7 +324,7 @@ class RemisionController extends Controller
             $ids = $this->f_ids($remisiones_ids);
             $depositos = Deposito::whereIn('remisione_id', $ids)->sum('pago');
             $remdepositos = Remdeposito::where('remcliente_id', $cliente->remcliente->id)
-                ->whereBetween('created_at', [$inicio.' 00:00:00', $final.' 23:59:59'])
+                ->whereBetween('fecha', [$inicio, $final])
                 ->sum('pago');
             $totales = $this->f_totales($ids, $remdepositos, $depositos);
             // FIN TOTALES
