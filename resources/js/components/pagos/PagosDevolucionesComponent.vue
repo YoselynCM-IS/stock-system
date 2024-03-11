@@ -77,7 +77,7 @@
                             @click="registrarDevolucion(row.item, row.index)">Devolución
                         </b-button> -->
                         <b-button 
-                            v-if="row.item.total_pagar > 0 && (role_id == 1 || role_id == 3 || role_id == 6)" 
+                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 3 || role_id == 6)" 
                             variant="dark" 
                             @click="registrarDevolucion(row.item, row.index)">Devolución
                         </b-button>
@@ -90,7 +90,7 @@
                             variant="secondary">Cerrar
                         </b-button>  -->
                         <b-button 
-                            v-if="row.item.total_pagar > 0 && (role_id == 1 || role_id == 2 || role_id == 6)" 
+                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 2 || role_id == 6)" 
                             @click="cerrarRemision(row.item, row.index)"
                             variant="secondary">Cerrar
                         </b-button> 
@@ -409,7 +409,8 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 mostrarDevolucion: false, // Indicar si se muestra el apartado para registrar devolución
                 remision: {}, //Datos de la remision
                 devoluciones: [], //Array de las devoluciones
-                total_devolucion: 0,
+                total_devolucion: 0, //TOTAL EN $ DE LA DEVOLUCIÓN
+                total_unidades: 0, // TOTAL DE UNIDADES DE LA DEVOLUCIÓN
                 remisiones: [],
                 num_remision: null,
                 queryCliente: '',
@@ -527,7 +528,8 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                                 this.makeToast('warning', 'La remisión esta cancelada.');
                             if (response.data.remision.estado == 'Terminado')
                                 this.makeToast('warning', 'La remisión ya se encuentra pagada. Consultar en el apartado de remisiones.');
-                            if (response.data.remision.total_pagar > 0 && response.data.remision.estado != 'Cancelado') {
+                            //if (response.data.remision.total_pagar > 0 && response.data.remision.estado != 'Cancelado') {
+                            if (response.data.remision.estado == 'Proceso') {
                                 this.remisionesData = {};
                                 this.remisiones = [];
                                 this.remisiones.push(response.data.remision);
@@ -657,7 +659,7 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
             confirmarDevolucion(){
                 if(this.entregado_por != null){
                     this.state = true;
-                    if(this.total_devolucion > 0){
+                    if(this.total_devolucion >= 0 && this.total_unidades > 0){
                         if(this.total_devolucion <= this.remisiones[this.pos_remision].total_pagar){
                             this.$refs['modal-confirmarDevolucion'].show();
                         } else {    
@@ -787,10 +789,12 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 this.devoluciones[i].defectuosos = 0;
                 this.devoluciones[i].comentario = null;
             },
-            acumularFinal(){
+            acumularFinal() {
+                this.total_unidades = 0;
                 this.total_devolucion = 0;
                 this.total_pagar = 0;
                 this.devoluciones.forEach(devolucion => {
+                    this.total_unidades += devolucion.unidades_base;
                     this.total_devolucion += devolucion.total_base;
                     this.total_pagar += devolucion.total_resta;
                 });

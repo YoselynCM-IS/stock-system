@@ -1240,10 +1240,10 @@ class RemisionController extends Controller
 
     // OBTENER TODAS LAS REMISIONES EN PROCESO O TERMINADAS
     public function pay_remisiones(){
-        $remisiones = Remisione::where('total_pagar', '>', '0')
+        $remisiones = Remisione::where('total_pagar', '>=', '0')
             ->where(function ($query) {
-                $query->where('estado', 'Proceso')
-                        ->orWhere('estado', 'Terminado');
+                $query->where('estado', 'Proceso');
+                        // ->orWhere('estado', 'Terminado');
             })->orderBy('id','desc')
             ->with('cliente')->paginate(20);
         return response()->json($remisiones);

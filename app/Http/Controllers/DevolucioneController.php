@@ -31,12 +31,13 @@ class DevolucioneController extends Controller
 
             $entregado_por = $request->entregado_por;
             $total_devolucion = 0;
+            $unidades_restantes = 0;
             
             // DEVOLUCIONES
             $scratchs = collect();
             $devoluciones = collect($request->devoluciones);
             $hoy = Carbon::now();
-            $devoluciones->map(function($devolucion) use(&$scratchs, $remision, $entregado_por, &$total_devolucion, $hoy){
+            $devoluciones->map(function($devolucion) use(&$scratchs, $remision, $entregado_por, &$total_devolucion, $hoy, &$unidades_restantes){
                 $unidades_base = (int) $devolucion['unidades_base'];
                 $total_base = (double) $devolucion['total_base'];
                 $defectuosos = (int) $devolucion['defectuosos'];
@@ -111,6 +112,7 @@ class DevolucioneController extends Controller
                     }
                 } 
 
+                $unidades_restantes += $unidades_resta;
                 $total_devolucion += $total_base;
             });
             
@@ -134,7 +136,7 @@ class DevolucioneController extends Controller
                 'total_devolucion' => $t_devolucion,
                 'total_pagar'   => $total_pagar
             ]);
-            if ((int) $total_pagar === 0) {
+            if ((int) $unidades_restantes === 0) {
                 if ($remision->depositos->count() > 0)
                     $this->restantes_to_cero($remision);
                 $remision->update(['estado' => 'Terminado']); 

@@ -22,10 +22,10 @@ class PagoController extends Controller
     public function pagos_remision_cliente(Request $request){
         $cliente_id = $request->cliente_id;
         $remisiones = Remisione::where('cliente_id', $cliente_id)
-                    ->where('total_pagar', '>', 0)
+                    ->where('total_pagar', '>=', 0)
                     ->where(function ($query) {
-                        $query->where('estado', '=', 'Proceso')
-                            ->orWhere('estado', '=', 'Terminado');
+                        $query->where('estado', '=', 'Proceso');
+                            // ->orWhere('estado', '=', 'Terminado');
                     })->orderBy('id','desc')
                     ->with('cliente')->paginate(20);
         return response()->json($remisiones);
