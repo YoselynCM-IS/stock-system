@@ -110,7 +110,7 @@
         </div>
         <br><br>
         <!-- DEVOLUCIONES DE LA REMISION -->
-        <div v-if="remision.total_devolucion > 0">
+        <div v-if="remision.total_devolucion >= 0 && unidades_devolucion > 0">
             <h4 style="color: #12013d"><b>Devolución</b></h4>
             <b-table :items="devoluciones" :fields="fieldsDevoluciones">
                 <template v-slot:cell(costo_unitario)="row">
@@ -309,8 +309,14 @@ export default {
                 remision_id: null,
                 comentario: ''
             },
-            mostrarDetalles: true
+            mostrarDetalles: true,
+            unidades_devolucion: 0
         }
+    },
+    created: function () {
+        this.devoluciones.forEach(d => {
+            this.unidades_devolucion += d.unidades;
+        });
     },
     methods: {
         ini_comment(){
