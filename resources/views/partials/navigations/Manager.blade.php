@@ -72,7 +72,7 @@
 		Otros <span class="caret"></span>
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('manager.otros.promociones') }}">{{ __("Promociones") }}</a>
+		<a class="dropdown-item" href="{{ route('information.promotions.lista') }}">{{ __("Promociones") }}</a>
 		<a class="dropdown-item" href="{{ route('manager.otros.donaciones') }}">{{ __("Donaciones") }}</a>
 		<a class="dropdown-item" href="{{ route('manager.salidas') }}">{{ __("Salidas") }}</a>
 		<a class="dropdown-item" href="{{ route('manager.otros.notas') }}">{{ __("Notas") }}</a>

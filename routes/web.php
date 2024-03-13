@@ -17,7 +17,6 @@ Auth::routes();
 Route::name('administrador.')->prefix('administrador')->middleware(['auth', 'role:Administrador'])->group(function () {
     Route::get('/remisiones', 'AdministradorController@remisiones')->name('remisiones');
     Route::get('/notas', 'AdministradorController@notas')->name('notas');
-    Route::get('/promociones', 'AdministradorController@promociones')->name('promociones');
     Route::get('/entradas', 'AdministradorController@entradas')->name('entradas');
     Route::get('/libros', 'AdministradorController@libros')->name('libros');
     Route::get('/clientes', 'AdministradorController@clientes')->name('clientes');
@@ -80,8 +79,6 @@ Route::name('oficina.')->prefix('oficina')->middleware(['auth', 'role:Oficina'])
         Route::get('/pagos', 'OficinaController@entradas_pagos')->name('pagos');
     });
 
-    Route::get('/promociones', 'OficinaController@promociones')->name('promociones');
-    // Route::get('/notas', 'OficinaController@notas')->name('notas');
     Route::get('/salidas', 'OficinaController@salidas')->name('salidas');
     Route::get('/entradas-salidas', 'OficinaController@entradas_salidas')->name('entradas-salidas');
 });
@@ -96,7 +93,6 @@ Route::name('almacen.')->prefix('almacen')->middleware(['auth', 'role:Almacen'])
     Route::get('/remisiones', 'AlmacenController@remisiones')->name('remisiones');
     Route::get('/devoluciones', 'AlmacenController@devoluciones')->name('devoluciones');
     Route::get('/notas', 'AlmacenController@notas')->name('notas');
-    Route::get('/promociones', 'AlmacenController@promociones')->name('promociones');
     Route::get('/entradas', 'AlmacenController@entradas')->name('entradas');
     Route::get('/libros', 'AlmacenController@libros')->name('libros');
     Route::get('/pedidos', 'AlmacenController@pedidos')->name('pedidos');
@@ -593,7 +589,6 @@ Route::name('manager.')->prefix('manager')
     });
     Route::name('otros.')->prefix('otros')->group(function () {
         Route::get('/notas', 'ManagerController@notas')->name('notas');
-        Route::get('/promociones', 'ManagerController@promociones')->name('promociones');
         Route::get('/donaciones', 'ManagerController@donaciones')->name('donaciones');
     });
     Route::name('entradas.')->prefix('entradas')->group(function () {
@@ -724,6 +719,10 @@ Route::name('information.')->prefix('information')->middleware(['auth'])->group(
     Route::name('entradas.')->prefix('entradas')->group(function () {
         Route::get('/lista', 'EntradaController@lista')->name('lista');
         Route::get('/cortes/{editorial}', 'EntradaController@cortes')->name('cortes');
+    });
+
+    Route::name('promotions.')->prefix('promotions')->group(function () {
+        Route::get('/lista', 'PromotionController@lista')->name('lista');
     });
 }); 
 

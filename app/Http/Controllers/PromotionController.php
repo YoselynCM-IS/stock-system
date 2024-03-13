@@ -26,6 +26,10 @@ use Excel;
 
 class PromotionController extends Controller
 {
+    // ENVIAR A LA VISTA DEL LISTADO DE PROMOCIONES
+    public function lista(){
+        return view('information.promotions.lista');
+    }
 
     // OBTENER TODAS LAS PROMOCIONES PAGINADAS
     public function index(){

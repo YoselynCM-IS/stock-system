@@ -40,14 +40,16 @@
                             </div>
                         </b-col>
                     </b-row>
-                    <hr>
-                    <!-- BUSCAR REMISION POR ESTADO -->
-                    <b-row class="my-1">
-                        <b-col class="text-right" sm="3"><label for="input-estado">Estado</label></b-col>
-                        <b-col sm="9">
-                            <b-form-select v-model="estadoRemision" :options="estados" @change="porEstado()"></b-form-select>
-                        </b-col>
-                    </b-row>
+                    <div v-if="role_id != 8 && role_id != 9">
+                        <hr>
+                        <!-- BUSCAR REMISION POR ESTADO -->
+                        <b-row class="my-1">
+                            <b-col class="text-right" sm="3"><label for="input-estado">Estado</label></b-col>
+                            <b-col sm="9">
+                                <b-form-select v-model="estadoRemision" :options="estados" @change="porEstado()"></b-form-select>
+                            </b-col>
+                        </b-row>
+                    </div>
                 </div>
                 <!-- BUSCAR POR FECHAS -->
                 <div class="col-md-4">
@@ -90,7 +92,7 @@
                             <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                         </pagination>
                     </b-col>
-                    <b-col align="right">
+                    <b-col align="right" v-if="role_id != 8 && role_id != 9">
                         <!-- <a 
                             v-if="remisiones.length > 0 && num_remision === null"
                             class="btn btn-dark"

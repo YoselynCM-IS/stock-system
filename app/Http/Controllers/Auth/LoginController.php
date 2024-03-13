@@ -39,7 +39,7 @@ class LoginController extends Controller
     }
 
     public function redirectPath(){
-        if(auth()->user()->role_id == 5){
+        if(auth()->user()->role_id == 5 || auth()->user()->role_id == 9){
             return '/information/actividades/lista';
         }
         if(auth()->user()->role_id == 7){

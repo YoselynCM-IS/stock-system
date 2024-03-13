@@ -31,10 +31,6 @@ class AlmacenController extends Controller
         return view('almacen.pedidos');
     }
 
-    public function promociones(){
-        return view('almacen.promociones');
-    }
-
     public function donaciones(){
         $regalos = Regalo::orderBy('id','desc')->get();
         return view('almacen.donaciones', compact('regalos'));

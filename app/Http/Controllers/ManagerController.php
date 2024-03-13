@@ -55,10 +55,6 @@ class ManagerController extends Controller
         return view('manager.otros.notas');
     }
 
-    public function promociones(){
-        return view('manager.otros.promociones');
-    }
-
     public function donaciones(){
         return view('manager.otros.donaciones');
     }

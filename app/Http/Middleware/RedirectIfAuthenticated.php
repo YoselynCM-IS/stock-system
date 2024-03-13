@@ -18,7 +18,7 @@ class RedirectIfAuthenticated
     public function handle($request, Closure $next, $guard = null)
     {
         if (Auth::guard($guard)->check()) {
-            if(auth()->user()->role_id == 5){
+            if(auth()->user()->role_id == 5 || auth()->user()->role_id == 9){
                 return redirect('/information/actividades/lista');
             }
             if(auth()->user()->role_id == 7){

@@ -18,7 +18,7 @@ class RoleMiddleware
             // abort(401, __("No puedes acceder a este sitio"));
             return $next($request);
         }
-        if(auth()->user()->role_id == 5){
+        if(auth()->user()->role_id == 5 || auth()->user()->role_id == 9){
             return redirect()->route('/information/actividades/lista');
         }
         if(auth()->user()->role_id == 7){

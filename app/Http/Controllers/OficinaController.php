@@ -28,10 +28,6 @@ class OficinaController extends Controller
         return view('oficina.pedidos');
     }
 
-    public function promociones(){
-        return view('oficina.promociones');
-    }
-
     public function donaciones(){
         return view('oficina.donaciones');
     }

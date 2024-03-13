@@ -53,7 +53,7 @@
 		Otros <span class="caret"></span>
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('oficina.promociones') }}">
+		<a class="dropdown-item" href="{{ route('information.promotions.lista') }}">
 			{{ __('Promociones') }}
 		</a>
 		<a class="dropdown-item" href="{{ route('oficina.donaciones') }}">

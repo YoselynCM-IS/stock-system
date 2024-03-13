@@ -71,7 +71,7 @@
                         <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                     </pagination>
                 </b-col>
-                <b-col class="text-right">
+                <b-col class="text-right" v-if="role_id != 8 && role_id != 9">
                     <a 
                         v-if="promotions.length > 0"
                         class="btn btn-dark"
@@ -165,13 +165,9 @@
                     </b-button>
                 </b-col> -->
                 <b-col sm="2">
-                    <!-- <b-button v-if="promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0 && promotion.envio == false"
-                        variant="danger" pill block v-b-modal.modal-cancel>
-                        <i class="fa fa-close"></i> Cancelar
-                    </b-button> -->
-                    <b-button v-if="promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0"
-                        variant="danger" pill block v-b-modal.modal-cancel>
-                        <i class="fa fa-close"></i> Cancelar
+                    <b-button v-if="promotion.paqueteria_id > 0"
+                        variant="dark" pill block v-b-modal.modal-envio-promo>
+                        <i class="fa fa-truck"></i> Paquetería
                     </b-button>
                 </b-col>
                 <b-col sm="2" align="right">
@@ -186,16 +182,20 @@
                     <h6><b>Plantel</b>: {{ promotion.plantel }}</h6>
                     <h6 v-if="promotion.descripcion.length > 0"><b>Descripción</b>: {{ promotion.descripcion }}</h6>
                 </b-col>
-                <b-col sm="2">
-                    <b-button v-if="promotion.paqueteria_id > 0"
-                        variant="dark" pill block v-b-modal.modal-envio-promo>
-                        <i class="fa fa-truck"></i> Paquetería
-                    </b-button>
-                </b-col>
-                <b-col sm="2">
+                <b-col sm="2" v-if="role_id != 8 && role_id != 9">
                     <b-button variant="dark" pill block 
                         :href="`/download_promocion/${promotion.id}`">
                         <i class="fa fa-download"></i> Descargar
+                    </b-button>
+                </b-col>
+                <b-col sm="2" v-if="role_id != 8 && role_id != 9">
+                    <!-- <b-button v-if="promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0 && promotion.envio == false"
+                        variant="danger" pill block v-b-modal.modal-cancel>
+                        <i class="fa fa-close"></i> Cancelar
+                    </b-button> -->
+                    <b-button v-if="promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0"
+                        variant="danger" pill block v-b-modal.modal-cancel>
+                        <i class="fa fa-close"></i> Cancelar
                     </b-button>
                 </b-col>
             </b-row>

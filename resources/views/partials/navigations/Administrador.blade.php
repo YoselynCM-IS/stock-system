@@ -76,7 +76,7 @@
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
 		<a class="dropdown-item" href="{{ route('administrador.notas') }}">{{ __("Notas") }}</a>
-		<a class="dropdown-item" href="{{ route('administrador.promociones') }}">{{ __("Promociones") }}</a>
+		<a class="dropdown-item" href="{{ route('information.promotions.lista') }}">{{ __("Promociones") }}</a>
 		<a class="dropdown-item" href="{{ route('administrador.donaciones') }}">{{ __("Donaciones") }}</a>
 	</div>
 </li>

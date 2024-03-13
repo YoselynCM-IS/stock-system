@@ -51,10 +51,6 @@ class AdministradorController extends Controller
         return view('administrador.pedidos');
     }
 
-    public function promociones(){
-        return view('administrador.promociones');
-    }
-
     public function donaciones(){
         return view('administrador.donaciones');
     }
