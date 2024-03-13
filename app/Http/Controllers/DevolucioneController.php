@@ -110,9 +110,10 @@ class DevolucioneController extends Controller
                             'pack_id' => $devolucion['dato']['pack_id']
                         ]);
                     }
+                    
+                    $unidades_restantes += $unidades_resta;
                 } 
 
-                $unidades_restantes += $unidades_resta;
                 $total_devolucion += $total_base;
             });
             
