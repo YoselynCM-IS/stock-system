@@ -8,7 +8,7 @@
                 <estado-pedido :id="pedido.id" :comentarios="pedido.comentarios" :estado="pedido.estado"></estado-pedido>
             </b-col>
             <b-col sm="2">
-                <b-button v-if="(role_id == 5 || role_id == 6 || role_id == 7) && pedido.estado == 'proceso'" 
+                <b-button v-if="(role_id == 5|| role_id == 9 || role_id == 6 || role_id == 7) && pedido.estado == 'proceso'" 
                     :disabled="load"
                     variant="danger" pill block @click="cancelarPedido()">
                     <i class="fa fa-close"></i> Cancelar
