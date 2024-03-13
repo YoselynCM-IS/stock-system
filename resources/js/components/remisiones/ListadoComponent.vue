@@ -222,8 +222,9 @@
                 </b-alert>
             </b-modal>
             <!-- SELECCIONAR INFORMACIÓN DE PAQUETERIA -->
-            <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="información de paquetería" size="lg" hide-footer>
-                <envio-remision :remisione_id="remisione_id" @savedEnvio="savedEnvio"></envio-remision>
+            <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg" hide-footer>
+                <envio-paqueteria :enlace_id="remisione_id" :ruta="'/remisiones/save_envio'" 
+                    :tipo="'remisión'" @savedEnvio="savedEnvio"></envio-paqueteria>
             </b-modal>
         </div>
     </div>
@@ -233,10 +234,10 @@
     import formatNumber from '../../mixins/formatNumber';
     import rowClass from '../../mixins/rowClass';
     import setResponsables from '../../mixins/setResponsables';
-    import EnvioRemision from './partials/EnvioRemision.vue';
+    import EnvioPaqueteria from '../funciones/paqueteria/EnvioPaqueteria.vue';
     moment.locale('es');
     export default {
-        components: { EnvioRemision },
+        components: { EnvioPaqueteria },
         props: ['role_id'],
         mixins: [formatNumber,rowClass,setResponsables],
         data() {

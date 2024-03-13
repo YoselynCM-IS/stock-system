@@ -351,6 +351,7 @@ Route::name('promotions.')->prefix('promotions')->group(function () {
     Route::put('cancel', 'PromotionController@cancel')->name('cancel');
     Route::post('devolucion', 'PromotionController@devolucion')->name('devolucion');
     Route::get('index', 'PromotionController@index')->name('index');
+    Route::post('save_envio', 'PromotionController@save_envio')->name('save_envio');
     // Route::put('enviar', 'PromotionController@enviar')->name('enviar');
 });
 

@@ -929,12 +929,17 @@ class RemisionController extends Controller
 
     // Informacion del envio de la remision
     public function save_envio(Request $request){
-        $remision = Remisione::whereId($request->remisione_id)->first();
+        // p_paqueteria, p_tipo_envio, p_precio, p_fecha_envio, p_guia, p_file
+        $this->validate($request, [
+            'p_precio' => 'numeric|min:0'
+        ]);
+        $remision = Remisione::whereId($request->enlace_id)->first();
         \DB::beginTransaction();
         try {
+            $envio = $request->envio;
             $paqueteria_id = 0;
             $precio = (double) $request->p_precio;
-            if($precio > 0){
+            if($envio == 'true' && $precio >= 0){
                 $id = $request->d_id;
                 if($id == 'null'){
                     $destinatario = Destinatario::create([

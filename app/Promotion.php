@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Prodevolucione;
+use App\Paqueteria;
 use App\Departure;
 use App\Cliente;
 
@@ -12,6 +13,7 @@ class Promotion extends Model
     protected $fillable = [
         'id', 
         'cliente_id',
+        'paqueteria_id',
         'folio',
         'plantel',
         'descripcion', 
@@ -37,5 +39,10 @@ class Promotion extends Model
 
     public function cliente(){
         return $this->belongsTo(Cliente::class);
+    }
+
+    //Uno a uno
+    public function paqueteria(){
+        return $this->belongsTo(Paqueteria::class);
     }
 }

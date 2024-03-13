@@ -45,7 +45,7 @@
                         </b-button>
                         <b-button v-if="remision.paqueteria_id != null && remision.paqueteria_id != 0" 
                             variant="dark" pill block v-b-modal.modal-envio>
-                            <i class="fa fa-truck"></i> Envió
+                            Paquetería
                         </b-button>
                     </b-card>
                 </b-collapse>
@@ -196,55 +196,7 @@
         <!-- MODAL PARA MOSTRAR DETALLES DE ENVIO -->
         <b-modal id="modal-envio" title="Detalles de envió" hide-footer size="lg">
             <div v-if="remision.paqueteria_id != null && remision.paqueteria_id != 0">
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Destinatario:</b></b-col>
-                    <b-col>{{ remision.paqueteria.destinatario.destinatario }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Dirección:</b></b-col>
-                    <b-col>{{ remision.paqueteria.destinatario.direccion }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>RFC:</b></b-col>
-                    <b-col>{{ remision.paqueteria.destinatario.rfc }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Teléfono:</b></b-col>
-                    <b-col>{{ remision.paqueteria.destinatario.telefono }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Régimen fiscal:</b></b-col>
-                    <b-col>{{ remision.paqueteria.destinatario.regimen_fiscal }}</b-col>
-                </b-row><hr>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Nombre de la paquetería:</b></b-col>
-                    <b-col>{{ remision.paqueteria.paqueteria }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Tipo de envió:</b></b-col>
-                    <b-col>{{ remision.paqueteria.tipo_envio }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Fecha de envió:</b></b-col>
-                    <b-col>{{ remision.paqueteria.fecha_envio }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Costo de envió:</b></b-col>
-                    <b-col>${{ remision.paqueteria.precio | formatNumber }}</b-col>
-                </b-row>
-                <b-row>
-                    <b-col sm="3" class="text-right"><b>Número de guía:</b></b-col>
-                    <b-col>{{ remision.paqueteria.guia }}</b-col>
-                </b-row>
-                <b-row v-if="remision.paqueteria.public_url !== null">
-                    <b-col sm="3" class="text-right"><b>Comprobante guía:</b></b-col>
-                    <b-col>
-                        <b-button pill size="sm" variant="dark" 
-                            :href="remision.paqueteria.public_url" target="_blank">
-                            <i class="fa fa-eye"></i>
-                        </b-button>
-                    </b-col>
-                </b-row>
+                <details-paqueteria :tipo="remision"></details-paqueteria>
             </div>
         </b-modal>
     </div>
@@ -256,9 +208,10 @@ import toast from '../../mixins/toast';
 import moment from '../../mixins/moment';
 import DatosRemision from './partials/DatosRemision.vue';
 import DepositosRemision from './partials/DepositosRemision.vue';
+import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
 export default {
     props: ['remision', 'devoluciones', 'role_id'],
-    components: {DatosRemision, DepositosRemision},
+    components: {DatosRemision, DepositosRemision, DetailsPaqueteria},
     mixins: [formatNumber,toast,moment],
     data(){
         return {

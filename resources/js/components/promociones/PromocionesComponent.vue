@@ -100,8 +100,15 @@
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(created_at)="row">{{ row.item.created_at | moment }}</template>
                     <template v-slot:cell(detalles)="row">
-                        <b-button variant="info" pill @click="detallesPromotion(row.item)">
-                            Detalles
+                        <b-button variant="info" pill size="sm"
+                            @click="detallesPromotion(row.item)">
+                            <i class="fa fa-info"></i>
+                        </b-button>
+                    </template>
+                    <template v-slot:cell(paqueteria)="row">
+                        <b-button v-if="(role_id === 1 || role_id == 6 || role_id === 2) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
+                            variant="dark" pill size="sm" @click="selectPaqueteria(row.item, row.index)">
+                            <i class="fa fa-truck"></i>
                         </b-button>
                     </template>
                     <template v-slot:cell(devolucion)="row">
@@ -114,7 +121,7 @@
                         </b-button> -->
                         <b-button v-if="row.item.estado == 'Enviado' && row.item.unidades_pendientes > 0 &&
                             (role_id === 1 || role_id == 2 || role_id == 6)"
-                            variant="primary" pill  @click="registrarDevolucion(row.item)">
+                            variant="primary" pill @click="registrarDevolucion(row.item)">
                             Devolución
                         </b-button>
                     </template>
@@ -143,8 +150,12 @@
                     <h6><b>Fecha</b>: {{ promotion.created_at | moment }}</h6>
                 </b-col>
                 <b-col>
-                    <h6><b>Plantel</b>: {{ promotion.plantel }}</h6>
-                    <h6 v-if="promotion.descripcion.length > 0"><b>Descripción</b>: {{ promotion.descripcion }}</h6>
+                    <h6 v-if="promotion.entregado_por !== null">
+                        <b>Responsable de la entrega:</b> {{ promotion.entregado_por }}
+                    </h6>
+                    <h6 v-if="promotion.creado_por !== null">
+                        <b>Creado por:</b> {{ promotion.creado_por }}
+                    </h6>
                 </b-col>
                 <!-- OMEGA BOOK / MODIFICAR CLIENTE_ID (ESTO ES DESDE MAJESTIC EDUCATION)-->
                 <!-- <b-col v-if="promotion.cliente_id == 288 && promotion.plantel == 'OMEGA BOOK'" sm="2">
@@ -172,14 +183,14 @@
             </b-row>
             <b-row>
                 <b-col>
-                    <h6 v-if="promotion.entregado_por !== null">
-                        <b>Responsable de la entrega:</b> {{ promotion.entregado_por }}
-                    </h6>
+                    <h6><b>Plantel</b>: {{ promotion.plantel }}</h6>
+                    <h6 v-if="promotion.descripcion.length > 0"><b>Descripción</b>: {{ promotion.descripcion }}</h6>
                 </b-col>
-                <b-col>
-                    <h6 v-if="promotion.creado_por !== null">
-                        <b>Creado por:</b> {{ promotion.creado_por }}
-                    </h6>
+                <b-col sm="2">
+                    <b-button v-if="promotion.paqueteria_id > 0"
+                        variant="dark" pill block v-b-modal.modal-envio-promo>
+                        <i class="fa fa-truck"></i> Paquetería
+                    </b-button>
                 </b-col>
                 <b-col sm="2">
                     <b-button variant="dark" pill block 
@@ -483,6 +494,15 @@
                 </b-button>
             </div>
         </b-modal>
+        <!-- SELECCIONAR INFORMACIÓN DE PAQUETERIA -->
+        <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg" hide-footer>
+            <envio-paqueteria :enlace_id="promotion_id" :ruta="'/promotions/save_envio/'" 
+                :tipo="'promoción'" @savedEnvio="savedEnvio"></envio-paqueteria>
+        </b-modal>
+        <!-- MODAL PARA MOSTRAR DETALLES DE ENVIO -->
+        <b-modal id="modal-envio-promo" title="Detalles de envió" hide-footer size="lg">
+            <details-paqueteria :tipo="promotion"></details-paqueteria>
+        </b-modal>
     </div>
 </template>
 
@@ -491,7 +511,10 @@ import setResponsables from '../../mixins/setResponsables';
 import getLibros from '../../mixins/getLibros';
 import searchCliente from '../../mixins/searchCliente';
 import sweetAlert from '../../mixins/sweetAlert';
+import EnvioPaqueteria from '../funciones/paqueteria/EnvioPaqueteria.vue';
+import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
     export default {
+    components: { EnvioPaqueteria, DetailsPaqueteria },
         props: ['role_id'],
         mixins: [setResponsables, getLibros, searchCliente, sweetAlert],
         data() {
@@ -507,8 +530,9 @@ import sweetAlert from '../../mixins/sweetAlert';
                     {key: 'unidades', label: 'Unidades (Salida)'}, 
                     {key: 'unidades_devolucion', label: 'Unidades (Devolucion)'}, 
                     {key: 'unidades_pendientes', label: 'Unidades restantes'}, 
-                    {key: 'detalles', label: ''},
-                    {key: 'devolucion', label: ''}
+                    { key: 'detalles', label: '' },
+                    { key: 'devolucion', label: '' },
+                    { key: 'paqueteria', label: '' }
                 ],
                 load: false,
                 registros: [],
@@ -595,6 +619,8 @@ import sweetAlert from '../../mixins/sweetAlert';
                     {key:'tipo', label:'Tipo'},
                     {key:'codigo', label:'Código'}
                 ],
+                position: null,
+                promotion_id: null
             }
         },
         filters: {
@@ -1032,7 +1058,18 @@ import sweetAlert from '../../mixins/sweetAlert';
                 }).catch(error => {
                     this.load = false;
                 });
-            }
+            },
+            // SELECCIONAR/GUARDAR PAQUETERIA DE PROMOCIÓN
+            selectPaqueteria(promotion, i) {
+                this.position = i;
+                this.promotion_id = promotion.id;
+                this.$refs['modalPaqueteria'].show();
+            },
+            // RESULTADO DE GUARDAR PAQUETERIA
+            savedEnvio(promotion){
+                this.$refs['modalPaqueteria'].hide();
+                this.messageAlert('center', 'success', 'Los datos se guardaron correctamente.', null, 'reload');
+            },
         }
     }
 </script>

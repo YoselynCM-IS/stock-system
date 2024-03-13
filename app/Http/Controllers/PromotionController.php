@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\PromotionsExport;
 use App\Exports\promociones\PromotionExport;
+use Spatie\Dropbox\Client as ClienteDropbox;
+use Illuminate\Support\Facades\Storage;
+use App\Exports\PromotionsExport;
 use Illuminate\Http\Request;
 use App\Prodevolucione;
+use App\Destinatario;
+use App\Paqueteria;
 use App\Promotion;
 use App\Departure;
 use Carbon\Carbon;
@@ -52,7 +56,7 @@ class PromotionController extends Controller
     public function obtener_departures(Request $request){
         $promotion_id = $request->promotion_id;
         $promotion = Promotion::whereId($promotion_id)
-            ->with('departures.libro', 'prodevoluciones.libro', 'departures.codes')->first();
+            ->with('departures.libro', 'prodevoluciones.libro', 'departures.codes', 'paqueteria.destinatario')->first();
         // $departures = Departure::where('promotion_id', $promotion_id)->with('libro')->get();
         return response()->json($promotion);
     }
@@ -283,6 +287,75 @@ class PromotionController extends Controller
             'name_table' => $name_table,
             'id_table' => $promotion_id
         ]);
+    }
+
+    // GUARDAR PAQUETERIA DE PROMOCIÓN
+    public function save_envio(Request $request){
+        // p_paqueteria, p_tipo_envio, p_precio, p_fecha_envio, p_guia, p_file
+        $this->validate($request, [
+            'p_precio' => 'numeric|min:0'
+        ]);
+        $promotion = Promotion::whereId($request->enlace_id)->first();
+        \DB::beginTransaction();
+        try {
+            $envio = $request->envio;
+            $paqueteria_id = 0;
+            $precio = (double) $request->p_precio;
+            if($envio == 'true' && $precio >= 0){
+                $id = $request->d_id;
+                if($id == 'null'){
+                    $destinatario = Destinatario::create([
+                        'destinatario' => strtoupper($request->d_destinatario), 
+                        'rfc' => strtoupper($request->d_rfc), 
+                        'direccion' => strtoupper($request->d_direccion), 
+                        'regimen_fiscal' => $request->d_regimen_fiscal, 
+                        'telefono' => $request->d_telefono
+                    ]);
+                    $reporte = 'creo el destinatario '.$destinatario->destinatario;
+                    $this->create_report($destinatario->id, $reporte, 'cliente', 'destinatarios');
+                } else {
+                    $destinatario = Destinatario::find($id);
+                }
+
+                // SUBIR COMPORBANTE
+                $file = $request->file('p_file');
+                $extension = $file->getClientOriginalExtension();
+                $name_file = "promo-".$promotion->id."_".time().".".$extension;
+                $ruta = str_replace(' ', '-', env('APP_NAME')).'/promociones/guias/';
+                
+                Storage::disk('dropbox')->putFileAs($ruta, $request->file('p_file'), $name_file);
+                $client = new ClienteDropbox(env('DROPBOX_TOKEN'));
+                $response = $client->createSharedLinkWithSettings(
+                    $ruta.$name_file, ["requested_visibility" => "public"]
+                );
+                $public_url = $response['url'];
+
+                $paqueteria = Paqueteria::create([
+                    'destinatario_id' => $destinatario->id,
+                    'paqueteria' => strtoupper($request->p_paqueteria), 
+                    'fecha_envio' => $request->p_fecha_envio, 
+                    'tipo_envio' => $request->p_tipo_envio, 
+                    'precio' => $precio,
+                    'guia' => $request->p_guia,
+                    'name' => $name_file, 
+                    'extension' => $extension, 
+                    'public_url' => $public_url
+                ]);
+                $paqueteria_id = $paqueteria->id;
+
+                $reporte = 'registro envió de paquetería en la promoción '.$promotion->folio.' de '.$promotion->plantel;
+                $this->create_report($paqueteria->id, $reporte, 'cliente', 'paqueterias');
+            }
+
+            $promotion->update(['paqueteria_id' => $paqueteria_id]);
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($exception->getMessage());
+        }
+
+        return response()->json($promotion);
     }
 
     // public function enviar(Request $request){
