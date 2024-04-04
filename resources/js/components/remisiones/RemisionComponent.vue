@@ -2,7 +2,9 @@
     <div>
         <check-connection-component></check-connection-component>
         <b-row>
-            <b-col><h4 style="color: #170057">{{ !editar ? 'Crear':'Editar' }} remisión</h4></b-col>
+            <b-col>
+                <h4 style="color: #170057">{{ !editar ? 'Crear':'Editar' }} remisión</h4>
+            </b-col>
             <b-col sm="2" align="right">
                 <b-button variant="secondary" @click="goBack()" pill block>
                     <i class="fa fa-mail-reply"></i> Regresar
@@ -14,24 +16,20 @@
             <b-row>
                 <b-col>
                     <h6><b>Seleccionar cliente</b></h6>
-                    <b-input v-model="queryCliente"
-                        autofocus placeholder="Buscar cliente..."
-                        style="text-transform:uppercase;"
-                        @keyup="mostrarClientes()"></b-input>
+                    <b-input v-model="queryCliente" autofocus placeholder="Buscar cliente..."
+                        style="text-transform:uppercase;" @keyup="mostrarClientes()"></b-input>
                 </b-col>
                 <b-col>
                     <!-- PAGINACIÓN -->
-                    <b-pagination v-model="currentPage" aria-controls="my-table"
-                        :total-rows="clientes.length" :per-page="perPage"
-                        align="right"
-                    ></b-pagination>
+                    <b-pagination v-model="currentPage" aria-controls="my-table" :total-rows="clientes.length"
+                        :per-page="perPage" align="right"></b-pagination>
                 </b-col>
             </b-row>
             <br>
             <div v-if="clientes.length > 0">
                 <!-- LISTADO DE CLIENTES -->
-                <b-table :items="clientes" :fields="fieldsClientes" 
-                    :per-page="perPage" :current-page="currentPage" id="my-table">
+                <b-table :items="clientes" :fields="fieldsClientes" :per-page="perPage" :current-page="currentPage"
+                    id="my-table">
                     <template v-slot:cell(seleccion)="row">
                         <b-button variant="success" @click="seleccionCliente(row.item)" pill>
                             <i class="fa fa-check"></i>
@@ -47,23 +45,21 @@
         <div v-else>
             <div class="row">
                 <b-button :class="`text-left col-md-2 ${mostrarDatos ? 'collapsed' : null}`"
-                    :aria-expanded="mostrarDatos ? 'true' : 'false'"
-                    aria-controls="collapse-1" @click="mostrarDatos = !mostrarDatos"
-                    variant="link" block pill>
+                    :aria-expanded="mostrarDatos ? 'true' : 'false'" aria-controls="collapse-1"
+                    @click="mostrarDatos = !mostrarDatos" variant="link" block pill>
                     <h6><b>Datos del cliente</b></h6>
                 </b-button>
                 <div class="col-md-1">
-                    <b-button variant="outline-warning" pill size="sm"
-                        @click="editarInformacion()" :disabled="load || (datoremision.total_devolucion > 0)">
+                    <b-button variant="outline-warning" pill size="sm" @click="editarInformacion()"
+                        :disabled="load || (datoremision.total_devolucion > 0)">
                         <i class="fa fa-pencil"></i>
                     </b-button>
                 </div>
                 <div class="col-md-7"></div>
                 <!-- GUARDAR LOS DATOS DE LA REMISIÓN -->
                 <div class="text-right col-md-2">
-                    <b-button variant="success" pill :disabled="load"
-                        @click="confirmarRemision()" block>
-                        <i v-if="!load" class="fa fa-check"></i> 
+                    <b-button variant="success" pill :disabled="load" @click="confirmarRemision()" block>
+                        <i v-if="!load" class="fa fa-check"></i>
                         <b-spinner v-else small></b-spinner>
                         {{ !editar ? !load ? 'Guardar' : 'Guardando' : !load ? 'Actualizar' : 'Actualizando' }}
                     </b-button>
@@ -75,7 +71,8 @@
                     <b-list-group class="col-md-6">
                         <b-list-group-item><b>Tipo:</b> {{ remision.cliente.tipo }}</b-list-group-item>
                         <b-list-group-item><b>Nombre:</b> {{ remision.cliente.name }}</b-list-group-item>
-                        <b-list-group-item><b>Condiciones de pago:</b> {{ remision.cliente.condiciones_pago }}</b-list-group-item>
+                        <b-list-group-item><b>Condiciones de pago:</b> {{ remision.cliente.condiciones_pago
+                            }}</b-list-group-item>
                     </b-list-group>
                     <b-list-group class="col-md-6">
                         <b-list-group-item><b>Dirección:</b> {{ remision.cliente.direccion }}</b-list-group-item>
@@ -86,9 +83,9 @@
             </b-collapse>
             <hr>
             <div class="row">
-                <label  class="col-md-2"><b>Fecha de entrega</b></label>
-                <b-form-datepicker class="col-md-4"
-                    required :disabled="load"  v-model="remision.fecha_entrega" :state="state"></b-form-datepicker>
+                <label class="col-md-2"><b>Fecha de entrega</b></label>
+                <b-form-datepicker class="col-md-4" required :disabled="load" v-model="remision.fecha_entrega"
+                    :state="state"></b-form-datepicker>
                 <div class="col-md-4"></div>
                 <div class="col-md-2" align="right">
                     <b-button variant="dark" pill block @click="showScratch()">
@@ -121,32 +118,26 @@
                             <b>{{ temporal.ISBN }}</b>
                         </td>
                         <td>
-                            <b-input style="text-transform:uppercase;"
-                                v-model="temporal.titulo" autofocus
-                                @keyup="mostrarLibros()"
-                                :disabled="position != null"></b-input>
+                            <b-input style="text-transform:uppercase;" v-model="temporal.titulo" autofocus
+                                @keyup="mostrarLibros()" :disabled="position != null"></b-input>
                             <div class="list-group" v-if="resultslibros.length" id="listaL">
-                                <a class="list-group-item list-group-item-action" href="#" 
-                                    v-for="(libro, i) in resultslibros" v-bind:key="i" 
-                                    @click="datosLibro(libro)">
+                                <a class="list-group-item list-group-item-action" href="#"
+                                    v-for="(libro, i) in resultslibros" v-bind:key="i" @click="datosLibro(libro)">
                                     {{ libro.titulo }}
                                 </a>
                             </div>
                         </td>
                         <td>
-                            <b-input v-model="temporal.costo_unitario"
-                                type="number" max="9999">
+                            <b-input v-model="temporal.costo_unitario" type="number" max="9999">
                             </b-input>
                         </td>
                         <td>
                             <b-input type="number" v-model="temporal.unidades" min="1" max="9999"
-                                    :disabled="position != null && datoremision.total_devolucion > 0" 
-                            ></b-input>
+                                :disabled="(position != null && datoremision.total_devolucion > 0) || temporal.pack_id != null"></b-input>
                         </td>
                         <td></td>
                         <td>
-                            <b-button variant="success" pill @click="guardarRegistro()"
-                                size="sm">
+                            <b-button variant="success" pill @click="guardarRegistro()" size="sm">
                                 <i class="fa fa-plus-circle"></i>
                             </b-button>
                         </td>
@@ -160,14 +151,12 @@
                         <td>${{ dato.costo_unitario | formatNumber }}</td>
                         <td>{{ dato.unidades | formatNumber }}</td>
                         <td>${{ dato.total | formatNumber }}</td>
-                        <td v-if="!dato.scratch && dato.pack_id == null">
-                            <b-button size="sm" pill variant="secondary" 
-                                @click="eliminarRegistro(dato, i)"
-                                :disabled="datoremision.total_devolucion > 0">
+                        <td>
+                            <b-button v-if="!dato.scratch && dato.pack_id == null" size="sm" pill variant="secondary"
+                                @click="eliminarRegistro(dato, i)" :disabled="datoremision.total_devolucion > 0">
                                 <i class="fa fa-minus-circle"></i>
                             </b-button>
-                            <b-button v-if="editar" size="sm" pill variant="warning" 
-                                @click="editarRegistro(dato, i)">
+                            <b-button v-if="editar" size="sm" pill variant="warning" @click="editarRegistro(dato, i)">
                                 <i :class="`fa fa-${position == i ? 'spinner':'pencil'}`"></i>
                             </b-button>
                         </td>
@@ -237,16 +226,18 @@
                         <b-row>
                             <b-col sm="10">
                                 <b-alert show variant="info">
-                                    <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la remisión.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
+                                    <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la remisión.</b>
+                                    En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después
+                                    no se podrán realizar cambios.
                                 </b-alert>
                             </b-col>
                             <b-col sm="2" align="right">
-                                <b-button v-if="!editar" :disabled="load" pill block
-                                    @click="guardarRemision()" variant="success">
+                                <b-button v-if="!editar" :disabled="load" pill block @click="guardarRemision()"
+                                    variant="success">
                                     <i class="fa fa-check"></i> Confirmar
                                 </b-button>
-                                <b-button v-else :disabled="load"  pill block
-                                    @click="actualizarRemision()" variant="success">
+                                <b-button v-else :disabled="load" pill block @click="actualizarRemision()"
+                                    variant="success">
                                     <i class="fa fa-check"></i> Confirmar
                                 </b-button>
                             </b-col>
@@ -288,7 +279,7 @@
                         </tr>
                     </tbody>
                 </table>
-                
+
                 <b-table :items="packs" :fields="fieldsScratch">
                     <template v-slot:cell(index)="row">
                         {{ row.index + 1 }}
@@ -337,7 +328,8 @@ export default {
                     costo_unitario: 0,
                     unidades: 0,
                     total: 0,
-                    piezas: 0
+                    piezas: 0,
+                    pack_id: null
                 }, //Guardar temporalmente los datos de la busqueda del libro
                 mostrarBusqueda: true, //Indicar si se muestra el apartado de buscar cliente
                 mostrarDatos: false, //Indicar si se ocultan o muestran los datos del cliente
@@ -496,7 +488,8 @@ export default {
                     costo_unitario: dato.costo_unitario,
                     unidades: dato.unidades,
                     total: dato.total,
-                    piezas: dato.libro.piezas
+                    piezas: dato.libro.piezas,
+                    pack_id: dato.pack_id
                 };
                 this.position = i;
             },
@@ -514,7 +507,8 @@ export default {
                     costo_unitario: 0,
                     unidades: 0,
                     total: 0,
-                    piezas: libro.piezas
+                    piezas: libro.piezas,
+                    pack_id: null
                 };
                 this.resultslibros = [];
             },
@@ -615,7 +609,8 @@ export default {
                     costo_unitario: 0,
                     unidades: 0,
                     total: 0,
-                    piezas: 0
+                    piezas: 0,
+                    pack_id: null
                 };
                 this.position = null;
                 this.resultslibros = [];
