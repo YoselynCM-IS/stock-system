@@ -71,11 +71,7 @@
                             <label for="input-final">A: </label>
                         </b-col>
                         <b-col sm="9">
-                            <input 
-                                class="form-control" 
-                                type="date" 
-                                v-model="final"
-                                @change="porFecha()">
+                            <input class="form-control" type="date" v-model="final" @change="porFecha()">
                         </b-col>
                     </b-row>
                 </div>
@@ -86,7 +82,7 @@
                 <b-row>
                     <b-col>
                         <!-- PAGINACIÓN -->
-                        <pagination size="default" :limit="1" :data="remisionesData" 
+                        <pagination size="default" :limit="1" :data="remisionesData"
                             @pagination-change-page="getResults">
                             <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
                             <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
@@ -99,23 +95,20 @@
                             :href="'/down_remisiones_pdf/' + cliente_id + '/' + inicio + '/' + final + '/' + estadoRemision">
                             <i class="fa fa-download"></i> PDF
                         </a> -->
-                        <b-button 
-                            v-if="remisiones.length > 0 && num_remision === null"
-                            class="btn btn-dark" :disabled="cliente_id == null"
+                        <b-button v-if="remisiones.length > 0 && num_remision === null" class="btn btn-dark"
+                            :disabled="cliente_id == null"
                             :href="'/down_gral_excel/' + cliente_id + '/' + inicio + '/' + final + '/' + estadoRemision">
                             <i class="fa fa-download"></i> General
                         </b-button>
-                        <b-button
-                            v-if="remisiones.length > 0 && num_remision === null"
-                            class="btn btn-dark" :disabled="cliente_id == null"
+                        <b-button v-if="remisiones.length > 0 && num_remision === null" class="btn btn-dark"
+                            :disabled="cliente_id == null"
                             :href="'/down_remisiones_excel/' + cliente_id + '/' + inicio + '/' + final + '/' + estadoRemision">
                             <i class="fa fa-download"></i> Detallado
                         </b-button>
                     </b-col>
                     <b-col sm="3" class="text-right">
-                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6" 
-                            variant="success" :disabled="load" target="blank" 
-                            :href="`/remisiones/ce_remision/${0}/${false}`">
+                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6" variant="success"
+                            :disabled="load" target="blank" :href="`/remisiones/ce_remision/${0}/${false}`">
                             <i class="fa fa-plus"></i> Crear remisión
                         </b-button>
                     </b-col>
@@ -125,8 +118,7 @@
             <div>
                 <div v-if="!load">
                     <!-- TABLA DE REMISIONES -->
-                    <b-table v-if="remisiones.length" :busy="load"
-                        responsive hover :items="remisiones" :fields="fields" 
+                    <b-table v-if="remisiones.length" :busy="load" responsive hover :items="remisiones" :fields="fields"
                         :tbody-tr-class="rowClass">
                         <template v-slot:cell(cliente_id)="row">
                             {{ row.item.cliente.name }}
@@ -144,8 +136,7 @@
                             ${{ row.item.total_pagar | formatNumber }}
                         </template>
                         <template v-slot:cell(detalles)="row">
-                            <b-button :href="`/remisiones/details/${row.item.id}`" 
-                                target="blank" variant="info">
+                            <b-button :href="`/remisiones/details/${row.item.id}`" target="blank" variant="info">
                                 Detalles
                             </b-button>
                         </template>
@@ -168,11 +159,21 @@
                                 <i class="fa fa-edit"></i>
                             </b-button> -->
                             <!-- row.item.updated_at === row.item.created_at && row.item.total_pagar === row.item.total &&  -->
-                            <b-button v-if="(role_id == 6) && row.item.estado !== 'Cancelado'"
-                                variant="warning" style="color: white;" target="blank"
+                            <!-- <b-button v-if="(role_id == 6) && row.item.estado !== 'Cancelado'" variant="warning"
+                                style="color: white;" target="blank"
                                 :href="`/remisiones/ce_remision/${row.item.id}/${true}`">
                                 <i class="fa fa-edit"></i>
-                            </b-button>
+                            </b-button> -->
+                            <b-dropdown v-if="(role_id == 6) && row.item.estado !== 'Cancelado'" text="" variant="dark">
+                                <b-dropdown-item :href="`/remisiones/ce_remision/${row.item.id}/${true}`"
+                                    target="blank">
+                                    Editar remisión
+                                </b-dropdown-item>
+                                <b-dropdown-item v-if="row.item.fechas_count > 0"
+                                    :href="`/remisiones/delete_dev/${row.item.id}`" target="blank">
+                                    Borrar devolución
+                                </b-dropdown-item>
+                            </b-dropdown>
                         </template>
                         <template #thead-top="row">
                             <tr v-if="total_salida > 0 && !loadTotales">
@@ -208,7 +209,8 @@
                     <b-row>
                         <b-col>
                             <b-form-group label="Responsable de la entrega">
-                                <b-form-select :disabled="load" v-model="form.responsable" :options="options" required></b-form-select>
+                                <b-form-select :disabled="load" v-model="form.responsable" :options="options"
+                                    required></b-form-select>
                             </b-form-group>
                         </b-col>
                         <b-col sm="5">
@@ -220,13 +222,15 @@
                     </b-row>
                 </b-form>
                 <b-alert show variant="info">
-                    <i class="fa fa-exclamation-circle"></i> Verificar los datos antes de presionar <b>Guardar</b>, ya que después no se podrán realizar cambios.
+                    <i class="fa fa-exclamation-circle"></i> Verificar los datos antes de presionar <b>Guardar</b>, ya
+                    que después no se podrán realizar cambios.
                 </b-alert>
             </b-modal>
             <!-- SELECCIONAR INFORMACIÓN DE PAQUETERIA -->
-            <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg" hide-footer>
-                <envio-paqueteria :enlace_id="remisione_id" :ruta="'/remisiones/save_envio'" 
-                    :tipo="'remisión'" @savedEnvio="savedEnvio"></envio-paqueteria>
+            <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg"
+                hide-footer>
+                <envio-paqueteria :enlace_id="remisione_id" :ruta="'/remisiones/save_envio'" :tipo="'remisión'"
+                    @savedEnvio="savedEnvio"></envio-paqueteria>
             </b-modal>
         </div>
     </div>

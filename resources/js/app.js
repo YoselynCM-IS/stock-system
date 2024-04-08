@@ -55,6 +55,7 @@ Vue.component('listado-component', require('./components/remisiones/ListadoCompo
 Vue.component('remision-component', require('./components/remisiones/RemisionComponent.vue').default);
 Vue.component('fecha-adeudo-component', require('./components/remisiones/FechaAdeudoComponent.vue').default);
 Vue.component('details-remision-component', require('./components/remisiones/DetailsRemisionComponent.vue').default);
+Vue.component('del-devolucion-component', require('./components/remisiones/DelDevolucionComponent.vue').default);
 
 // PAGOS
 Vue.component('pagos-component', require('./components/pagos/PagosComponent.vue').default);
