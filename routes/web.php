@@ -111,7 +111,8 @@ Route::get('/descargar_clientes', 'ClienteController@descargar_clientes')->name(
 
 //REMISIONES
 // OBTENER TODAS AS REMISIONES
-Route::name('remisiones.')->prefix('remisiones')->group(function () {
+Route::name('remisiones.')->prefix('remisiones')
+    ->middleware(['auth'])->group(function () {
     Route::get('/index', 'RemisionController@index')->name('index');
     Route::get('/pay_remisiones', 'RemisionController@pay_remisiones')->name('pay_remisiones');
     // Crear remision
@@ -138,7 +139,9 @@ Route::name('remisiones.')->prefix('remisiones')->group(function () {
     Route::post('save_responsable', 'RemisionController@save_responsable')->name('save_responsable');
     // Guardar informacion de envio de la remision
     Route::post('save_envio', 'RemisionController@save_envio')->name('save_envio');
-
+    // ABRIR VENTANA PARA ELIMINAR DEVOLUCIÓN
+    Route::get('/delete_dev/{remisione_id}', 'RemisionController@delete_dev')->name('delete_dev');
+    
     // HISTORIAL
     // Verificar que no exista el folio
     Route::get('check_folio', 'RemisionController@check_folio')->name('check_folio');
@@ -509,6 +512,8 @@ Route::name('pagos.')->prefix('pagos')->group(function () {
 Route::name('devoluciones.')->prefix('devoluciones')->group(function () {
     //REGISTRAR DEVOLUCION
     Route::put('update', 'DevolucioneController@update')->name('update');
+    // BORRAR DEVOLUCIÓN
+    Route::delete('delete', 'DevolucioneController@delete')->name('delete');
 
     // HISTORIAL
     // Registrar devolucion

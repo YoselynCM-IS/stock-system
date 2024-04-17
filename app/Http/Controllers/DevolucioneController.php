@@ -279,5 +279,60 @@ class DevolucioneController extends Controller
             return response()->json($exception->getMessage());
         }
         return response()->json();
-    }  
+    } 
+    
+    // BORRAR DEVOLUCIÓN
+    // **** NO ESTA PERMITIDO ELIMINAR DEVOLUCIÓN DE CÓDIGOS
+    public function delete(Request $request){
+        $fecha = Fecha::find($request->fecha_id);
+        $libro = Libro::find($fecha->libro_id);
+        $pack = Pack::find($fecha->pack_id);
+        // $status = false;
+        try {
+            \DB::beginTransaction();
+            // VERIFICAR QUE LO EXISTENTE EN INVENTARIO SEA IGUAL O MAYOR A LA DEVOLUCIÓN QUE SE ELIMINARA
+            // if(($libro->type != 'digital' && $libro->piezas >= $fecha->unidades) || 
+            //     ($libro->type == 'digital' && $libro->piezas >= $fecha->unidades && $pack->piezas >= $fecha->unidades)){
+                
+                $remision = Remisione::find($request->remisione_id);
+                $cctotale = Cctotale::where([
+                    'cliente_id' => $remision->cliente_id,
+                    'corte_id' => $remision->corte_id
+                ])->first();
+                $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
+                
+                // AFECTAR TOTALES DEVOLUCION Y PENDIENTE PAGAR - REMISIÓN, CCTOTALE, REMCLIENTE
+                $this->update_devpend($remision, $fecha->total);
+                $this->update_devpend($cctotale, $fecha->total);
+                $this->update_devpend($remcliente, $fecha->total);
+
+                // AFECTAR INVENTARIO GRAL Y PACKS (EN CASO NECESARIO) DISMINUIR PIEZAS DE LOS LIBROS
+                $libro->update([
+                    'piezas' => $libro->piezas - $fecha->unidades,
+                    'defectuosos' => $libro->defectuosos - $fecha->defectuosos
+                ]);
+                if($fecha->pack_id != null){
+                    $pack->update([ 'piezas' => $pack->piezas - $fecha->unidades ]);
+                }
+                
+                // ELIMINAR
+                $fecha->delete();
+                // $status = true;
+            // }
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($exception->getMessage());
+        }
+        
+        return response()->json(true);
+    }
+
+    // ARRAY PARA ACTUALIZAR TOTALES (DEVOLUCIÓN, PENDIENTE PAGAR)
+    public function update_devpend($table, $total_dev){
+        $table->update([
+            'total_devolucion' => $table->total_devolucion - $total_dev,
+            'total_pagar' => $table->total_pagar + $total_dev
+        ]);
+    }
 }

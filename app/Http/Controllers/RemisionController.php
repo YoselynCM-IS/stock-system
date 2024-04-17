@@ -60,7 +60,7 @@ class RemisionController extends Controller
     // BUSCAR REMISIÓN POR NUMERO
     // Función utilizada en ListadoComponent y RemisionesComponent
     public function por_numero(Request $request){
-        $remision = Remisione::whereId($request->num_remision)->with('cliente')->first();
+        $remision = Remisione::whereId($request->num_remision)->with('cliente')->withCount('fechas')->first();
         return response()->json(['remision' => $remision]);
     }
 
@@ -75,7 +75,7 @@ class RemisionController extends Controller
         // FIN TOTALES
 
         $remisiones = Remisione::where('cliente_id', $cliente->id)
-                        ->orderBy('id','desc')->with('cliente')
+                        ->orderBy('id','desc')->with('cliente')->withCount('fechas')
                         ->paginate(20);
 
         return response()->json(['remisiones' => $remisiones, 'totales' => $totales]);
@@ -1668,5 +1668,12 @@ class RemisionController extends Controller
     //     }
     //     return response()->json();
     // }
+
+    // VENTANA PARA BORRAR DEVOLUCIÓN
+    public function delete_dev($remisione_id){
+        $remision = Remisione::whereId($remisione_id)
+                        ->with('fechas.libro')->first();
+        return view('information.devoluciones.borrar-devolucion', compact('remision'));
+    }
     
 }

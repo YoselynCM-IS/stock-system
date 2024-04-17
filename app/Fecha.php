@@ -2,12 +2,17 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use App\Remisione;
 use App\Libro;
 
 class Fecha extends Model
 {
+    use SoftDeletes; //Implementamos 
+
+    protected $dates = ['deleted_at']; //Registramos la nueva columna
+
     protected $fillable = [
         'id', 
         'remisione_id',
