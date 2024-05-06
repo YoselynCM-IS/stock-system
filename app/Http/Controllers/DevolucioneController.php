@@ -137,11 +137,16 @@ class DevolucioneController extends Controller
                 'total_devolucion' => $t_devolucion,
                 'total_pagar'   => $total_pagar
             ]);
-            if ((int) $unidades_restantes === 0) {
-                if ($remision->depositos->count() > 0)
-                    $this->restantes_to_cero($remision);
-                $remision->update(['estado' => 'Terminado']); 
-            }
+
+            // CERRAR REMISIÓN EN CASO DE QUE QUEDE EN $0
+            if ($total_pagar === 0)
+                $remision->update(['estado' => 'Terminado']);
+
+            // if ((int) $unidades_restantes === 0) {
+            //     if ($remision->depositos->count() > 0)
+            //         $this->restantes_to_cero($remision);
+            //     $remision->update(['estado' => 'Terminado']); 
+            // }
 
             // ACTUALIZA LA CUENTA DEL CORTE CORRESPONDIENTE
             $cctotale = Cctotale::where([
