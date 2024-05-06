@@ -287,6 +287,10 @@ class DevolucioneController extends Controller
         $fecha = Fecha::find($request->fecha_id);
         $libro = Libro::find($fecha->libro_id);
         $pack = Pack::find($fecha->pack_id);
+        $devolucion = Devolucione::where(
+                        ['remisione_id' => $request->remisione_id,
+                        'libro_id' => $libro->id])
+                    ->first();
         // $status = false;
         try {
             \DB::beginTransaction();
@@ -306,6 +310,14 @@ class DevolucioneController extends Controller
                 $this->update_devpend($cctotale, $fecha->total);
                 $this->update_devpend($remcliente, $fecha->total);
 
+                // MODIFICAR UNIDADES, TOTAL DEVOLUCIÓN Y PENDIENTES
+                $devolucion->update([
+                    'total' => $devolucion->total - $fecha->total,
+                    'total_resta' => $devolucion->total_resta + $fecha->total,
+                    'unidades' => $devolucion->unidades - $fecha->unidades,
+                    'unidades_resta' => $devolucion->unidades_resta + $fecha->unidades
+                ]);
+
                 // AFECTAR INVENTARIO GRAL Y PACKS (EN CASO NECESARIO) DISMINUIR PIEZAS DE LOS LIBROS
                 $libro->update([
                     'piezas' => $libro->piezas - $fecha->unidades,
@@ -315,6 +327,9 @@ class DevolucioneController extends Controller
                     $pack->update([ 'piezas' => $pack->piezas - $fecha->unidades ]);
                 }
                 
+                // ACTUALIZAR ESTADO DE LA REMISIÓN
+                $remision->update(['estado' => 'Proceso']);
+
                 // ELIMINAR
                 $fecha->delete();
                 // $status = true;
