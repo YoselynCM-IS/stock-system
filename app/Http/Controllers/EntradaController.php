@@ -25,6 +25,7 @@ use App\Salida;
 use App\Libro;
 use App\Corte;
 use App\Code;
+use App\Pack;
 use Excel;
 use PDF;
 
@@ -342,7 +343,7 @@ class EntradaController extends Controller
     // Función utilizada en EditarEntradasComponent, EntradasComponent
     public function detalles_entrada(Request $request){
         $entrada_id = $request->entrada_id;
-        $entrada = Entrada::whereId($entrada_id)->with(['repayments', 'registros.libro', 'registros.codes', 'imprenta', 'comprobantes'])->first(); 
+        $entrada = Entrada::whereId($entrada_id)->with(['repayments', 'registros.libro', 'registros.codes', 'registros.pack', 'imprenta', 'comprobantes'])->first(); 
         $entdevoluciones = Entdevolucione::where('entrada_id', $entrada_id)->with('registro.libro')->get();
         return response()->json(['entrada' => $entrada, 'entdevoluciones' => $entdevoluciones]);
     }
@@ -589,6 +590,11 @@ class EntradaController extends Controller
                     // DISMINUIR PIEZAS DE LOS LIBROS
                     \DB::table('libros')->whereId($item['libro']['id'])
                         ->decrement('piezas', $unidades_base);
+
+                    if($item['pack_id'] != null && $item['libro']['type'] == 'digital'){
+                        $pack = Pack::whereId($item['pack_id'])->first();
+                        $pack->update(['piezas' => $pack->piezas - $unidades_base ]);
+                    }
 
                     // DEVOLUCION DE CODIGOS
                     $codes = $registro->codes()->whereIn('code_id', $item['code_registro'])->get();

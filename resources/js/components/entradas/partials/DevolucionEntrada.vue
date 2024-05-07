@@ -12,23 +12,25 @@
         <b-table :items="form.registros" :fields="fieldsD">
             <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
             <template v-slot:cell(ISBN)="row">{{ row.item.libro.ISBN }}</template>
-            <template v-slot:cell(titulo)="row">{{ row.item.libro.titulo }}</template>
+            <template v-slot:cell(titulo)="row">
+                {{ row.item.libro.titulo }}
+                <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
+            </template>
             <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
             <template v-slot:cell(total_base)="row">${{ row.item.total_base | formatNumber }}</template>
             <template v-slot:cell(unidades_base)="row">
-                <b-input v-if="row.item.libro.type !== 'digital' || 
-                                    (row.item.libro.type == 'digital' && row.item.codes.length == 0)"
-                    :id="`inpEntDev-${row.index}`" type="number" 
-                    @change="obtenerSubtotal(row.item, row.index)"
-                    v-model="row.item.unidades_base">
+                <b-input v-if="(row.item.libro.type == 'venta' && row.item.pack_id == null) ||
+                    (row.item.libro.type == 'digital' && row.item.pack_id !== null)" :id="`inpEntDev-${row.index}`"
+                    type="number" @change="obtenerSubtotal(row.item, row.index)" v-model="row.item.unidades_base">
                 </b-input>
-                <label v-if="row.item.libro.type == 'digital' && row.item.codes.length > 0">
+                <label v-if="(row.item.libro.type == 'venta' && row.item.pack_id != null) ||
+                        (row.item.libro.type == 'digital' && row.item.codes.length >= 0 && row.item.pack_id == null)">
                     {{ row.item.unidades_base }}
                 </label>
             </template>
             <template v-slot:cell(codes)="row">
-                <b-button v-if="row.item.libro.type == 'digital' && row.item.codes.length > 0"
-                    pill small variant="info" @click="selectCodigos(row.item, row.index)">
+                <b-button v-if="row.item.libro.type == 'digital' && row.item.codes.length > 0" pill small variant="info"
+                    @click="selectCodigos(row.item, row.index)">
                     Códigos
                 </b-button>
             </template>
@@ -68,8 +70,7 @@
                         </b-alert>
                     </b-col>
                     <b-col sm="3" align="right">
-                        <b-button :disabled="load" variant="success"
-                            @click="guardarDevolucion()">
+                        <b-button :disabled="load" variant="success" @click="guardarDevolucion()">
                             <i class="fa fa-check"></i> Confirmar
                         </b-button>
                     </b-col>
@@ -78,16 +79,14 @@
         </b-modal>
         <!-- MODAL PARA SELECCIONAR CODIGOS -->
         <b-modal id="modal-select-codes" title="Seleccionar códigos" hide-footer>
-            <b-table :items="codes" :fields="fieldsCodes" responsive
-                :select-mode="selectMode" ref="selectableTable"
+            <b-table :items="codes" :fields="fieldsCodes" responsive :select-mode="selectMode" ref="selectableTable"
                 selectable @row-selected="onRowSelected">
                 <template v-slot:cell(index)="row">
                     {{ row.index + 1 }}
                 </template>
             </b-table>
             <div class="text-right">
-                <b-button :disabled="selected.length == 0" variant="success" 
-                    pill @click="guardarCodes()">
+                <b-button :disabled="selected.length == 0" variant="success" pill @click="guardarCodes()">
                     <i class="fa fa-check"></i> Guardar
                 </b-button>
             </div>
@@ -134,30 +133,60 @@ export default {
                 this.makeToast('warning', 'El total debe ser mayor a cero.');
             }
         },
-        obtenerSubtotal(registro, i){
-            if(registro.unidades_base <= registro.libro.piezas){
-                if(registro.unidades_base >= 0){
-                    if(registro.unidades_base > registro.unidades_pendientes){
+        obtenerSubtotal(registro, i) {
+            if (registro.pack_id == null) {
+                if (registro.libro.editorial == 'MAJESTIC EDUCATION') {
+                    axios.get('/libro/get_scratch', { params: { id: registro.libro_id } }).then(response => {
+                        this.check_add(registro, i, registro.libro.piezas - response.data);
+                    }).catch(error => { });
+                } else {
+                    this.check_add(registro, i, registro.libro.piezas);
+                }
+            } else {
+                if (registro.unidades_base <= registro.pack.piezas) {
+                    this.check_add(registro, i, registro.libro.piezas);
+                } else {
+                    this.makeToast('warning', `Hay ${registro.pack.piezas} en existencia de scratch`);
+                    this.to_zero(i);
+                    this.set_search(registro);
+                }
+            }
+        },
+        check_add(registro, i, total_piezas) {
+            if (registro.unidades_base <= total_piezas) {
+                if (registro.unidades_base >= 0) {
+                    if (registro.unidades_base > registro.unidades_pendientes) {
                         this.makeToast('warning', 'Las unidades son mayor a las unidades pendientes');
                         this.to_zero(i);
-                    }
-                    else{
+                    } else {
                         this.form.registros[i].total_base = registro.unidades_base * registro.costo_unitario;
-                        if(i + 1 < this.form.registros.length){
-                            document.getElementById('inpEntDev-'+(i+1)).focus();
-                            document.getElementById('inpEntDev-'+(i+1)).select();
-                        }
+                        // if (i + 1 < this.form.registros.length) {
+                        //     document.getElementById('inpEntDev-' + (i + 1)).focus();
+                        //     document.getElementById('inpEntDev-' + (i + 1)).select();
+                        // }
                     }
                 }
-                else{
+                else {
                     this.makeToast('warning', 'Unidades invalidas');
                     this.to_zero(i);
-                } 
+                }
             } else {
-                this.makeToast('warning', `Hay ${registro.libro.piezas} en existencia`);
+                this.makeToast('warning', `Hay ${total_piezas} en existencia`);
                 this.to_zero(i);
+            } 
+            this.set_search(registro);
+            this.acumularFinal();   
+        },
+        set_search(registro) {
+            if (registro.pack_id != null) {
+                let pos = this.form.registros.findIndex(r => {
+                    if (r.pack_id == registro.pack_id && r.libro.type == 'venta')
+                        return r;
+                });
+                let fisico = this.form.registros[pos];
+                fisico.unidades_base = registro.unidades_base;
+                fisico.total_base = fisico.unidades_base * fisico.costo_unitario;
             }
-            this.acumularFinal();
         },
         to_zero(i){
             this.form.registros[i].unidades_base = 0;

@@ -8,6 +8,7 @@ use App\Entdevolucione;
 use App\Entrada;
 use App\Libro;
 use App\Code;
+use App\Pack;
 
 class Registro extends Model
 {
@@ -39,6 +40,12 @@ class Registro extends Model
     //Un registro solo puede tener un libro
     public function libro(){
         return $this->belongsTo(Libro::class);
+    }
+
+    //Uno a muchos (Inversa)
+    //Un registro solo puede tener un pack
+    public function pack(){
+        return $this->belongsTo(Pack::class);
     }
 
     //Uno a muchos

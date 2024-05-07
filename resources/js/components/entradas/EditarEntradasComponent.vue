@@ -871,15 +871,18 @@ import sweetAlert from '../../mixins/sweetAlert';
                     response.data.entrada.registros.forEach(rd => {
                         let cs = [];
                         rd.codes.forEach(c => {
-                            if(!c.pivot.devolucion && c.estado == 'inventario') cs.push(c);
+                            if (c.pivot.devolucion == 0 && c.estado == 'inventario') {
+                                cs.push(c);
+                            }
                         });
                         this.formDev.registros.push({
-                            codes: rd.codes,
                             costo_unitario: rd.costo_unitario,
                             created_at: rd.created_at,
                             deleted_at: rd.deleted_at,
                             entrada_id: rd.entrada_id,
                             id: rd.id,
+                            pack_id: rd.pack_id,
+                            pack: rd.pack,
                             libro: rd.libro,
                             libro_id: rd.libro_id,
                             total: rd.total,
