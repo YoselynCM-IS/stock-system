@@ -8,10 +8,7 @@
                     <b-row>
                         <b-col sm="2"><label>Folio</label></b-col>
                         <b-col sm="10">
-                            <b-form-input 
-                                v-model="folio"
-                                @keyup.enter="porFolio()"
-                                style="text-transform:uppercase;">
+                            <b-form-input v-model="folio" @keyup.enter="porFolio()" style="text-transform:uppercase;">
                             </b-form-input>
                         </b-col>
                     </b-row>
@@ -21,7 +18,8 @@
                     <b-row>
                         <b-col sm="3"><label>Editorial</label></b-col>
                         <b-col sm="9">
-                            <b-form-select v-model="editorial" :options="options" @change="http_editoriales()"></b-form-select>
+                            <b-form-select v-model="editorial" :options="options"
+                                @change="http_editoriales()"></b-form-select>
                         </b-col>
                     </b-row>
                 </b-col>
@@ -45,16 +43,13 @@
             <b-row>
                 <b-col sm="5">
                     <!-- PAGINACION -->
-                    <pagination size="default" :limit="1" :data="entradasData" 
-                        @pagination-change-page="getResults">
+                    <pagination size="default" :limit="1" :data="entradasData" @pagination-change-page="getResults">
                         <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
                         <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                     </pagination>
                 </b-col>
                 <b-col class="text-right">
-                    <b-button
-                        v-if="entradas.length > 0"
-                        variant="dark"
+                    <b-button v-if="entradas.length > 0" variant="dark"
                         :href="`/downEntradasEXC/${inicio}/${final}/${editorial}/general`">
                         <i class="fa fa-download"></i> General
                     </b-button>
@@ -64,24 +59,21 @@
                         :href="`/downEntradas/${inicio}/${final}/${editorial}`">
                         <i class="fa fa-download"></i> PDF
                     </b-button> -->
-                    <b-button
-                        v-if="entradas.length > 0"
-                        variant="dark"
+                    <b-button v-if="entradas.length > 0" variant="dark"
                         :href="`/downEntradasEXC/${inicio}/${final}/${editorial}/detallado`">
                         <i class="fa fa-download"></i> Detallado
                     </b-button>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <b-button v-if="role_id === 1 || role_id == 3 || role_id == 6" 
-                            variant="success" @click="nuevaEntrada()">
-                            <i class="fa fa-plus"></i> Nueva entrada
+                    <b-button v-if="role_id === 1 || role_id == 3 || role_id == 6" variant="success"
+                        @click="nuevaEntrada()">
+                        <i class="fa fa-plus"></i> Nueva entrada
                     </b-button>
                 </b-col>
             </b-row>
             <!-- LISTADO DE ENTRADAS -->
             <div v-if="!load">
-                <b-table v-if="entradas.length > 0" responsive 
-                    :items="entradas" :fields="fields"
+                <b-table v-if="entradas.length > 0" responsive :items="entradas" :fields="fields"
                     :tbody-tr-class="rowClass" id="my-table">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(total)="row">
@@ -94,14 +86,21 @@
                             ${{ row.item.total_pagos | formatNumber }}
                         </div>
                     </template>
-                    <template v-slot:cell(total_devolucion)="row">${{ row.item.total_devolucion | formatNumber }}</template>
+                    <template v-slot:cell(total_devolucion)="row">${{ row.item.total_devolucion | formatNumber
+                        }}</template>
                     <template v-slot:cell(total_pendiente)="row">
                         <div v-if="row.item.folio != '05'">
                             ${{ (row.item.total - (row.item.total_pagos + row.item.total_devolucion)) | formatNumber }}
                         </div>
                     </template>
                     <template v-slot:cell(detalles)="row">
-                        <b-button variant="info" @click="detallesEntrada(row.item)">Detalles</b-button>
+                        <b-button variant="info" @click="detallesEntrada(row.item)" pill>
+                            <i class="fa fa-exclamation"></i>
+                        </b-button>
+                        <!-- <b-button v-if="role_id == 6" variant="warning" pill
+                            :href="`/entradas/actualizar/${row.item.id}`" target="_blank">
+                            <i class="fa fa-edit"></i>
+                        </b-button> -->
                     </template>
                     <template v-slot:cell(created_at)="row">
                         {{ row.item.created_at | moment }}
@@ -121,14 +120,12 @@
                             variant="primary">Devolución
                         </b-button> -->
                         <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6) && row.item.total == 0"
-                            @click="editarEntrada(row.item, row.index)"
-                            style="color:white;" variant="warning"> 
-                            <i class="fa fa-pencil"></i>
+                            @click="editarEntrada(row.item, row.index)" variant="secondary" pill>
+                            <i class="fa fa-usd"></i>
                         </b-button>
                         <b-button
                             v-if="(role_id === 1 || role_id == 3 || role_id == 6) && row.item.total > 0 && ((row.item.total - (row.item.total_pagos + row.item.total_devolucion)) > 0)"
-                            @click="registrarDevolucion(row.item, row.index)"
-                            variant="primary">Devolución
+                            @click="registrarDevolucion(row.item, row.index)" variant="dark" pill>Devolución
                         </b-button>
                     </template>
                     <template #thead-top="row">
@@ -152,7 +149,7 @@
                 <b-spinner class="align-middle"></b-spinner>
                 <strong>Cargando...</strong>
             </div>
-        </div> 
+        </div>
         <!-- MOSTRAR DETALLES DE LA ENTRADA -->
         <div v-if="mostrarDetalles">
             <b-row>
@@ -166,8 +163,7 @@
                     </b-button>
                 </b-col> -->
                 <b-col>
-                    <b-button v-if="entrada.comprobantes.length > 0"
-                        v-b-toggle.collapse-comp variant="dark" pill>
+                    <b-button v-if="entrada.comprobantes.length > 0" v-b-toggle.collapse-comp variant="dark" pill>
                         <i class="fa fa-file-o"></i> Factura(s)
                     </b-button>
                     <b-collapse id="collapse-comp" class="mt-2">
@@ -186,15 +182,13 @@
                     </b-button>
                 </b-col>
                 <b-col>
-                    <b-button v-if="(role_id == 2 || role_id == 6) && entrada.lugar == 'DOS'"
-                        variant="success" pill @click="enviarME()" :disabled="load">
+                    <b-button v-if="(role_id == 2 || role_id == 6) && entrada.lugar == 'DOS'" variant="success" pill
+                        @click="enviarME()" :disabled="load">
                         <i class="fa fa-check-square-o"></i> Enviar a ME
                     </b-button>
                 </b-col>
                 <b-col class="text-right">
-                    <b-button 
-                        variant="secondary" pill
-                        @click="mostrarDetalles = false; listadoEntradas = true;">
+                    <b-button variant="secondary" pill @click="mostrarDetalles = false; listadoEntradas = true;">
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
                 </b-col>
@@ -212,12 +206,12 @@
                     </label>
                 </b-col>
             </b-row>
-            <b-table v-if="registros.length > 0" :items="registros" 
+            <b-table v-if="registros.length > 0" :items="registros"
                 :fields="(entrada.lugar == 'DOS' || entrada.lugar == 'QUE') ? fieldsQUE:fieldsR">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(isbn)="row">{{ row.item.libro.ISBN }}</template>
                 <template v-slot:cell(titulo)="row">
-                    {{ row.item.libro.titulo }} 
+                    {{ row.item.libro.titulo }}
                     <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
                 </template>
                 <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
@@ -231,8 +225,7 @@
                     </tr>
                 </template>
                 <template #cell(codes)="row">
-                    <b-button v-if="row.item.codes.length > 0" 
-                        size="sm" @click="row.toggleDetails" pill variant="info">
+                    <b-button v-if="row.item.codes.length > 0" size="sm" @click="row.toggleDetails" pill variant="info">
                         {{ row.detailsShowing ? 'Ocultar' : 'Mostrar'}}
                     </b-button>
                 </template>
@@ -260,7 +253,8 @@
                     <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                     <template v-slot:cell(isbn)="row">{{ row.item.registro.libro.ISBN }}</template>
                     <template v-slot:cell(titulo)="row">{{ row.item.registro.libro.titulo }}</template>
-                    <template v-slot:cell(costo_unitario)="row">${{ row.item.registro.costo_unitario | formatNumber }}</template>
+                    <template v-slot:cell(costo_unitario)="row">${{ row.item.registro.costo_unitario | formatNumber
+                        }}</template>
                     <template v-slot:cell(total)="row">${{ row.item.total | formatNumber }}</template>
                     <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>
                 </b-table>
@@ -299,15 +293,13 @@
                     <label><b>Unidades:</b> {{ total_unidades | formatNumber }}</label>
                 </b-col>
                 <b-col sm="4" class="text-right">
-                    <b-button 
-                        @click="confirmarAct()" 
-                        variant="success"
-                        :disabled="load">
+                    <b-button @click="confirmarAct()" variant="success" :disabled="load">
                         <i class="fa fa-check"></i> {{ !load ? 'Guardar cambios' : 'Guardando' }}
                     </b-button>
                 </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button variant="secondary" @click="mostrarAddCostos = false; listadoEntradas = true;"><i class="fa fa-mail-reply"></i> Regresar</b-button>
+                    <b-button variant="secondary" @click="mostrarAddCostos = false; listadoEntradas = true;"><i
+                            class="fa fa-mail-reply"></i> Regresar</b-button>
                 </b-col>
             </b-row>
             <hr>
@@ -316,11 +308,8 @@
                 <template v-slot:cell(isbn)="row">{{ row.item.libro.ISBN }}</template>
                 <template v-slot:cell(titulo)="row">{{ row.item.libro.titulo }}</template>
                 <template v-slot:cell(costo_unitario)="row">
-                    <b-input 
-                        :id="`input-${row.index}`"
-                        type="number" 
-                        placeholder="Costo unitario"
-                        @change="verificarUnidades(row.item.unidades, row.item.costo_unitario, row.index)" 
+                    <b-input :id="`input-${row.index}`" type="number" placeholder="Costo unitario"
+                        @change="verificarUnidades(row.item.unidades, row.item.costo_unitario, row.index)"
                         v-model="row.item.costo_unitario">
                     </b-input>
                 </template>
@@ -362,7 +351,9 @@
                     <b-row>
                         <b-col sm="9">
                             <b-alert show variant="info">
-                                <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la entrada.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después <b>no se podrán realizar cambios</b>.
+                                <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la entrada.</b> En
+                                caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después <b>no
+                                    se podrán realizar cambios</b>.
                             </b-alert>
                         </b-col>
                         <b-col sm="3" align="right">
@@ -376,15 +367,18 @@
         </div>
         <!-- NUEVA ENTRADA-->
         <div v-if="mostrarAdd">
-            <add-edit-entrada :agregar="agregar" :form="form" 
-                :editoriales="editoriales" @goBack="goBack"></add-edit-entrada>
+            <add-edit-entrada :agregar="agregar" :form="form" :editoriales="editoriales"
+                @goBack="goBack"></add-edit-entrada>
         </div>
         <!-- AGREGAR DEVOLUCION -->
         <div v-if="mostrarDevolucion">
             <b-row class="mb-2">
-                <b-col><h4 style="color: #170057">Registrar devolución</h4></b-col>
+                <b-col>
+                    <h4 style="color: #170057">Registrar devolución</h4>
+                </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button variant="secondary" pill @click="mostrarDevolucion = !mostrarDevolucion; listadoEntradas = true;">
+                    <b-button variant="secondary" pill
+                        @click="mostrarDevolucion = !mostrarDevolucion; listadoEntradas = true;">
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
                 </b-col>
@@ -409,7 +403,8 @@
             <h5 id="titleA"><b>Descargar reporte</b></h5>
             <p>La lista que se descargue será de acuerdo a la búsqueda realizada. Se puede descargar en PDF o EXCEL.</p>
             <h5 id="titleA"><b>Detalles de la entrada</b></h5>
-            <p>Se mostraran los registros de la entrada, así como un botón para descargar dicha entrada y otro para mostrar los pagos (En caso de que tenga).</p>
+            <p>Se mostraran los registros de la entrada, así como un botón para descargar dicha entrada y otro para
+                mostrar los pagos (En caso de que tenga).</p>
         </b-modal>
     </div>
 </template>

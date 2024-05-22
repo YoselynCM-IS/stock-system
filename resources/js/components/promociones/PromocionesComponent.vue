@@ -496,7 +496,7 @@
         </b-modal>
         <!-- SELECCIONAR INFORMACIÓN DE PAQUETERIA -->
         <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg" hide-footer>
-            <envio-paqueteria :enlace_id="promotion_id" :ruta="'/promotions/save_envio/'" 
+            <envio-paqueteria :enlace_id="promotion_id" :ruta="'/promotions/save_envio'" 
                 :tipo="'promoción'" @savedEnvio="savedEnvio"></envio-paqueteria>
         </b-modal>
         <!-- MODAL PARA MOSTRAR DETALLES DE ENVIO -->
