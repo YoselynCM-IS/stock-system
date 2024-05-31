@@ -7,11 +7,8 @@
                 <b-row>
                     <b-col sm="2"><label>Titulo</label></b-col>
                     <b-col sm="10">
-                        <b-input
-                            style="text-transform:uppercase;"
-                            v-model="queryTitulo"
-                            @keyup="http_titulo()"
-                        ></b-input>
+                        <b-input style="text-transform:uppercase;" v-model="queryTitulo"
+                            @keyup="http_titulo()"></b-input>
                     </b-col>
                 </b-row>
             </div>
@@ -34,8 +31,7 @@
                         <label for="input-cliente">Editorial</label>
                     </b-col>
                     <b-col sm="10">
-                        <b-form-select v-model="queryEditorial" 
-                            :options="options" @change="http_editorial()">
+                        <b-form-select v-model="queryEditorial" :options="options" @change="http_editorial()">
                         </b-form-select>
                     </b-col>
                 </b-row>
@@ -45,27 +41,26 @@
         <b-row class="mb-1">
             <b-col sm="6">
                 <!-- PAGINACIÓN -->
-                <pagination size="default" :limit="1" :data="librosData" 
-                    @pagination-change-page="getResults">
+                <pagination size="default" :limit="1" :data="librosData" @pagination-change-page="getResults">
                     <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
                     <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                 </pagination>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6"
-                    variant="dark" pill block href="/libro/all_sistemas" target="_blank">
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="dark" pill
+                    block href="/libro/all_sistemas" target="_blank">
                     Sistemas
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6"
-                    variant="dark" pill block href="/codes/scratch" target="_blank">
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="dark" pill
+                    block href="/codes/scratch" target="_blank">
                     Scratch
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6"
-                    variant="dark" pill block href="/codes/licencias_demos" target="_blank">
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6" variant="dark" pill block
+                    href="/codes/licencias_demos" target="_blank">
                     Licencias / Demos
                 </b-button>
             </b-col>
@@ -74,23 +69,21 @@
             <b-col sm="8"></b-col>
             <b-col sm="2" class="text-right">
                 <!-- DESCARGAR LIBROS downloadExcel -->
-                <b-button :href="`/downloadExcel/${queryEditorial}`" 
-                    variant="dark" pill block> 
+                <b-button :href="`/downloadExcel/${queryEditorial}`" variant="dark" pill block>
                     <i class="fa fa-download"></i> Descargar
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
                 <!-- AGREGAR UN NUEVO LIBRO -->
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6"
-                    variant="success" pill block v-b-modal.modal-newLibro>
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="success" pill
+                    block v-b-modal.modal-newLibro>
                     <i class="fa fa-plus"></i> Nuevo libro
                 </b-button>
             </b-col>
         </b-row>
         <div v-if="!load">
             <!-- LISTADO DE LIBROS-->
-            <b-table v-if="libros.length > 0" 
-                    responsive :fields="fields" :items="libros">
+            <b-table v-if="libros.length > 0" responsive :fields="fields" :items="libros">
                 <template v-slot:cell(index)="data">
                     {{ data.index + 1 }}
                 </template>
@@ -101,17 +94,17 @@
                     {{ data.item.defectuosos | formatNumber }}
                 </template>
                 <template v-slot:cell(accion)="data">
-                    <b-button v-if="(role_id == 6 || role_id == 1) && data.item.externo == false"
-                        style="color:white;" variant="warning" pill size="sm"
-                        v-b-modal.modal-editar @click="editarLibro(data.item, data.index)">
+                    <b-button v-if="(role_id == 6 || role_id == 1) && data.item.externo == false" style="color:white;"
+                        variant="warning" pill size="sm" v-b-modal.modal-editar
+                        @click="editarLibro(data.item, data.index)">
                         <i class="fa fa-pencil"></i>
                     </b-button>
                     <div>
-                        <b-button v-if="role_id == 6" variant="danger" pill 
+                        <b-button v-if="role_id == 6 || role_id == 1" variant="danger" pill
                             @click="inactivarLibro(data.item)" size="sm">
                             <i class="fa fa-close"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (data.item.piezas > 0)" 
+                        <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (data.item.piezas > 0)"
                             variant="secondary" pill @click="addDefectuosos(data.item)" size="sm">
                             <i class="fa fa-minus"></i>
                         </b-button>
@@ -123,7 +116,8 @@
             </b-alert>
             <!-- MODAL PARA EDITAR UN LIBRO -->
             <b-modal id="modal-editar" title="Editar libro">
-                <editar-libro-component :formlibro="formlibro" :listEditoriales="listEditoriales" @actualizarLibro="libroModificado"></editar-libro-component>
+                <editar-libro-component :formlibro="formlibro" :listEditoriales="listEditoriales"
+                    @actualizarLibro="libroModificado"></editar-libro-component>
                 <div slot="modal-footer"></div>
             </b-modal>
             <!-- MODAL PARA AGREGAR DEFECTUOSOS -->
@@ -151,11 +145,13 @@
             <p>Elegir la editorial que desee y aparecerán todos los libros relacionados a esta.</p>
             <h5 id="titleA"><b>Descargar lista completa</b></h5>
             <p>
-                Si la opción de TODOS LOS LIBROS esta activa en la búsqueda por editorial, se descargará la lista completa de libros en formato EXCEL.
+                Si la opción de TODOS LOS LIBROS esta activa en la búsqueda por editorial, se descargará la lista
+                completa de libros en formato EXCEL.
             </p>
             <h5 id="titleA"><b>Descargar lista por editorial</b></h5>
             <p>
-                Si alguna editorial esta activa en la búsqueda por editorial se descargará la lista de libros relacionados a esta en formato EXCEL.
+                Si alguna editorial esta activa en la búsqueda por editorial se descargará la lista de libros
+                relacionados a esta en formato EXCEL.
             </p>
             <div v-if="role_id === 3">
                 <h5 id="titleA"><b>Nuevo libro</b></h5>
@@ -164,10 +160,11 @@
                 <p>Puede modificar Titulo, ISBN, Autor o Editorial de cualquier libro.</p>
                 <p>
                     <b><i class="fa fa-info-circle"></i> Nota:</b>
-                    <ul>
-                        <li>Todos los campos son obligatorios, excepto el autor.</li>
-                        <li>El titulo e ISBN son únicos, es decir no se pueden agregar los mismos datos de un libro ya existente.</li>
-                    </ul>
+                <ul>
+                    <li>Todos los campos son obligatorios, excepto el autor.</li>
+                    <li>El titulo e ISBN son únicos, es decir no se pueden agregar los mismos datos de un libro ya
+                        existente.</li>
+                </ul>
                 </p>
             </div>
         </b-modal>
