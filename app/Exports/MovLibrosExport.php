@@ -82,6 +82,7 @@ class MovLibrosExport implements FromView
                             // ->where('fechas.created_at','like', '%2022-12%')
                             ->join('remisiones', 'fechas.remisione_id', '=', 'remisiones.id')
                             ->whereNotIn('remisiones.corte_id', [4])
+                            ->whereNull('fechas.deleted_at')
                             ->select('libro_id as libro_id' ,\DB::raw('SUM(unidades) as devoluciones'))
                             ->groupBy('libro_id')
                             ->get();
