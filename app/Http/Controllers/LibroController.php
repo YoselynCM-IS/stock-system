@@ -1084,6 +1084,7 @@ class LibroController extends Controller
         $fechas = \DB::table('fechas')
                     ->join('libros', 'fechas.libro_id', '=', 'libros.id')
                     ->whereBetween('fechas.fecha_devolucion', [$inicio, $final])
+                    ->whereNull('fechas.deleted_at')
                     ->select('fechas.libro_id', 'fechas.unidades')
                     ->get();
         $saldevoluciones = \DB::table('saldevoluciones')
@@ -1213,6 +1214,7 @@ class LibroController extends Controller
                     ->join('libros', 'fechas.libro_id', '=', 'libros.id')
                     ->where('fechas.libro_id', $libro_id)
                     ->whereBetween('fechas.fecha_devolucion', [$inicio, $final])
+                    ->whereNull('fechas.deleted_at')
                     ->select('libros.titulo', 'fechas.remisione_id as folio', 'fechas.unidades', 'fechas.fecha_devolucion')
                     ->get();
         $saldevoluciones = \DB::table('saldevoluciones')
