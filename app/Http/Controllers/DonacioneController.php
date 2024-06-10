@@ -15,6 +15,11 @@ use Excel;
 
 class DonacioneController extends Controller
 {
+    // ENVIAR A LA VISTA DEL LISTADO DE DONACIONES
+    public function lista(){
+        return view('information.donations.lista');
+    }
+
     // OBTENER TODAS LAS DONACIONES
     public function index(){
         $regalos = Regalo::orderBy('id','desc')->paginate(20);

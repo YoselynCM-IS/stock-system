@@ -729,6 +729,10 @@ Route::name('information.')->prefix('information')->middleware(['auth'])->group(
     Route::name('promotions.')->prefix('promotions')->group(function () {
         Route::get('/lista', 'PromotionController@lista')->name('lista');
     });
+
+    Route::name('donations.')->prefix('donations')->group(function () {
+        Route::get('/lista', 'DonacioneController@lista')->name('lista');
+    });
 }); 
 
 Route::name('actividades.')->prefix('actividades')->group(function () {

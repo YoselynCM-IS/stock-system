@@ -10,10 +10,7 @@
                             <label for="input-folio">Folio</label>
                         </b-col>
                         <b-col sm="10">
-                            <b-form-input 
-                                style="text-transform:uppercase;"
-                                id="input-folio" 
-                                v-model="folio" 
+                            <b-form-input style="text-transform:uppercase;" id="input-folio" v-model="folio"
                                 @keyup.enter="porFolio()">
                             </b-form-input>
                         </b-col>
@@ -26,12 +23,11 @@
                             <label for="input-plantel">Plantel</label>
                         </b-col>
                         <b-col sm="10">
-                            <b-input style="text-transform:uppercase;" 
-                                v-model="queryPlantel" @keyup="porPlantel()">
+                            <b-input style="text-transform:uppercase;" v-model="queryPlantel" @keyup="porPlantel()">
                             </b-input>
                         </b-col>
                     </b-row>
-                </b-col> 
+                </b-col>
                 <!-- CREAR UNA PROMOCION -->
                 <b-col sm="4">
                     <b-row>
@@ -39,11 +35,7 @@
                             <label for="input-inicio">De:</label>
                         </b-col>
                         <b-col sm="9">
-                            <input 
-                                class="form-control" 
-                                type="date" 
-                                :state="stateDate"
-                                v-model="inicio"
+                            <input class="form-control" type="date" :state="stateDate" v-model="inicio"
                                 @change="porFecha()">
                         </b-col>
                     </b-row>
@@ -52,61 +44,52 @@
                             <label for="input-final">A: </label>
                         </b-col>
                         <b-col sm="9">
-                            <input 
-                                class="form-control" 
-                                type="date" 
-                                v-model="final"
-                                @change="porFecha()">
+                            <input class="form-control" type="date" v-model="final" @change="porFecha()">
                         </b-col>
                     </b-row>
-                </b-col> 
+                </b-col>
             </b-row>
             <br>
             <b-row>
                 <b-col>
-                    <!-- PAGINACIÓN --> 
-                    <pagination size="default" :limit="1" :data="promotionsData" 
-                        @pagination-change-page="getResults">
+                    <!-- PAGINACIÓN -->
+                    <pagination size="default" :limit="1" :data="promotionsData" @pagination-change-page="getResults">
                         <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
                         <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                     </pagination>
                 </b-col>
                 <b-col class="text-right" v-if="role_id != 8 && role_id != 9">
-                    <a 
-                        v-if="promotions.length > 0"
-                        class="btn btn-dark"
+                    <a v-if="promotions.length > 0" class="btn btn-dark"
                         :href="'/download_promotion/' + queryPlantel + '/' + inicio + '/' + final + '/general'">
                         <i class="fa fa-download"></i> General
                     </a>
-                    <a 
-                        v-if="promotions.length > 0 && (role_id === 1 || role_id === 2 || role_id == 6)"
+                    <a v-if="promotions.length > 0 && (role_id === 1 || role_id === 2 || role_id == 6)"
                         class="btn btn-dark"
                         :href="'/download_promotion/' + queryPlantel + '/' + inicio + '/' + final + '/detallado'">
                         <i class="fa fa-download"></i> Detallado
                     </a>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6" 
-                        variant="success" @click="registrarPromocion()">
+                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6" variant="success"
+                        @click="registrarPromocion()">
                         <i class="fa fa-plus"></i> Registrar promoción
                     </b-button>
                 </b-col>
             </b-row>
             <!-- LISTADO DE PROMOCIONES -->
             <div v-if="!load">
-                <b-table v-if="promotions.length > 0"
-                    responsive :items="promotions" :fields="fields"
-                    id="my-table" :tbody-tr-class="rowClass">
+                <b-table v-if="promotions.length > 0" responsive :items="promotions" :fields="fields" id="my-table"
+                    :tbody-tr-class="rowClass">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(created_at)="row">{{ row.item.created_at | moment }}</template>
                     <template v-slot:cell(detalles)="row">
-                        <b-button variant="info" pill size="sm"
-                            @click="detallesPromotion(row.item)">
+                        <b-button variant="info" pill size="sm" @click="detallesPromotion(row.item)">
                             <i class="fa fa-info"></i>
                         </b-button>
                     </template>
                     <template v-slot:cell(paqueteria)="row">
-                        <b-button v-if="(role_id === 1 || role_id == 6 || role_id === 2) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
+                        <b-button
+                            v-if="(role_id === 1 || role_id == 6 || role_id === 2) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
                             variant="dark" pill size="sm" @click="selectPaqueteria(row.item, row.index)">
                             <i class="fa fa-truck"></i>
                         </b-button>
@@ -120,8 +103,8 @@
                             Devolución
                         </b-button> -->
                         <b-button v-if="row.item.estado == 'Enviado' && row.item.unidades_pendientes > 0 &&
-                            (role_id === 1 || role_id == 2 || role_id == 6)"
-                            variant="primary" pill @click="registrarDevolucion(row.item)">
+                            (role_id === 1 || role_id == 2 || role_id == 6)" variant="primary" pill
+                            @click="registrarDevolucion(row.item)">
                             Devolución
                         </b-button>
                     </template>
@@ -165,8 +148,7 @@
                     </b-button>
                 </b-col> -->
                 <b-col sm="2">
-                    <b-button v-if="promotion.paqueteria_id > 0"
-                        variant="dark" pill block v-b-modal.modal-envio-promo>
+                    <b-button v-if="promotion.paqueteria_id > 0" variant="dark" pill block v-b-modal.modal-envio-promo>
                         <i class="fa fa-truck"></i> Paquetería
                     </b-button>
                 </b-col>
@@ -183,8 +165,7 @@
                     <h6 v-if="promotion.descripcion.length > 0"><b>Descripción</b>: {{ promotion.descripcion }}</h6>
                 </b-col>
                 <b-col sm="2" v-if="role_id != 8 && role_id != 9">
-                    <b-button variant="dark" pill block 
-                        :href="`/download_promocion/${promotion.id}`">
+                    <b-button variant="dark" pill block :href="`/download_promocion/${promotion.id}`">
                         <i class="fa fa-download"></i> Descargar
                     </b-button>
                 </b-col>
@@ -193,8 +174,9 @@
                         variant="danger" pill block v-b-modal.modal-cancel>
                         <i class="fa fa-close"></i> Cancelar
                     </b-button> -->
-                    <b-button v-if="promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0"
-                        variant="danger" pill block v-b-modal.modal-cancel>
+                    <b-button v-if="(role_id == 1 || role_id == 2 || role_id == 6) &&
+                        (promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0)" variant="danger" pill
+                        block v-b-modal.modal-cancel>
                         <i class="fa fa-close"></i> Cancelar
                     </b-button>
                 </b-col>
@@ -211,8 +193,8 @@
                     </tr>
                 </template>
                 <template #cell(show_details)="row">
-                    <b-button v-if="row.item.libro.type == 'digital'"
-                        size="sm" @click="row.toggleDetails" variant="info" pill>
+                    <b-button v-if="row.item.libro.type == 'digital'" size="sm" @click="row.toggleDetails"
+                        variant="info" pill>
                         Códigos
                     </b-button>
                 </template>
@@ -244,10 +226,13 @@
         <!-- CREAR UNA PROMOCIÓN -->
         <div v-if="mostrarRegistrar">
             <b-row>
-                <b-col sm="6"><h4 style="color: #170057">Registrar promoción</h4></b-col>
+                <b-col sm="6">
+                    <h4 style="color: #170057">Registrar promoción</h4>
+                </b-col>
                 <b-col sm="3" align="right">
                     <b-button variant="success" @click="confirmarPromocion()" :disabled="load">
-                        <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="load"></b-spinner>
+                        <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small
+                            v-if="load"></b-spinner>
                     </b-button>
                 </b-col>
                 <b-col sm="3" align="right">
@@ -266,7 +251,7 @@
                                 style="text-transform:uppercase;" :disabled="load" required :state="state">
                             </b-input>
                             <div class="list-group" v-if="clientes.length" id="listP">
-                                <a href="#" v-bind:key="i" class="list-group-item list-group-item-action" 
+                                <a href="#" v-bind:key="i" class="list-group-item list-group-item-action"
                                     v-for="(cliente, i) in clientes" @click="selectCliente(cliente)">
                                     {{ cliente.name }}
                                 </a>
@@ -276,15 +261,18 @@
                     <b-row>
                         <b-col sm="3"><label><b>Descripción (Opcional)</b>:</label></b-col>
                         <b-col>
-                            <b-input style="text-transform:uppercase;" type="text" v-model="promocion.descripcion"></b-input>
+                            <b-input style="text-transform:uppercase;" type="text"
+                                v-model="promocion.descripcion"></b-input>
                         </b-col>
                     </b-row>
                 </b-col>
                 <b-col>
                     <b-row>
-                        <b-col sm="6"><label><b>Responsable de la entrega</b>: <b id="txtObligatorio">*</b></label></b-col>
+                        <b-col sm="6"><label><b>Responsable de la entrega</b>: <b
+                                    id="txtObligatorio">*</b></label></b-col>
                         <b-col>
-                            <b-form-select :state="stateResp" v-model="promocion.entregado_por" :options="options"></b-form-select>
+                            <b-form-select :state="stateResp" v-model="promocion.entregado_por"
+                                :options="options"></b-form-select>
                         </b-col>
                     </b-row>
                 </b-col>
@@ -300,79 +288,55 @@
                     </b-button>
                 </template>
                 <template #thead-top="row">
-                        <tr>
-                            <th colspan="1"></th>
-                            <th>ISBN</th>
-                            <th>Libro</th>
-                            <th></th>
-                            <th>Unidades</th>
-                        </tr>
-                        <tr>
-                            <th colspan="1"></th>
-                            <th>
-                                <b-input
-                                    id="input-isbn"
-                                    autofocus
-                                    v-model="temporal.ISBN"
-                                    @keyup.enter="buscarLibroISBN()"
-                                    v-if="inputISBN"
-                                    :disabled="load"
-                                ></b-input>
-                                <label v-if="!inputISBN">{{ temporal.ISBN }}</label>
-                            </th>
-                            <th>
-                                <b-input
-                                    style="text-transform:uppercase;"
-                                    id="input-libro"
-                                    autofocus
-                                    v-model="temporal.titulo"
-                                    @keyup="mostrarLibros()"
-                                    v-if="inputLibro"
-                                    :disabled="load">
-                                </b-input>
-                                <div class="list-group" v-if="resultslibros.length" id="listaBL">
-                                    <a 
-                                        href="#" 
-                                        v-bind:key="i" 
-                                        class="list-group-item list-group-item-action" 
-                                        v-for="(libro, i) in resultslibros" 
-                                        @click="datosLibro(libro)">
-                                        {{ libro.titulo }}
-                                    </a>
-                                </div>
-                                <label v-if="!inputLibro">{{ temporal.titulo }}</label>
-                            </th>
-                            <th>
-                                <b-form-select v-if="temporal.type == 'digital'" v-model="temporal.tipo" :options="code_tipos"
-                                    required :disabled="load" @change="checkDisponible()"></b-form-select>
-                            </th>
-                            <th>
-                                <b-form-input
-                                    id="input-unidades"
-                                    autofocus
-                                    @keyup.enter="guardarRegistro()"
-                                    v-if="inputUnidades"
-                                    v-model="temporal.unidades" 
-                                    type="number"
-                                    required
-                                    :disabled="load">
-                                </b-form-input>
-                            </th>
-                            <th>
-                                <b-button 
-                                    variant="secondary"
-                                    @click="eliminarTemporal()" 
-                                    v-if="inputUnidades"
-                                    :disabled="load">
-                                    <i class="fa fa-minus-circle"></i>
-                                </b-button>
-                            </th>
-                        </tr>
-                        <tr>
-                            <th colspan="4"></th>
-                            <th>{{ unidades_crear | formatNumber }}</th>
-                            <th></th>
-                        </tr>
+                    <tr>
+                        <th colspan="1"></th>
+                        <th>ISBN</th>
+                        <th>Libro</th>
+                        <th></th>
+                        <th>Unidades</th>
+                    </tr>
+                    <tr>
+                        <th colspan="1"></th>
+                        <th>
+                            <b-input id="input-isbn" autofocus v-model="temporal.ISBN" @keyup.enter="buscarLibroISBN()"
+                                v-if="inputISBN" :disabled="load"></b-input>
+                            <label v-if="!inputISBN">{{ temporal.ISBN }}</label>
+                        </th>
+                        <th>
+                            <b-input style="text-transform:uppercase;" id="input-libro" autofocus
+                                v-model="temporal.titulo" @keyup="mostrarLibros()" v-if="inputLibro" :disabled="load">
+                            </b-input>
+                            <div class="list-group" v-if="resultslibros.length" id="listaBL">
+                                <a href="#" v-bind:key="i" class="list-group-item list-group-item-action"
+                                    v-for="(libro, i) in resultslibros" @click="datosLibro(libro)">
+                                    {{ libro.titulo }}
+                                </a>
+                            </div>
+                            <label v-if="!inputLibro">{{ temporal.titulo }}</label>
+                        </th>
+                        <th>
+                            <b-form-select v-if="temporal.type == 'digital'" v-model="temporal.tipo"
+                                :options="code_tipos" required :disabled="load"
+                                @change="checkDisponible()"></b-form-select>
+                        </th>
+                        <th>
+                            <b-form-input id="input-unidades" autofocus @keyup.enter="guardarRegistro()"
+                                v-if="inputUnidades" v-model="temporal.unidades" type="number" required
+                                :disabled="load">
+                            </b-form-input>
+                        </th>
+                        <th>
+                            <b-button variant="secondary" @click="eliminarTemporal()" v-if="inputUnidades"
+                                :disabled="load">
+                                <i class="fa fa-minus-circle"></i>
+                            </b-button>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th colspan="4"></th>
+                        <th>{{ unidades_crear | formatNumber }}</th>
+                        <th></th>
+                    </tr>
                 </template>
             </b-table>
             <!-- RESUMEN DE LA PROMOCIÓN -->
@@ -383,8 +347,7 @@
                 <label v-if="promocion.descripcion !== ''">
                     <b>Descripción: </b><label style="text-transform:uppercase;">{{ promocion.descripcion }}</label><br>
                 </label><br>
-                <label
-                    ><b>Responsable de la entrega: </b> {{ promocion.entregado_por }}
+                <label><b>Responsable de la entrega: </b> {{ promocion.entregado_por }}
                 </label>
                 <b-table :items="registros" :fields="fieldsR">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
@@ -402,11 +365,12 @@
                         <b-col sm="10">
                             <b-alert show variant="info">
                                 <i class="fa fa-exclamation-circle"></i>
-                                <b>Verificar los datos de la promoción.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
+                                <b>Verificar los datos de la promoción.</b> En caso de algún error, modificar antes de
+                                presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                             <b-button variant="success" @click="guardarPromocion()" :disabled="load">
+                            <b-button variant="success" @click="guardarPromocion()" :disabled="load">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
@@ -420,7 +384,7 @@
             <div>
                 <b-row>
                     <b-col sm="2" class="text-left">
-                        <b-button variant="secondary" pill 
+                        <b-button variant="secondary" pill
                             @click="mostrarDevolucion = false; listadoPromociones = true;">
                             <i class="fa fa-arrow-circle-left"></i> Regresar
                         </b-button>
@@ -435,14 +399,13 @@
                             <i class="fa fa-check"></i> Guardar
                         </b-button>
                     </b-col>
-                </b-row><hr>
+                </b-row>
+                <hr>
                 <b-table :items="formDev.departures" :fields="fieldsD">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(unidades)="row">
-                        <b-form-input v-if="row.item.type != 'digital'"
-                            :id="`inpDev-${row.index}`" type="number" 
-                            required :disabled="load"
-                            @change="checkUnidades(row.item, row.index)"
+                        <b-form-input v-if="row.item.type != 'digital'" :id="`inpDev-${row.index}`" type="number"
+                            required :disabled="load" @change="checkUnidades(row.item, row.index)"
                             v-model="row.item.unidades">
                         </b-form-input>
                     </template>
@@ -468,12 +431,12 @@
                         <b-col sm="10">
                             <b-alert show variant="info">
                                 <i class="fa fa-exclamation-circle"></i>
-                                <b>Verificar los datos de la devolución.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
+                                <b>Verificar los datos de la devolución.</b> En caso de algún error, modificar antes de
+                                presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                             <b-button pill variant="success" @click="guardarDevolucion()" 
-                                :disabled="load">
+                            <b-button pill variant="success" @click="guardarDevolucion()" :disabled="load">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
@@ -488,16 +451,15 @@
                 <i class="fa fa-exclamation-circle"></i> Una vez presionado <b>OK</b> no se podrán realizar cambios.
             </b-alert>
             <div slot="modal-footer">
-                <b-button variant="danger" :disabled="load" 
-                    pill @click="cancel_promotion()">
+                <b-button variant="danger" :disabled="load" pill @click="cancel_promotion()">
                     OK
                 </b-button>
             </div>
         </b-modal>
         <!-- SELECCIONAR INFORMACIÓN DE PAQUETERIA -->
         <b-modal ref="modalPaqueteria" id="modal-paqueteria" title="Información de paquetería" size="lg" hide-footer>
-            <envio-paqueteria :enlace_id="promotion_id" :ruta="'/promotions/save_envio'" 
-                :tipo="'promoción'" @savedEnvio="savedEnvio"></envio-paqueteria>
+            <envio-paqueteria :enlace_id="promotion_id" :ruta="'/promotions/save_envio'" :tipo="'promoción'"
+                @savedEnvio="savedEnvio"></envio-paqueteria>
         </b-modal>
         <!-- MODAL PARA MOSTRAR DETALLES DE ENVIO -->
         <b-modal id="modal-envio-promo" title="Detalles de envió" hide-footer size="lg">
