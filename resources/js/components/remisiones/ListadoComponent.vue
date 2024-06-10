@@ -10,9 +10,7 @@
                             <label for="input-numero">Folio</label>
                         </b-col>
                         <b-col sm="7">
-                            <b-form-input 
-                                id="input-numero" type="number" 
-                                v-model="num_remision" 
+                            <b-form-input id="input-numero" type="number" v-model="num_remision"
                                 @keyup.enter="porNumero()">
                             </b-form-input>
                         </b-col>
@@ -25,16 +23,12 @@
                             <label for="input-cliente">Cliente</label>
                         </b-col>
                         <b-col sm="9">
-                            <b-input style="text-transform:uppercase;"
-                                v-model="queryCliente" @keyup="mostrarClientes()">
+                            <b-input style="text-transform:uppercase;" v-model="queryCliente"
+                                @keyup="mostrarClientes()">
                             </b-input>
                             <div class="list-group" v-if="resultsClientes.length" id="listaL">
-                                <a 
-                                    href="#" 
-                                    v-bind:key="i" 
-                                    class="list-group-item list-group-item-action" 
-                                    v-for="(result, i) in resultsClientes" 
-                                    @click="porCliente(result)">
+                                <a href="#" v-bind:key="i" class="list-group-item list-group-item-action"
+                                    v-for="(result, i) in resultsClientes" @click="porCliente(result)">
                                     {{ result.name }}
                                 </a>
                             </div>
@@ -46,7 +40,8 @@
                         <b-row class="my-1">
                             <b-col class="text-right" sm="3"><label for="input-estado">Estado</label></b-col>
                             <b-col sm="9">
-                                <b-form-select v-model="estadoRemision" :options="estados" @change="porEstado()"></b-form-select>
+                                <b-form-select v-model="estadoRemision" :options="estados"
+                                    @change="porEstado()"></b-form-select>
                             </b-col>
                         </b-row>
                     </div>
@@ -58,11 +53,7 @@
                             <label for="input-inicio">De:</label>
                         </b-col>
                         <b-col sm="9">
-                            <input 
-                                class="form-control" 
-                                type="date" 
-                                :state="stateDate"
-                                v-model="inicio"
+                            <input class="form-control" type="date" :state="stateDate" v-model="inicio"
                                 @change="porFecha()">
                         </b-col>
                     </b-row>
@@ -164,12 +155,13 @@
                                 :href="`/remisiones/ce_remision/${row.item.id}/${true}`">
                                 <i class="fa fa-edit"></i>
                             </b-button> -->
-                            <b-dropdown v-if="(role_id == 6) && row.item.estado !== 'Cancelado'" text="" variant="dark">
+                            <b-dropdown v-if="(role_id == 1 || role_id == 6) && row.item.estado !== 'Cancelado'" text=""
+                                variant="dark">
                                 <b-dropdown-item :href="`/remisiones/ce_remision/${row.item.id}/${true}`"
                                     target="blank">
                                     Editar remisión
                                 </b-dropdown-item>
-                                <b-dropdown-item v-if="row.item.fechas_count > 0"
+                                <b-dropdown-item v-if="(role_id == 6) && row.item.fechas_count > 0"
                                     :href="`/remisiones/delete_dev/${row.item.id}`" target="blank">
                                     Borrar devolución
                                 </b-dropdown-item>

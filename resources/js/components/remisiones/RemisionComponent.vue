@@ -88,7 +88,7 @@
                     :state="state"></b-form-datepicker>
                 <div class="col-md-4"></div>
                 <div class="col-md-2" align="right">
-                    <b-button variant="dark" pill block @click="showScratch()">
+                    <b-button v-if="!editar" variant="dark" pill block @click="showScratch()">
                         Scratch
                     </b-button>
                 </div>
