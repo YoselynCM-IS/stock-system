@@ -298,11 +298,11 @@ class LibroController extends Controller
             $libro_opuesto = Libro::on('opuesto')
                                     ->where('titulo', $libro->titulo)
                                     ->first();
-            if($request->type != 'digital'){
-                $me_libro = \DB::connection('majesticeducation')->table('libros')
-                            ->where('titulo', $libro->titulo)
-                            ->first();
-            }
+            // if($request->type != 'digital'){
+            //     $me_libro = \DB::connection('majesticeducation')->table('libros')
+            //                 ->where('titulo', $libro->titulo)
+            //                 ->first();
+            // }
         }
 
         $libro->ISBN = 'ISBN-'.$libro->ISBN;
@@ -335,16 +335,16 @@ class LibroController extends Controller
 
             if($editorial == 'MAJESTIC EDUCATION'){
                 if($libro_opuesto == null){
-                    Libro::on('opuesto')->create($datos);
+                    // Libro::on('opuesto')->create($datos);
                 } else {
                     $libro_opuesto->update($datos);
                 }
 
-                if($request->type != 'digital'){
-                    $me_libro = \DB::connection('majesticeducation')->table('libros')
-                                ->where('id', $me_libro->id)
-                                ->update($datos);
-                }
+                // if($request->type != 'digital'){
+                //     $me_libro = \DB::connection('majesticeducation')->table('libros')
+                //                 ->where('id', $me_libro->id)
+                //                 ->update($datos);
+                // }
                 
             }
 
