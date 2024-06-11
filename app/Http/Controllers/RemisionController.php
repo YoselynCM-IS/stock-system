@@ -1386,7 +1386,7 @@ class RemisionController extends Controller
     public function ce_remision($remisione_id, $editar){
         $remision = 0;
         $clientes = Cliente::orderBy('name', 'asc')->get();
-        if($editar == 'true' && auth()->user()->role->rol == 'Manager') 
+        if($editar == 'true' && (auth()->user()->role->rol == 'Manager' || auth()->user()->role->rol == 'Administrador')) 
             $remision = Remisione::whereId($remisione_id)->with('cliente', 'datos.libro')->first();
 
         return view('information.remisiones.ce-remision', compact('remision', 'clientes', 'editar'));
