@@ -141,10 +141,14 @@ class EntradaController extends Controller
             $lugar = 'CMX';
             $folio = strtoupper($request->folio);
             $corte = $this->get_corte();
+            $imprenta_id = null;
+
+            if($request->imprenta_id != 'null') $imprenta_id = $request->imprenta_id;
 
             $entrada = null;
             $entrada = Entrada::create([
                 'folio' => $folio,
+                'imprenta_id' => $imprenta_id,
                 'corte_id' => $corte->id,
                 'editorial' => $editorial,
                 'unidades' => $request->unidades,
@@ -198,7 +202,7 @@ class EntradaController extends Controller
             \DB::commit();
         } catch (Exception $e) {
             \DB::rollBack();
-            return response()->json($exception->getMessage());
+            return response()->json($e->getMessage());
         }
         return response()->json(true);
     }
@@ -1206,8 +1210,8 @@ class EntradaController extends Controller
         ]);
     }
 
-    public function get_imprentas(){
-        $imprentas = \DB::table('imprentas')->orderBy('imprenta', 'asc')->get();
+    public function get_imprentas($tipo){
+        $imprentas = \DB::table('imprentas')->where('tipo', $tipo)->orderBy('imprenta', 'asc')->get();
         return response()->json($imprentas);
     }
 }

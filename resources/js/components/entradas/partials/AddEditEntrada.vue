@@ -234,13 +234,13 @@ import SubirFotoComponent from '../../funciones/SubirFotoComponent.vue';
 import formatNumber from './../../../mixins/formatNumber';
 import toast from './../../../mixins/toast';
 import AddScratchsComponent from '../../funciones/AddScratchsComponent.vue';
+import getImprentas from '../../../mixins/editoriales/getImprentas';
 export default {
   components: { SubirFotoComponent, AddScratchsComponent },
     props: ['agregar', 'form', 'editoriales'],
-    mixins: [formatNumber, toast, sweetAlert],
+    mixins: [formatNumber, toast, sweetAlert, getImprentas],
     data(){
         return {
-            load: false,
             stateN: null,
             stateE: null,
             options: [],
@@ -273,7 +273,6 @@ export default {
             showSelect: true,
             total_unidades_que: 0,
             total_unidades: 0,
-            imprentas: [],
             allowExt: /(\.jpg|\.jpeg|\.png|\.pdf)$/i,
             packs: [],
             fieldsScratch: [
@@ -298,7 +297,7 @@ export default {
     methods: {
         editorialSelected(){
             if(this.form.editorial == 'MAJESTIC EDUCATION'){
-                this.getImprentas();
+                this.getImprentas('fisico');
                 Swal.fire({
                     title: "¿Se enviarán libros a Querétaro?",
                     showDenyButton: true,
@@ -318,26 +317,6 @@ export default {
             this.inicializar_temporal(null, null, null);
             this.resultsISBNS = [];
             this.resultslibros = [];
-        },
-        getImprentas(){
-            this.load = true;
-            this.imprentas = [];
-            axios.get('/entradas/get_imprentas').then(response => {
-                let is = response.data;
-                this.imprentas.push({
-                    value: null,
-                    text: 'Selecciona una opción'
-                });
-                is.forEach(i => {
-                    this.imprentas.push({
-                        value: i.id,
-                        text: i.imprenta
-                    });
-                });
-                this.load = false;
-            }).catch(error => {
-                this.load = false;
-            });
         },
         confirmarEntrada(){
             this.form.file = null;

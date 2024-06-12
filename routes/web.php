@@ -286,7 +286,7 @@ Route::name('entradas.')->prefix('entradas')->group(function () {
     // OBTENER DETALLES DEL CORTE DE UNA EDITORIAL
     Route::get('cortes_details', 'EntradaController@cortes_details')->name('cortes_details');
     // OBTENER LISTA DE IMPRENTAS
-    Route::get('get_imprentas', 'EntradaController@get_imprentas')->name('get_imprentas');
+    Route::get('/get_imprentas/{tipo}', 'EntradaController@get_imprentas')->name('get_imprentas');
 
     // OBTENER COMPROBANTE
     Route::get('comprobante_url', 'EntradaController@comprobante_url')->name('comprobante_url');
