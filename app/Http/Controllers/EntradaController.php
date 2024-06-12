@@ -1148,7 +1148,8 @@ class EntradaController extends Controller
         \DB::beginTransaction();
         try {
             $imprenta = Imprenta::create([
-                'imprenta' => strtoupper($request->imprenta)
+                'imprenta' => strtoupper($request->imprenta),
+                'tipo' => strtoupper($request->tipo)
             ]);
 
             $reporte = 'creo la imprenta '.$imprenta->imprenta;

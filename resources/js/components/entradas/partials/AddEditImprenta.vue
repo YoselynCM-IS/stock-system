@@ -6,6 +6,9 @@
                     required autofocus style="text-transform:uppercase;">
                 </b-form-input>
             </b-form-group>
+            <b-form-group label="Tipo de libro">
+                <b-form-select v-model="form.tipo" :options="tipos" required></b-form-select>
+            </b-form-group>
             <button-save-component :load="load"></button-save-component>
         </b-form>
     </div>
@@ -19,8 +22,14 @@ export default {
         return {
             load: false,
             form: {
-                imprenta: null
-            }
+                imprenta: null,
+                tipo: null,
+            },
+            tipos: [
+                { value: null, text: 'Selecciona una opción', disabled: true},
+                { value: 'fisico', text: 'Físico' },
+                { value: 'digital', text: 'Digital' }
+            ],
         }
     },
     methods: {
