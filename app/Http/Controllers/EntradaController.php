@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use App\Repayment;
 use App\Registro;
 use App\Ectotale;
+use App\Imprenta;
 use App\Entrada;
 use App\Reporte;
 use App\Salida;
@@ -1140,6 +1141,24 @@ class EntradaController extends Controller
             return response()->json($exception->getMessage());
         }
         return response()->json($request);
+    }
+
+    // GUARDAR IMPRENTA EN DB
+    public function save_imprenta(Request $request){
+        \DB::beginTransaction();
+        try {
+            $imprenta = Imprenta::create([
+                'imprenta' => strtoupper($request->imprenta)
+            ]);
+
+            $reporte = 'creo la imprenta '.$imprenta->imprenta;
+            $this->create_report($imprenta->id, $reporte, 'proveedor', 'imprentas');
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
+        }
+        return response()->json(true);
     }
 
     public function get_corte(){

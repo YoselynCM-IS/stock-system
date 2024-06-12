@@ -279,6 +279,8 @@ Route::name('entradas.')->prefix('entradas')->group(function () {
 
     // GUARDAR EDITORIAL
     Route::post('save_editorial', 'EntradaController@save_editorial')->name('save_editorial');
+    // GUARDAR IMPRENTA
+    Route::post('save_imprenta', 'EntradaController@save_imprenta')->name('save_imprenta');
     // OBTENER CORTES DE LA EDITORIAL
     Route::get('get_cortes', 'EntradaController@get_cortes')->name('get_cortes');
     // OBTENER DETALLES DEL CORTE DE UNA EDITORIAL

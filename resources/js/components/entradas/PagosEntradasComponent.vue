@@ -4,15 +4,21 @@
             <b-col>
                 <h4 style="color: #170057">Proveedores</h4>
             </b-col>
-            <b-col sm="3" class="text-right">
-                <b-button variant="dark" href="/descargar_gralEdit" pill>
+            <b-col sm="2" class="text-right">
+                <b-button variant="dark" href="/descargar_gralEdit" pill block>
                     <i class="fa fa-download"></i> Descargar
                 </b-button>
             </b-col>
-            <b-col sm="3" class="text-right" >
+            <b-col sm="2" class="text-right" >
                 <b-button v-if="role_id === 1 || role_id == 6" :disabled="load"
-                    pill variant="success" @click="newEditorial()">
-                    <i class="fa fa-plus-circle"></i> Agregar editorial
+                    pill block variant="success" @click="newEditorial()">
+                    <i class="fa fa-plus-circle"></i> Nueva editorial
+                </b-button>
+            </b-col>
+            <b-col sm="2" class="text-right" >
+                <b-button v-if="role_id === 1 || role_id == 6" :disabled="load"
+                    pill block variant="success" @click="newImprenta()">
+                    <i class="fa fa-plus-circle"></i> Nueva imprenta
                 </b-button>
             </b-col>
         </b-row>
@@ -70,6 +76,10 @@
         <b-modal ref="modal-agregarEditorial" title="Agregar editorial" hide-footer size="sm">
             <add-edit-editorial @saveEditorial="saveEditorial"></add-edit-editorial>
         </b-modal>
+        <!-- MODAL PARA AGREGAR NUEVA IMPRENTA -->
+        <b-modal ref="modal-agregarImprenta" title="Agregar imprenta" hide-footer size="sm">
+            <add-edit-imprenta @saveImprenta="saveImprenta"></add-edit-imprenta>
+        </b-modal>
     </div>
 </template>
 
@@ -77,10 +87,11 @@
 import formatNumber from '../../mixins/formatNumber';
 import toast from '../../mixins/toast';
 import AddEditEditorial from './partials/AddEditEditorial.vue';
+import AddEditImprenta from './partials/AddEditImprenta.vue';
 import sweetAlert from '../../mixins/sweetAlert';
 export default {
     props: ['role_id', 'editoriales'],
-    components: {AddEditEditorial},
+    components: {AddEditEditorial, AddEditImprenta},
     mixins: [formatNumber, toast, sweetAlert],
     data(){
         return {
@@ -149,6 +160,15 @@ export default {
         saveEditorial(){
             this.$bvModal.hide('modal-agregarEditorial');
             this.messageAlert('center', 'success', 'La editorial se guardo correctamente.', null, 'reload');
+        },
+        // ABRIR MODAL PARA AGREGAR NUEVA IMPRENTA
+        newImprenta(){
+            this.$refs['modal-agregarImprenta'].show();
+        },
+        // CONFIRMACIÓN DE QUE SE GUARDO LA IMPRENTA
+        saveImprenta(){
+            this.$bvModal.hide('modal-agregarImprenta');
+            this.messageAlert('center', 'success', 'La imprenta se guardo correctamente.', null, 'reload');
         }
     }
 }
