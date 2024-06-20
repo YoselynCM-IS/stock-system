@@ -340,10 +340,10 @@
                             Códigos
                         </b-button>
                     </div>
-                    <b-button v-if="row.item.libro.type == 'venta'" :disabled="row.item.unidades_base <= 0"
+                    <!-- <b-button v-if="row.item.libro.type == 'venta'" :disabled="row.item.unidades_base <= 0"
                         pill small block variant="secondary" @click="addDefectuosos(row.item, row.index)">
                         Defectuosos
-                    </b-button>
+                    </b-button> -->
                 </template>
             </b-table>
         </div>
