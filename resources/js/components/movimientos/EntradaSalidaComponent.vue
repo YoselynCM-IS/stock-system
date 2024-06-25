@@ -1,48 +1,72 @@
 <template>
     <div>
         <!-- ENCABEZADO -->
-        <b-row>
+         <b-row>
             <b-col>
-                <b-pagination v-if="movimientos.length > 0" aria-controls="table-es"
-                    v-model="currentPage" :per-page="perPage"
-                    :total-rows="movimientos.length">
-                </b-pagination>
-            </b-col>
-            <b-col sm="3">
-                <b-form-select v-model="fechas.editorial" :options="options">
-                </b-form-select>
-            </b-col>
-            <b-col sm="3">
                 <b-row>
-                    <b-col sm="1">De:</b-col>
+                    <b-col sm="5">
+                        <b-form-select v-model="fechas.editorial" :options="options" :disabled="load" @change="selectedEditorial()">
+                        </b-form-select>
+                    </b-col>
                     <b-col>
-                        <b-form-datepicker v-model="fechas.de" :disabled="load"></b-form-datepicker>
+                        <b-input style="text-transform:uppercase;" placeholder="BUSCAR POR TITULO"
+                            v-model="fechas.libro" :disabled="load"
+                            @keyup="getLibros(fechas.libro)"
+                        ></b-input>
+                        <div class="list-group" v-if="resultslibros.length" id="listaL">
+                            <a class="list-group-item list-group-item-action" 
+                                v-for="(libro, i) in resultslibros" v-bind:key="i" 
+                                @click="datosLibro(libro)" href="#" >
+                                {{ libro.titulo }}
+                            </a>
+                        </div>
                     </b-col>
                 </b-row>
                 <b-row>
-                    <b-col sm="1">A:</b-col>
-                    <b-col>
-                        <b-form-datepicker v-model="fechas.a" :disabled="load"></b-form-datepicker>
+                    <b-col class="mt-3">
+                        <b-pagination v-if="movimientos.length > 0" aria-controls="table-es"
+                            v-model="currentPage" :per-page="perPage"
+                            :total-rows="movimientos.length">
+                        </b-pagination>
                     </b-col>
                 </b-row>
             </b-col>
-            <b-col sm="2">
-                <b-button variant="primary" pill block
-                    :disabled="load || (fechas.editorial == null || fechas.de == null || fechas.a == null)"
-                    @click="get_entradas_salidas">
-                    <i class="fa fa-search"></i>
-                </b-button>
-                <b-button variant="dark" pill block :href="`/libro/download_entsal/${fechas.editorial}/${fechas.de}/${fechas.a}`"
-                    :disabled="load || movimientos.length == 0">
-                    <i class="fa fa-download"></i> Descargar
-                </b-button>
-                <b-button v-if="role_id == 6" variant="primary" pill block 
-                    :href="`/libro/send_movday/${fechas.de}/${fechas.a}`" 
-                    :disabled="load">
-                    <i class="fa fa-external-link"></i> Enviar
-                </b-button>
+            <b-col sm="5">
+                <b-row>
+                    <b-col>
+                        <b-row>
+                            <b-col sm="1">De:</b-col>
+                            <b-col>
+                                <b-form-datepicker v-model="fechas.de" :disabled="load"></b-form-datepicker>
+                            </b-col>
+                        </b-row>
+                        <b-row>
+                            <b-col sm="1">A:</b-col>
+                            <b-col>
+                                <b-form-datepicker v-model="fechas.a" :disabled="load"></b-form-datepicker>
+                            </b-col>
+                        </b-row>
+                    </b-col>
+                    <b-col sm="4">
+                        <b-button variant="primary" pill block
+                            :disabled="load || ((fechas.editorial == null && fechas.libro_id == null) || fechas.de == null || fechas.a == null)"
+                            @click="get_entradas_salidas">
+                            <i class="fa fa-search"></i> Buscar
+                        </b-button>
+                        <b-button variant="dark" pill block :href="`/libro/download_entsal/${fechas.editorial}/${fechas.de}/${fechas.a}`"
+                            :disabled="load || movimientos.length < 2">
+                            <i class="fa fa-download"></i> Descargar
+                        </b-button>
+                        <!-- <b-button v-if="role_id == 6" variant="primary" pill block 
+                            :href="`/libro/send_movday/${fechas.de}/${fechas.a}`" 
+                            :disabled="load">
+                            <i class="fa fa-external-link"></i> Enviar
+                        </b-button> -->
+                    </b-col>
+                </b-row>
             </b-col>
-        </b-row>
+         </b-row>
+        
         <!-- REGISTROS -->
         <div v-if="!load" class="mt-5">
             <b-table v-if="searchFecha" :items="movimientos" :fields="fields"
@@ -103,16 +127,19 @@ import LoadComponent from '../cortes/partials/LoadComponent.vue';
 import moment from 'moment';
 import toast from './../../mixins/toast';
 import TableMovLibro from './partials/TableMovLibro.vue';
+import getLibros from '../../mixins/getLibros';
 export default {
   components: { LoadComponent, TableMovLibro },
   props: ['role_id'],
-  mixins: [toast],
+  mixins: [toast, getLibros],
     data(){
         return {
             fechas: {
                 de: null,
                 a: null,
-                editorial: null
+                editorial: null,
+                libro: null,
+                libro_id: null
             },
             fields: [
                 { key: 'index', label: 'N.' },
@@ -135,8 +162,7 @@ export default {
             perPage: 25,
             currentPage: 1,
             libro: {},
-            options: [],
-            queryEditorial: null
+            options: []
         }
     },
     created: function(){
@@ -146,12 +172,12 @@ export default {
     methods: {
         // OBTENER ENTRADAS Y SALIDAS DE LIBROS
         get_entradas_salidas(){
-            var fecha1 = moment(this.fechas.de);
-            var fecha2 = moment(this.fechas.a);
-            var diferencia = fecha2.diff(fecha1, 'days');
+            // var fecha1 = moment(this.fechas.de);
+            // var fecha2 = moment(this.fechas.a);
+            // var diferencia = fecha2.diff(fecha1, 'days');
             // if(diferencia >= 0 && diferencia <= 28){
                 this.load = true;
-                axios.get('/libro/entradas_salidas', {params: {de: this.fechas.de, a: this.fechas.a, editorial: this.fechas.editorial}}).then(response => {
+                axios.get('/libro/entradas_salidas', {params: {de: this.fechas.de, a: this.fechas.a, editorial: this.fechas.editorial, libro_id: this.fechas.libro_id}}).then(response => {
                     this.movimientos = response.data;
                     this.searchFecha = true;
                     this.load = false;
@@ -182,7 +208,7 @@ export default {
             axios.get('/libro/get_editoriales').then(response => {
                 let editoriales = response.data;
                 this.options.push({
-                    value: null, text: 'Seleccionar una opción', disabled: true
+                    value: null, text: 'BUSCAR POR EDITORIAL', disabled: true
                 });
                 editoriales.forEach(editorial => {
                     this.options.push({
@@ -205,6 +231,19 @@ export default {
                 this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                 this.load = false;
             });
+        },
+        // INICIALIZAR DATOS POR EDITORIAL SELECCIONADA
+        selectedEditorial(){
+            this.fechas.libro = null;
+            this.fechas.libro_id = null;
+            this.resultslibros = [];
+        },
+        // OBTENER MOVIMIENTOS DEL LIBRO SELECCIONADO
+        datosLibro(libro){
+            this.fechas.editorial = null;
+            this.fechas.libro = libro.titulo;
+            this.fechas.libro_id = libro.id;
+            this.resultslibros = [];
         }
     }
 }

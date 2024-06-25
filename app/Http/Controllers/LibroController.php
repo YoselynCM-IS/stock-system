@@ -1074,6 +1074,9 @@ class LibroController extends Controller
     public function entradas_salidas(Request $request){
         $inicio = $request->de.' 00:00:00';
         $final = $request->a.' 23:59:59';
+        $editorial = $request->editorial;
+        $libro_id = $request->libro_id;
+
         // ENTRADAS
         $entradas = \DB::table('registros')
                     ->join('entradas', 'registros.entrada_id', '=', 'entradas.id')
@@ -1150,8 +1153,15 @@ class LibroController extends Controller
         $ids = $this->get_ids_libros($donaciones, $ids);
         
         $lista_datos = [];
-        $libros = Libro::where('editorial', $request->editorial)
+
+        if($editorial == null){
+            $libros = Libro::where('id', $libro_id)
                     ->whereIn('id', $ids)->orderBy('titulo', 'asc')->get();
+        }
+        if($libro_id == null){
+            $libros = Libro::where('editorial', $editorial)->get();
+        }
+
         $libros->map(function($libro) use(&$lista_datos, $entradas, $fechas, $saldevoluciones, $prodevoluciones, $salidas, $entdevoluciones, $remisiones, $notas, $promociones, $donaciones){
             $ter = $this->get_datos_libros($libro->id, $entradas);
             $tdf = $this->get_datos_libros($libro->id, $fechas);
