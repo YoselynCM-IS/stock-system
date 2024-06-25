@@ -1154,12 +1154,13 @@ class LibroController extends Controller
         
         $lista_datos = [];
 
+        // BUSCAR POR LIBRO
         if($editorial == null){
-            $libros = Libro::where('id', $libro_id)
-                    ->whereIn('id', $ids)->orderBy('titulo', 'asc')->get();
+            $libros = Libro::where('id', $libro_id)->get();
         }
+        // BUSCAR POR EDITORIAL
         if($libro_id == null){
-            $libros = Libro::where('editorial', $editorial)->get();
+            $libros = Libro::where('editorial', $editorial)->whereIn('id', $ids)->orderBy('titulo', 'asc')->get();
         }
 
         $libros->map(function($libro) use(&$lista_datos, $entradas, $fechas, $saldevoluciones, $prodevoluciones, $salidas, $entdevoluciones, $remisiones, $notas, $promociones, $donaciones){
