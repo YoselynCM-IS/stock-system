@@ -19,7 +19,8 @@
                     {key: 'telefono', label: 'Teléfono'},
                     {key: 'user.name', label: 'Responsable'},
                     {key: 'detalles', label: ''},
-                    {key: 'editar', label: ''}
+                    {key: 'editar', label: ''},
+                    {key: 'ocultar', label: ''}
                 ]
             }
         }

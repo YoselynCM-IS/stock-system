@@ -11,7 +11,7 @@
                     </pagination>
                 </b-col>
                 <b-col>
-                    <search-select-cliente-component :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
+                    <search-select-cliente-component :load="load" :status="'all'" @sendCliente="sendCliente"></search-select-cliente-component>
                 </b-col>
                 <b-col sm="2" class="text-right">
                     <b-button v-if="role_id == 5 || role_id == 9 || role_id == 6 || role_id == 7"

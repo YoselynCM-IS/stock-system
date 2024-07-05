@@ -2,7 +2,7 @@
     <div>
         <b-row>
             <b-col sm="6">
-                <search-select-cliente-component :titulo="'PARA:'" :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
+                <search-select-cliente-component :titulo="'PARA:'" :status="'activo'" :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
             </b-col>
             <b-col></b-col>
             <b-col sm="2">

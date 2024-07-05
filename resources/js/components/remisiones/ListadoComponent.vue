@@ -26,9 +26,9 @@
                             <b-input style="text-transform:uppercase;" v-model="queryCliente"
                                 @keyup="mostrarClientes()">
                             </b-input>
-                            <div class="list-group" v-if="resultsClientes.length" id="listaL">
+                            <div class="list-group" v-if="clientes.length" id="listaL">
                                 <a href="#" v-bind:key="i" class="list-group-item list-group-item-action"
-                                    v-for="(result, i) in resultsClientes" @click="porCliente(result)">
+                                    v-for="(result, i) in clientes" @click="porCliente(result)">
                                     {{ result.name }}
                                 </a>
                             </div>
@@ -233,11 +233,12 @@
     import rowClass from '../../mixins/rowClass';
     import setResponsables from '../../mixins/setResponsables';
     import EnvioPaqueteria from '../funciones/paqueteria/EnvioPaqueteria.vue';
+    import searchCliente from '../../mixins/searchCliente';
     moment.locale('es');
     export default {
         components: { EnvioPaqueteria },
         props: ['role_id'],
-        mixins: [formatNumber,rowClass,setResponsables],
+        mixins: [formatNumber,rowClass,setResponsables,searchCliente],
         data() {
             return {
                 clientes: [],
@@ -264,7 +265,6 @@
                 remisiones: [],
                 remision: {},
                 queryCliente: '',
-                resultsClientes: [],
                 total_salida: 0,
                 total_devolucion: 0,
                 total_pagar: 0,
@@ -459,7 +459,7 @@
                 this.final = '0000-00-00';
                 this.estadoRemision = null;
                 this.num_remision = null;
-                this.resultsClientes = [];
+                this.clientes = [];
                 this.estadoRemision = null;
                 this.http_cliente();
             },
@@ -635,17 +635,6 @@
                         this.makeToast('danger', 'Error al consultar el numero de remisión ingresado.');
                         this.load = false;
                     });
-                }
-            },
-            // MOSTRAR LOS CLIENTES
-            mostrarClientes(){
-                if(this.queryCliente.length > 0){
-                    axios.get('/mostrarClientes', {params: {queryCliente: this.queryCliente}}).then(response => {
-                        this.resultsClientes = response.data;
-                    }); 
-                }
-                else{
-                    this.resultsClientes = [];
                 }
             },
             // // MOSTRAR LOS DETALLES DE LA REMISIÓN

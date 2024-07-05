@@ -7,9 +7,9 @@ export default {
     },
     methods: {
         // MOSTRAR CLIENTES
-        mostrarClientes(){
+        mostrarClientes(status = 'all'){
             if(this.queryCliente.length > 0){
-                axios.get('/mostrarClientes', {params: {queryCliente: this.queryCliente}}).then(response => {
+                axios.get('/mostrarClientes', {params: {queryCliente: this.queryCliente, status: status}}).then(response => {
                     this.clientes = response.data;
                 }); 
             } else {

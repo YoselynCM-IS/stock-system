@@ -196,7 +196,7 @@
             <b-row class="col-md-10">
                 <b-col sm="2"><label><b>Cliente</b>: <b id="txtObligatorio">*</b></label></b-col>
                 <b-col>
-                    <b-input v-model="queryCliente" @keyup="mostrarClientes()" autofocus
+                    <b-input v-model="queryCliente" @keyup="mostrarClientes('activo')" autofocus
                         style="text-transform:uppercase;" :disabled="load" required :state="state">
                     </b-input>
                     <div class="list-group" v-if="clientes.length" id="listP">

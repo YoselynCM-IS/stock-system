@@ -3,14 +3,14 @@
         <b-row class="mb-2">
             <b-col sm="8">
                 <!-- BUSCAR CLIENTE POR NOMBRE -->
-                <b-input style="text-transform:uppercase;" v-model="queryCliente" 
+                <b-input style="text-transform:uppercase;" v-model="queryCliente" :disabled="loadDetails"
                             @keyup="addCliente ? http_byname('by_name'):http_byname('by_name_userid')" 
                             placeholder="BUSCAR CLIENTE"></b-input>
             </b-col>
             <b-col class="text-right">
                 <add-descarga v-if="addCliente" :role_id="role_id"></add-descarga>
                 <div v-else>
-                    <b-button variant="dark" pill @click="newProspecto()" >
+                    <b-button variant="dark" pill @click="newProspecto()" :disabled="loadDetails">
                         <i class="fa fa-plus-circle"></i> Agregar prospecto
                     </b-button>
                 </div>
@@ -19,20 +19,34 @@
         <!-- LISTADO DE CLIENTES -->
         <div v-if="!load">
             <div v-if="clientes.length > 0">
-                <b-table responsive hover :items="clientes" :fields="fields">
+                <b-table responsive hover :items="clientes" :fields="fields" :tbody-tr-class="rowClass">
                     <template v-slot:cell(index)="row">
                         {{ row.index + 1 }}
                     </template>
                     <template v-slot:cell(editar)="row">
                         <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 9" 
-                            v-b-modal.modal-editarCliente variant="warning" 
+                            v-b-modal.modal-editarCliente variant="warning" :disabled="loadDetails"
                             style="color: white;" pill size="sm" block
                             @click="editarCliente(row.item, row.index)">
                             <i class="fa fa-pencil"></i>
                         </b-button>
                     </template>
+                    <template v-slot:cell(ocultar)="row">
+                        <div v-if="role_id === 1 || role_id == 6">
+                            <b-button v-if="row.item.status == 'activo'"
+                                variant="secondary" pill size="sm" block :disabled="loadDetails"
+                                @click="changeStatus(row.item, 'inactivo')">
+                                <i class="fa fa-minus"></i>
+                            </b-button>
+                            <b-button v-else
+                                variant="dark" pill size="sm" block :disabled="loadDetails"
+                                @click="changeStatus(row.item, 'activo')">
+                                <i class="fa fa-refresh"></i>
+                            </b-button>
+                        </div>
+                    </template>
                     <template v-slot:cell(detalles)="row">
-                        <b-button variant="info" v-b-modal.modal-detalles pill
+                        <b-button variant="info" v-b-modal.modal-detalles pill :disabled="loadDetails"
                             @click="showDetails(row.item)" size="sm" block>
                             <i class="fa fa-info"></i>
                         </b-button>
@@ -252,7 +266,24 @@ export default {
             this.cliente_name = cliente.name;
             this.cliente_id = cliente.id;
             this.$bvModal.show('modal-showseguimiento');
-        }
+        },
+        // ELIMINAR CLIENTE
+        changeStatus(cliente, status){
+            this.loadDetails = true;
+            let form = { cliente_id: cliente.id, status: status };
+            axios.put('/clientes/change_status', form).then(response => {
+                this.messageAlert('center', 'success', `El cliente se ${status == 'activo' ? 'restauró':'eliminó'} correctamente.`, null, 'reload');
+                this.loadDetails = false;
+            }).catch(error => {
+                this.loadDetails = false;
+                this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+            });
+        },
+        // MOSTRAR EN OTRO COLOR LOS CLIENTES INACTIVOS
+        rowClass(item, type) {
+            if (!item) return
+            if (item.status == 'inactivo') return 'table-secondary'
+        },
     }
 
 }

@@ -9,7 +9,7 @@
                 </b-form-group> 
             </b-col>
             <b-col>
-                <search-select-cliente-component :titulo="'PARA:'" :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
+                <search-select-cliente-component :titulo="'PARA:'" :status="'activo'" :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
             </b-col>
             <b-col sm="2">
                 <b-button @click="save_pedido()" class="mt-2" variant="success" pill block

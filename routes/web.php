@@ -575,6 +575,10 @@ Route::name('clientes.')->prefix('clientes')->group(function () {
     Route::post('/save_seguimiento', 'ClienteController@save_seguimiento')->name('save_seguimiento'); 
     // Obtener seguimiento de clientes
     Route::get('/get_seguimiento', 'ClienteController@get_seguimiento')->name('get_seguimiento');
+    // Borrar cliente
+    Route::put('/change_status', 'ClienteController@change_status')->name('change_status');
+    // OBTENER CLIENTES POR COINCIDENCIA DE NOMBRE Y STATUS
+    Route::get('/by_namestatus', 'ClienteController@by_namestatus')->name('by_namestatus');
 });
 
 // MANAGER

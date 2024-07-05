@@ -15,7 +15,7 @@ class Cliente extends Model
 {
     protected $fillable = [
         'id', 'name', 'contacto', 'email', 'telefono', 'direccion', 'condiciones_pago', 'rfc', 'fiscal',
-        'tipo', 'user_id', 'estado_id', 'tel_oficina'
+        'tipo', 'user_id', 'estado_id', 'tel_oficina', 'status'
     ];
 
     //Uno a muchos

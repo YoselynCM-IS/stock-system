@@ -3,7 +3,7 @@
         <check-connection-component></check-connection-component>
         <b-row>
             <b-col>
-                <h4 style="color: #170057">{{ !editar ? 'Crear':'Editar' }} remisión</h4>
+                <h4 style="color: #170057"><b>{{ !editar ? 'Crear':'Editar' }} remisión</b></h4>
             </b-col>
             <b-col sm="2" align="right">
                 <b-button variant="secondary" @click="goBack()" pill block>
@@ -17,19 +17,22 @@
                 <b-col>
                     <h6><b>Seleccionar cliente</b></h6>
                     <b-input v-model="queryCliente" autofocus placeholder="Buscar cliente..."
-                        style="text-transform:uppercase;" @keyup="mostrarClientes()"></b-input>
+                        style="text-transform:uppercase;" @keyup="http_bynamestatus('activo')"></b-input>
                 </b-col>
                 <b-col>
                     <!-- PAGINACIÓN -->
-                    <b-pagination v-model="currentPage" aria-controls="my-table" :total-rows="clientes.length"
-                        :per-page="perPage" align="right"></b-pagination>
+                    <pagination size="default" :limit="1" :data="clientesData" 
+                        @pagination-change-page="getResults" align="center">
+                        <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
+                        <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
+                    </pagination>
+                    <!-- PAGINACIÓN -->
                 </b-col>
             </b-row>
             <br>
             <div v-if="clientes.length > 0">
                 <!-- LISTADO DE CLIENTES -->
-                <b-table :items="clientes" :fields="fieldsClientes" :per-page="perPage" :current-page="currentPage"
-                    id="my-table">
+                <b-table :items="clientes" :fields="fieldsClientes">
                     <template v-slot:cell(seleccion)="row">
                         <b-button variant="success" @click="seleccionCliente(row.item)" pill>
                             <i class="fa fa-check"></i>
@@ -39,7 +42,7 @@
             </div>
             <div v-else>
                 <br>
-                <b-alert show variant="dark"><i class="fa fa-warning"></i> No se encontraron coincidencias</b-alert>
+                <b-alert show variant="dark" class="text-center"><i class="fa fa-info-circle"></i> No se encontraron coincidencias</b-alert>
             </div>
         </div>
         <div v-else>
@@ -309,13 +312,14 @@
 
 <script>
 import getLibros from '../../mixins/getLibros';
+import getClientes from '../../mixins/getClientes';
 import sweetAlert from '../../mixins/sweetAlert';
 import LoadComponent from '../cortes/partials/LoadComponent.vue';
 import BusqScratchComponent from '../funciones/scratch/busqScratchComponent.vue';
 export default {
     components: { LoadComponent, BusqScratchComponent },
-        props: ['clientesall', 'editar', 'datoremision', 'role_id'],
-        mixins: [getLibros, sweetAlert],
+        props: ['editar', 'datoremision', 'role_id'],
+        mixins: [getLibros, sweetAlert, getClientes],
         data() {
             return {
                 load: false,
@@ -333,15 +337,12 @@ export default {
                 }, //Guardar temporalmente los datos de la busqueda del libro
                 mostrarBusqueda: true, //Indicar si se muestra el apartado de buscar cliente
                 mostrarDatos: false, //Indicar si se ocultan o muestran los datos del cliente
-                clientes: this.clientesall,
                 fieldsClientes: [
                     { key: 'tipo', label: 'Tipo' },
                     {key: 'name', label: 'Nombre'},
                     {key: 'email', label: 'Correo electrónico'}, 
                     {key: 'seleccion', label: 'Seleccionar'}
                 ],
-                perPage: 10,
-                currentPage: 1,
                 state: null,
                 second: false,
                 remision: {
@@ -444,10 +445,8 @@ export default {
                 });
             },
             // MOSTRAR COINCIDENCIA DE CLIENTES
-            mostrarClientes(){
-                axios.get('/mostrarClientes', { params: { queryCliente: this.queryCliente } }).then(response => {
-                    this.clientes = response.data;
-                });
+            getResults(page = 1){
+                this.http_bynamestatus('activo', page);
             },
             // ASIGNAR DATOS DE CLIENTE SELECCIONADO
             seleccionCliente(cliente){

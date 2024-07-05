@@ -20,6 +20,7 @@ class RemclienteController extends Controller
                         ->join('clientes', 'remclientes.cliente_id', '=', 'clientes.id')
                         ->select('clientes.id as cliente_id', 'clientes.name as name', 'total', 'total_devolucion', 'total_pagos', 'total_pagar')
                         ->where('total', '>', 0)
+                        ->where('clientes.status', 'activo')
                         ->orderBy('clientes.name', 'asc')
                         ->paginate(20);
         return response()->json($remclientes);
@@ -39,12 +40,14 @@ class RemclienteController extends Controller
 
     // OBTENER TOTALES
     public function get_totales(){
-        $remclientes = Remcliente::select(
+        $remclientes = \DB::table('remclientes')->select(
             \DB::raw('SUM(total) as total'),
             \DB::raw('SUM(total_devolucion) as total_devolucion'),
             \DB::raw('SUM(total_pagos) as total_pagos'),
             \DB::raw('SUM(total_pagar) as total_pagar')
-        )->get();
+        )->join('clientes', 'remclientes.cliente_id', '=', 'clientes.id')
+        ->where('status', 'activo')
+        ->get();
         $adeudos = Adeudo::select(
             // \DB::raw('SUM(saldo_inicial) as saldo_inicial'),
             // \DB::raw('SUM(saldo_pagado) as saldo_pagado'),

@@ -58,7 +58,7 @@
                 <b-row class="mb-2">
                     <b-col sm="3" class="text-right"><label>Relacionar cliente(s)</label></b-col>
                     <b-col>
-                        <b-input v-model="queryCliente" @keyup="mostrarClientes()"
+                        <b-input v-model="queryCliente" @keyup="mostrarClientes('activo')"
                             style="text-transform:uppercase;" :disabled="loaded">
                         </b-input>
                         <div class="list-group" v-if="clientes.length" id="listP">

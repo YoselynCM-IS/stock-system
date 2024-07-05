@@ -29,12 +29,12 @@
                             <b-input v-model="queryCliente" @keyup="mostrarClientes()"
                                 style="text-transform:uppercase;"
                             ></b-input>
-                            <div class="list-group" v-if="resultsClientes.length" id="listaD">
+                            <div class="list-group" v-if="clientes.length" id="listaD">
                                 <a 
                                     href="#" 
                                     v-bind:key="i" 
                                     class="list-group-item list-group-item-action" 
-                                    v-for="(result, i) in resultsClientes" 
+                                    v-for="(result, i) in clientes" 
                                     @click="porCliente(result)">
                                     {{ result.name }}
                                 </a>
@@ -371,11 +371,12 @@
 
 <script>
 import sweetAlert from '../../mixins/sweetAlert';
+import searchCliente from '../../mixins/searchCliente';
 import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
     export default {
         props: ['listresponsables', 'role_id'],
         components: { AddDefectuososComponent },
-        mixins: [sweetAlert],
+        mixins: [sweetAlert, searchCliente],
         data() {
             return {
                 fields: [
@@ -414,7 +415,6 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 remisiones: [],
                 num_remision: null,
                 queryCliente: '',
-                resultsClientes: [],
                 pos_remision: 0,
                 mostrarPagos: false,
                 load: false,
@@ -494,7 +494,7 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
             // MOSTRAR LOS PAGOS QUE HA REALIZADO EL CLIENTE
             porCliente(cliente){
                 this.cliente_id = cliente.id;
-                this.resultsClientes = [];
+                this.clientes = [];
                 this.queryCliente = cliente.name;
                 this.http_cliente();
             },
@@ -540,18 +540,6 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                     });
                 }
             },
-            // MOSTRAR CLIENTES
-            mostrarClientes(){
-                if(this.queryCliente.length > 0){
-                    axios.get('/mostrarClientes', {params: {queryCliente: this.queryCliente}}).then(response => {
-                        this.resultsClientes = response.data;
-                    }); 
-                }
-                else{
-                    this.resultsClientes = [];
-                }
-            },
-            
             ini_entregado_por(){
                 this.state = null;
                 this.entregado_por = null;

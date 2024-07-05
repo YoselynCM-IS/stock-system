@@ -1,22 +1,6 @@
 <template>
     <div>
         <b-row v-if="role_id != 7" class="mb-4">
-            <!-- <b-col>
-                <b-form-select v-model="tipo_cliente" :options="options" 
-                    @change="get_by_tipocliente()"></b-form-select>
-            </b-col> -->
-            <!-- <b-col sm="7">
-                <b-input v-model="queryCliente" @keyup="mostrarClientesByTipo(tipo_cliente)" autofocus
-                    style="text-transform:uppercase;" :disabled="(load || misActs)" required
-                    placeholder="BUSCAR CLIENTE">
-                </b-input>
-                <div class="list-group" v-if="clientes.length" id="listP">
-                    <a href="#" v-bind:key="i" class="list-group-item list-group-item-action" 
-                        v-for="(cliente, i) in clientes" @click="selectCliente(cliente)">
-                        {{ cliente.name }}
-                    </a>
-                </div>
-            </b-col> -->
             <b-col sm="5"></b-col>
             <b-col sm="7">
                 <b-row>

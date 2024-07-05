@@ -49,6 +49,12 @@ class ClienteController extends Controller
         return response()->json($clientes);
     }
 
+    // MOSTRAR LOS CLIENTES POR COINCIDENCIA DE NOMBRE Y STATUS PAGINADO
+    public function by_namestatus(Request $request){
+        $clientes = $this->get_all_clientes()->where('name','like','%'.$request->cliente.'%')->where('status', $request->status)->paginate(20);
+        return response()->json($clientes);
+    }
+
     public function by_name_userid(Request $request){
         $clientes = $this->get_all_clientes()->where('user_id', auth()->user()->id)
                         ->where('name','like','%'.$request->cliente.'%')->paginate(20);
@@ -67,13 +73,15 @@ class ClienteController extends Controller
     // - AdeudosComponent - ClientesComponent - DevolucionAdeudosComponent
     // - DevolucionComponent - ListadoComponent - PagosComponent - RemisionComponent - RemisionesComponent
     public function mostrarClientes(Request $request){
-        $queryCliente = $request->queryCliente;
-        $clientes = $this->get_likename($queryCliente)->get();
+        $clientes = $this->get_likename($request->queryCliente, $request->status)->get();
         return response()->json($clientes);
     }
 
-    public function get_likename($queryCliente){
-        return Cliente::where('name','like','%'.$queryCliente.'%')->orderBy('name', 'asc');
+    public function get_likename($queryCliente, $status){
+        if($status == 'all')
+            return Cliente::where('name','like','%'.$queryCliente.'%')->orderBy('name', 'asc');
+        else
+            return Cliente::where('name','like','%'.$queryCliente.'%')->where('status', $status)->orderBy('name', 'asc');
     }
 
     // EDITAR DATOS DE CLIENTE
@@ -284,7 +292,7 @@ class ClienteController extends Controller
     }
 
     public function by_tipo(Request $request){
-        $clientes = $this->get_likename($request->queryCliente)
+        $clientes = $this->get_likename($request->queryCliente, $request->status)
                         ->where('tipo', $request->tipo)->get();
         return response()->json($clientes);
     }
@@ -342,5 +350,23 @@ class ClienteController extends Controller
         $seguimientos = Seguimiento::where('cliente_id', $request->cliente_id)
                             ->with('user')->orderBy('created_at', 'desc')->get();
         return response()->json($seguimientos);
+    }
+
+    // ELIMINAR CLIENTE
+    public function change_status(Request $request){
+        \DB::beginTransaction();
+        try {
+            $cliente = Cliente::whereId($request->cliente_id)->first();
+            $cliente->update(['status' => $request->status]);
+
+            $reporte = 'Cambio el status de el '.$cliente->tipo.' '.$cliente->name;
+            $this->create_report($cliente->id, $reporte, 'cliente');
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($exception->getMessage());
+        }
+        return response()->json($cliente);
     }
 }
