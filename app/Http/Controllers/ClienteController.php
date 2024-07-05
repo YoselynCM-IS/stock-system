@@ -353,6 +353,22 @@ class ClienteController extends Controller
     }
 
     // ELIMINAR CLIENTE
+    /**
+     * ----Quitar de donde se crea algo a partir del cliente, es decir de
+     * REMISIONES
+     * PEDIDOS CLIENTE
+     * PEDIDOS PROVEEDOR
+     * NUEVA ACTIVIDAD
+     * PROMOCIÓN
+     * DONACIONES
+     * 
+     * ----Mostrar de manera distinta en estas sesiones (activos/inactivos)
+     * PAGOS REMCLIENTES
+     * LISTADO DE CLIENTES
+     * 
+     * LOS CLIENTES SEGUIRAN APARECIENDO EN LAS BUSQUEDAS QUE SE HAGAN, Y EN LAS NOTAS CREADAS A SU NOMBRE
+     * 
+     */
     public function change_status(Request $request){
         \DB::beginTransaction();
         try {
