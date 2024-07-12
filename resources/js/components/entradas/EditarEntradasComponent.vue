@@ -22,6 +22,13 @@
                                 @change="http_editoriales()"></b-form-select>
                         </b-col>
                     </b-row>
+                    <b-row>
+                        <b-col sm="3"><label>Imprenta</label></b-col>
+                        <b-col sm="9">
+                            <b-form-select v-model="qImprenta_id" :options="imprentas"
+                                @change="http_imprentas()"></b-form-select>
+                        </b-col>
+                    </b-row>
                 </b-col>
                 <!-- MOSTRAR ENTRADAS POR FECHA -->
                 <b-col>
@@ -411,12 +418,13 @@
 
 <script>
 import getEditoriales from '../../mixins/getEditoriales';
+import getImprentas from '../../mixins/editoriales/getImprentas';
 import AddEditEntrada from './partials/AddEditEntrada.vue';
 import DevolucionEntrada from './partials/DevolucionEntrada.vue';
 import sweetAlert from '../../mixins/sweetAlert';
     export default {
     components: { AddEditEntrada, DevolucionEntrada },
-    mixins: [getEditoriales, sweetAlert],
+    mixins: [getEditoriales, sweetAlert, getImprentas],
         props: ['role_id'],
         data() {
             return {
@@ -503,7 +511,6 @@ import sweetAlert from '../../mixins/sweetAlert';
                 mostrarAddCostos: false,
                 resultslibros: [],
                 unidades: 0,
-                load: false,
                 posicion: null,
                 listadoEntradas: true,
                 estado: false,
@@ -542,11 +549,14 @@ import sweetAlert from '../../mixins/sweetAlert';
                     {key:'codigo', label:'Código'},
                     {key:'devolucion', label:'Devolución'},
                 ],
-                comprobante_url: null
+                comprobante_url: null,
+                qImprenta_id: null,
+                searchImprenta: false
             }
         },
         created: function(){
             this.get_editoriales();
+            this.getImprentas('all');
             this.getResults();
         },
         filters: {
@@ -559,19 +569,21 @@ import sweetAlert from '../../mixins/sweetAlert';
         }, 
         methods: {
             getResults(page = 1){
-                if(!this.searchEditorial && !this.searchFechas)
+                if(!this.searchEditorial && !this.searchFechas && !this.searchImprenta)
                     this.http_entradas(page);
                 if(this.searchEditorial)
                     this.http_editoriales(page);
                 if(this.searchFechas)
                     this.http_fechas(page);
+                if(this.searchImprenta)
+                    this.http_imprentas(page);
             },
             http_entradas(page = 1){
                 this.load = true;
                 axios.get(`/entradas/index?page=${page}`).then(response => {
                     this.entradasData = response.data; 
                     this.entradas = response.data.data;
-                    this.set_search(false, false);
+                    this.set_search(false, false, false);
                     this.acumular();
                     this.load = false;   
                 }).catch(error => {
@@ -618,7 +630,8 @@ import sweetAlert from '../../mixins/sweetAlert';
                         this.entradas = [];
                         this.entradas.push(response.data);
                         this.acumular();
-                        this.set_search(false, false);
+                        this.set_search(false, false, false);
+                        this.ini_search(this.folio, null, null, '0000-00-00', '0000-00-00');
                     }
                     else{
                         this.makeToast('warning', 'El folio no existe');
@@ -629,25 +642,48 @@ import sweetAlert from '../../mixins/sweetAlert';
                     this.load = false;
                 });
             },
-            set_search(searchEditorial, searchFechas){
+            set_search(searchEditorial, searchFechas, searchImprenta){
                 this.searchEditorial = searchEditorial;
                 this.searchFechas = searchFechas;
+                this.searchImprenta = searchImprenta;
+            },
+            // INICIALIZAR LAS VARIABLES DE BUSQUEDA
+            ini_search(folio, editorial, qImprenta_id, inicio, final){
+                this.folio = folio;
+                this.editorial = editorial;
+                this.qImprenta_id = qImprenta_id;
+                this.inicio = inicio;
+                this.final = final;
             },
             // MOSTRAR ENTRADAS POR EDITORIAL
             http_editoriales(page = 1){
                 this.load = true;
                 axios.get(`/entradas/by_editorial?page=${page}`, {params: {editorial: this.editorial}}).then(response => {
-                    this.entradas = response.data.data;
-                    this.entradasData = response.data;
-                    this.acumular();
-                    this.inicio = '0000-00-00';
-                    this.final = '0000-00-00';
-                    this.load = false;
-                    this.set_search(true, false);
+                    this.set_datosSearch(response);
+                    this.set_search(true, false, false);
+                    this.ini_search(null, this.editorial, null, '0000-00-00', '0000-00-00');
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                     this.load = false;
                 });
+            },
+            // MOSTRAR ENTRADAS POR IMPRENTAS
+            http_imprentas(page = 1){
+                this.load = true;
+                axios.get(`/entradas/by_imprenta?page=${page}`, {params: {imprenta_id: this.qImprenta_id}}).then(response => {
+                    this.set_datosSearch(response);
+                    this.set_search(false, false, true);
+                    this.ini_search(null, null, this.qImprenta_id, '0000-00-00', '0000-00-00');
+                }).catch(error => {
+                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                    this.load = false;
+                });
+            },
+            set_datosSearch(response){
+                this.entradas = response.data.data;
+                this.entradasData = response.data;
+                this.acumular();
+                this.load = false;
             },
             // MOSTRAR ENTRADAS POR FECHA
             porFecha(){
@@ -663,12 +699,13 @@ import sweetAlert from '../../mixins/sweetAlert';
             },
             http_fechas(page = 1){
                 this.load = true;
-                axios.get(`/entradas/by_fecha?page=${page}`, {params: {inicio: this.inicio, final: this.final, editorial: this.editorial}}).then(response => {
+                axios.get(`/entradas/by_fecha?page=${page}`, {params: {inicio: this.inicio, final: this.final, editorial: this.editorial, imprenta_id: this.qImprenta_id}}).then(response => {
                     this.entradas = response.data.data;
                     this.entradasData = response.data;
                     this.acumular();
                     this.load = false;
-                    this.set_search(false, true);
+                    this.set_search(false, true, false);
+                    this.folio = null;
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                     this.load = false;

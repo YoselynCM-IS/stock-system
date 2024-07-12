@@ -261,6 +261,8 @@ Route::name('entradas.')->prefix('entradas')->group(function () {
     Route::get('index', 'EntradaController@index')->name('index');
     //Buscar editorial
     Route::get('/by_editorial', 'EntradaController@by_editorial')->name('by_editorial');
+    //Buscar entradas por imprenta
+    Route::get('/by_imprenta', 'EntradaController@by_imprenta')->name('by_imprenta');
     //Mostrarentradas por fecha
     Route::get('by_fecha', 'EntradaController@by_fecha')->name('by_fecha');
     // Mostrar los depositos por editorial

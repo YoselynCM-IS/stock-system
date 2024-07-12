@@ -327,19 +327,21 @@ class EntradaController extends Controller
     // Función utilizada en EditarEntradasComponent
     public function by_fecha(Request $request){
         $editorial 	= $request->editorial;
-        $inicio = $request->inicio;
-        $final = $request->final;
-        $fechas = $this->format_date($inicio, $final);
+        $imprenta_id = $request->imprenta_id;
+        $fechas = $this->format_date($request->inicio, $request->final);
         $fecha1 = $fechas['inicio'];
         $fecha2 = $fechas['final'];
 
-        if($editorial === null || $editorial == 'TODAS'){
-            $entradas = Entrada::whereBetween('created_at', [$fecha1, $fecha2])
-                            ->orderBy('id','desc')->paginate(20);
+        $query = Entrada::whereBetween('created_at', [$fecha1, $fecha2])->orderBy('id','desc');
+
+        if($imprenta_id == null && ($editorial === null || $editorial == 'TODAS')){
+            $entradas = $query->paginate(20);
         } else {
-            $entradas = Entrada::where('editorial', $editorial)
-                            ->whereBetween('created_at', [$fecha1, $fecha2])
-                            ->orderBy('id','desc')->paginate(20);
+            if($imprenta_id == null){
+                $entradas = $query->where('editorial', $editorial)->paginate(20);
+            } else {
+                $entradas = $query->where('imprenta_id', $imprenta_id)->paginate(20);
+            }
         }
         return response()->json($entradas);
     }
@@ -1211,7 +1213,17 @@ class EntradaController extends Controller
     }
 
     public function get_imprentas($tipo){
-        $imprentas = \DB::table('imprentas')->where('tipo', $tipo)->orderBy('imprenta', 'asc')->get();
+        $query = \DB::table('imprentas')->orderBy('imprenta', 'asc');
+        if($tipo == 'all') $imprentas = $query->get();
+        else $imprentas = $query->where('tipo', $tipo)->get();
+        
         return response()->json($imprentas);
+    }
+
+    // BUSCAR ENTRADAS POR IMPRENTA
+    public function by_imprenta(Request $request){
+        $entradas = Entrada::where('imprenta_id', $request->imprenta_id)
+                            ->orderBy('id','desc')->paginate(20);
+        return response()->json($entradas);
     }
 }
