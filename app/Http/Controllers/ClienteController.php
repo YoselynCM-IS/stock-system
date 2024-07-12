@@ -227,6 +227,7 @@ class ClienteController extends Controller
 
     public function get_usuarios(Request $request){
         $users = \DB::table('users')->whereNotIn('role_id', [$request->role_id])
+                        ->where('user_name', 'NOT LIKE', '%ELIMINADO%')
                         ->orderBy('name', 'asc')->get();
         return response()->json($users);
     }
