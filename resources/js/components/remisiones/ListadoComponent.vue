@@ -87,7 +87,7 @@
                             <i class="fa fa-download"></i> PDF
                         </a> -->
                         <b-button v-if="remisiones.length > 0 && num_remision === null" class="btn btn-dark"
-                            :disabled="cliente_id == null"
+                            :disabled="cliente_id == null && (inicio == '0000-00-00' || final == '0000-00-00')"
                             :href="'/down_gral_excel/' + cliente_id + '/' + inicio + '/' + final + '/' + estadoRemision">
                             <i class="fa fa-download"></i> General
                         </b-button>
