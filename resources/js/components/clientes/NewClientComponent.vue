@@ -3,14 +3,7 @@
         <b-form @submit.prevent="onSubmit()">
             <b-row>
                 <b-col>
-                    <b-row class="my-1">
-                        <b-col align="right">Tipo de cliente</b-col>
-                        <div class="col-md-9">
-                            <b-form-select v-model="form.tipo" :options="tipos" required
-                                :disabled="load" autofocus
-                            ></b-form-select>
-                        </div>
-                    </b-row>
+                    <datos-parte-3 :form="form" :load="load"></datos-parte-3>
                     <datos-parte-1 :form="form" :load="load" :errors="errors"></datos-parte-1>
                 </b-col>
                 <b-col>
@@ -111,20 +104,16 @@
 <script>
 import DatosParte1 from './partials/DatosParte1.vue';
 import DatosParte2 from './partials/DatosParte2.vue';
+import DatosParte3 from './partials/DatosParte3.vue';
 import catchError from '../../mixins/catchError';
 import getUsuarios from '../../mixins/getUsuarios';
     export default {
-        components: { DatosParte1, DatosParte2 },
+        components: { DatosParte1, DatosParte2, DatosParte3 },
         mixins: [catchError, getUsuarios],
         props: ['form', 'edit'],
         data() {
             return {
-                success: false,
-                tipos: [
-                    { value: null, text: 'Selecciona una opción', disabled: true},
-                    { value: 'CLIENTE', text: 'CLIENTE' },
-                    { value: 'DISTRIBUIDOR', text: 'DISTRIBUIDOR' }
-                ]
+                success: false
             }
         },
         created: function(){

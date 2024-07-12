@@ -544,6 +544,8 @@ Route::name('clientes.')->prefix('clientes')->group(function () {
     Route::post('/store_prospecto', 'ClienteController@store_prospecto')->name('store_prospecto');
     //Editar informacion de cliente
     Route::put('/update', 'ClienteController@update')->name('update');
+    // ACTUALIZAR TIPO DE CLIENTE
+    Route::put('/update_tipo', 'ClienteController@update_tipo')->name('update_tipo');
     //Obtener todos los cliente
     Route::get('/index', 'ClienteController@index')->name('index');
     //Obtener los clientes por coincidencia de nombre

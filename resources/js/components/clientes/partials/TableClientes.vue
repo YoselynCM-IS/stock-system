@@ -30,6 +30,12 @@
                             @click="editarCliente(row.item, row.index)">
                             <i class="fa fa-pencil"></i>
                         </b-button>
+                        <b-button v-if="row.item.tipo == 'PROSPECTO' && (role_id == 6 || role_id == 9)" 
+                            v-b-modal.modal-changeTipo variant="dark" :disabled="loadDetails"
+                            pill size="sm" block
+                            @click="changeTipo(row.item, row.index)">
+                            <i class="fa fa-exchange"></i>
+                        </b-button>
                     </template>
                     <template v-slot:cell(ocultar)="row">
                         <div v-if="role_id === 1 || role_id == 6">
@@ -46,7 +52,7 @@
                         </div>
                     </template>
                     <template v-slot:cell(detalles)="row">
-                        <b-button variant="info" v-b-modal.modal-detalles pill :disabled="loadDetails"
+                        <b-button variant="info" pill :disabled="loadDetails"
                             @click="showDetails(row.item)" size="sm" block>
                             <i class="fa fa-info"></i>
                         </b-button>
@@ -144,6 +150,10 @@
         <b-modal id="modal-editarCliente" title="Editar cliente" hide-footer size="xl">
             <new-client-component :form="form" :edit="true" @actualizarClientes="actClientes"></new-client-component>
         </b-modal>
+        <!-- MODAL PARA CAMBIAR DE TIPO AL CLIENTE -->
+        <b-modal id="modal-changeTipo" title="Cambiar tipo de cliente" hide-footer>
+            <form-tipo-cliente :cliente_id="cliente_id" @tipoUpdated="tipoUpdated"></form-tipo-cliente>
+        </b-modal>
         <!-- MODAL PARA RELACIONAR LIBROS VENDIDOS A ESE CLIENTE -->
         <b-modal id="modal-showLibros" :title="`${cliente_name} - Libros`" hide-footer size="xl">
             <libros-cliente-component :cliente_id="cliente_id" :role_id="role_id"></libros-cliente-component>
@@ -174,10 +184,11 @@ import NewProspecto from './NewProspecto.vue';
 import RegisterComponent from './RegisterComponent.vue';
 import SeguimientosComponent from './SeguimientosComponent.vue';
 import sweetAlert from '../../../mixins/sweetAlert';
+import FormTipoCliente from './FormTipoCliente.vue';
 export default {
     props: ['fields', 'role_id', 'addCliente'],
     mixins: [getClientes, sweetAlert],
-    components: {NoRegistrosComponent, LoadComponent, NewClientComponent, LibrosClienteComponent, AddDescarga, NewProspecto, RegisterComponent, SeguimientosComponent},
+    components: {NoRegistrosComponent, LoadComponent, NewClientComponent, LibrosClienteComponent, AddDescarga, NewProspecto, RegisterComponent, SeguimientosComponent, FormTipoCliente},
     data() {
         return {
             posicion: null,
@@ -212,6 +223,16 @@ export default {
             this.posicion = i;
             this.assign_datos(cliente);
         },
+        // CAMBIAR DE PROSPECTO A OTRO TIPO DE CLIENTE
+        changeTipo(cliente, i){
+            this.cliente_id = cliente.id;
+            this.posicion = i;
+        },
+        // TIPO DE CLIENTE ACTUALIZADO
+        tipoUpdated(cliente){
+            this.$bvModal.hide('modal-changeTipo');
+            this.messageAlert('center', 'success', 'El cliente se actualizo correctamente.', null, 'reload');
+        },
         assign_datos(cliente){
             this.form.id = cliente.id;
             this.form.name = cliente.name;
@@ -231,6 +252,7 @@ export default {
             this.loadDetails = true;
             axios.get('/clientes/show', {params: {cliente_id: cliente.id}}).then(response => {
                 this.datosCliente = response.data;
+                this.$bvModal.show('modal-detalles');
                 this.loadDetails = false;
             }).catch(error => {
                 this.loadDetails = false;

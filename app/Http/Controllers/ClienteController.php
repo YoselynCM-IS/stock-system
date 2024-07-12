@@ -385,4 +385,22 @@ class ClienteController extends Controller
         }
         return response()->json($cliente);
     }
+
+    // CAMBIAR EL TIPO DE CLIENTE
+    public function update_tipo(Request $request){
+        \DB::beginTransaction();
+        try {
+            $cliente = Cliente::whereId($request->cliente_id)->first();
+            $cliente->update(['tipo' => $request->tipo]);
+
+            $reporte = 'Cambio el tipo de el '.$cliente->tipo.' '.$cliente->name;
+            $this->create_report($cliente->id, $reporte, 'cliente');
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($exception->getMessage());
+        }
+        return response()->json($cliente);
+    }
 }
