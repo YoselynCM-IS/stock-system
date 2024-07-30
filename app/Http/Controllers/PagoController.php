@@ -16,7 +16,7 @@ use App\Fecha;
 use App\Pago;
 use App\Dato;
 use Excel;
-use PDF;
+use Barryvdh\DomPDF\Facade\PDF;
 
 class PagoController extends Controller
 {
