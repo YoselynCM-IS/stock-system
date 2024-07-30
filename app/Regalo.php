@@ -11,6 +11,7 @@ class Regalo extends Model
         'id', 
         'cliente_id',
         'plantel',
+        'destino',
         'descripcion', 
         'unidades',  
         'entregado_por',

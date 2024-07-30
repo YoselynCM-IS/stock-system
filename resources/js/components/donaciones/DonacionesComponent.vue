@@ -180,21 +180,21 @@
         <!-- CREAR UNA DONACION -->
         <div v-if="mostrarRegistrar">
             <b-row>
-                <b-col sm="6"><h4 style="color: #170057">Registrar donación</h4></b-col>
+                <b-col><h4>Registrar donación</h4></b-col>
                 <b-col sm="3" align="right">
-                    <b-button variant="success" @click="confirmarDonacion()" :disabled="load">
+                    <b-button variant="success" @click="confirmarDonacion()" :disabled="load" pill>
                         <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="load"></b-spinner>
                     </b-button>
                 </b-col>
-                <b-col sm="3" align="right">
-                    <b-button variant="secondary" @click="listadoDonaciones = true; mostrarRegistrar = false;">
+                <b-col sm="2" align="right">
+                    <b-button variant="secondary" @click="listadoDonaciones = true; mostrarRegistrar = false;" pill>
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
                 </b-col>
             </b-row>
             <hr>
-            <b-row class="col-md-10">
-                <b-col sm="2"><label><b>Cliente</b>: <b id="txtObligatorio">*</b></label></b-col>
+            <b-row class="mb-2">
+                <b-col sm="2" class="text-right"><label><b>Cliente</b>: <b id="txtObligatorio">*</b></label></b-col>
                 <b-col>
                     <b-input v-model="queryCliente" @keyup="mostrarClientes('activo')" autofocus
                         style="text-transform:uppercase;" :disabled="load" required :state="state">
@@ -206,14 +206,18 @@
                         </a>
                     </div>
                 </b-col>
-            </b-row>
-            <b-row class="col-md-10">
-                <b-col sm="3"><label><b>Descripción (Opcional)</b>:</label></b-col>
+                <b-col sm="1" class="text-right"><label><b>Escuela</b>:</label></b-col>
                 <b-col>
-                    <b-input style="text-transform:uppercase;" type="text" v-model="regalo.descripcion"></b-input>
+                    <b-input v-model="regalo.destino" style="text-transform:uppercase;" :disabled="load"></b-input>
                 </b-col>
             </b-row>
-            <hr>
+            <b-row class="mb-3">
+                <b-col sm="2" class="text-right"><label><b>Comentario</b>: <b id="txtObligatorio">*</b></label></b-col>
+                <b-col>
+                    <b-form-textarea v-model="regalo.descripcion" required
+                        rows="2" max-rows="2" style="text-transform:uppercase;"></b-form-textarea>
+                </b-col>
+            </b-row>
             <b-table :items="regalo.donaciones" :fields="fieldsR">
                 <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.ISBN }}</template>
@@ -235,7 +239,6 @@
                             <th>
                                 <b-input
                                     id="input-isbn"
-                                    autofocus
                                     v-model="temporal.ISBN"
                                     @keyup.enter="buscarLibroISBN()"
                                     v-if="inputISBN"
@@ -247,7 +250,6 @@
                                 <b-input
                                     style="text-transform:uppercase;"
                                     id="input-libro"
-                                    autofocus
                                     v-model="temporal.titulo"
                                     @keyup="mostrarLibros()"
                                     v-if="inputLibro"
@@ -268,7 +270,6 @@
                             <th>
                                 <b-form-input 
                                     id="input-unidades"
-                                    autofocus
                                     @keyup.enter="guardarRegistro()"
                                     v-if="inputUnidades"
                                     v-model="temporal.unidades" 
@@ -380,6 +381,7 @@ import searchCliente from '../../mixins/searchCliente';
                     cliente_id: null,
                     plantel: '',
                     descripcion: '',
+                    destino: null,
                     unidades: 0,
                     created_at: '',
                     donaciones: [],
@@ -546,10 +548,12 @@ import searchCliente from '../../mixins/searchCliente';
                     cliente_id: null,
                     plantel: '',
                     descripcion: '',
+                    destino: null,
                     unidades: 0,
                     created_at: '',
                     donaciones: [],
-                    entregado_por: null
+                    entregado_por: null,
+                    creado_por: null
                 };
                 this.state = null;
                 this.mostrarRegistrar = true;

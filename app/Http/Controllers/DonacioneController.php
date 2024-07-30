@@ -34,6 +34,7 @@ class DonacioneController extends Controller
             $regalo = Regalo::create([
                 'cliente_id' => $request->cliente_id,
                 'plantel' => $request->plantel,
+                'destino' => strtoupper($request->destino),
                 'descripcion' => strtoupper($request->descripcion),
                 'unidades' => (int) $request->unidades,
                 'entregado_por' => null,
