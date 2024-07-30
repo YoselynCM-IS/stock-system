@@ -677,13 +677,15 @@ class RemisionController extends Controller
             $hoy = Carbon::now();
             // OBTENER EL PERIODO ACTUAL
             $corte_id = $this->search_corte_actual();
-            
+            // ASIGNAR VALORES A VARIABLES
             $total = (double) $request->total;
+            $destino = $request->destino == null ? null:strtoupper($request->destino);
             // CREAR REMISIÓN
             $remision = Remisione::create([
                 'user_id' => auth()->user()->id,
                 'corte_id' => $corte_id,
                 'cliente_id' => $request->cliente['id'],
+                'destino' => $destino,
                 'total' => $total,
                 'total_pagar' => $total,
                 'fecha_entrega' => $request->fecha_entrega,
@@ -1218,14 +1220,16 @@ class RemisionController extends Controller
             }
 
             // DIFERENTES DATOS EN LA REMISION
-            if($cliente_id !== $remision->cliente_id || $request->fecha_entrega !== $remision->fecha_entrega || $total !== $remision->total){
+            if($cliente_id !== $remision->cliente_id || $request->fecha_entrega !== $remision->fecha_entrega || $total !== $remision->total || $request->destino !== $remision->destino){
                 // ACTUALIZAR REMISIÓN
+                $destino = $request->destino == null ? null:strtoupper($request->destino);
                 $remision->update([
                     'cliente_id' => $cliente_id,
                     'total' => $total,
                     'total_devolucion' => $e_total_devolucion,
                     'total_pagar' => $total - ($e_total_devolucion + $remision->pagos),
-                    'fecha_entrega' => $request->fecha_entrega
+                    'fecha_entrega' => $request->fecha_entrega,
+                    'destino' => $destino
                 ]);
             } 
 

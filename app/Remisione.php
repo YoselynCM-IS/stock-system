@@ -24,6 +24,7 @@ class Remisione extends Model
         'id', 
         'user_id',
         'cliente_id',
+        'destino',
         'corte_id', 
         'paqueteria_id',
         'tipo', 

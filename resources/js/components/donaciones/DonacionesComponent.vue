@@ -15,7 +15,7 @@
                     </b-row>
                     <b-row>
                         <b-col sm="2" class="text-right">
-                            <label for="input-plantel">Enviado a</label>
+                            <label for="input-destino">Enviado a</label>
                         </b-col>
                         <b-col sm="10">
                             <b-input style="text-transform:uppercase;" v-model="queryDestino" @keyup="porDestino()"></b-input>
@@ -215,7 +215,7 @@
                         </a>
                     </div>
                 </b-col>
-                <b-col sm="1" class="text-right"><label><b>Escuela</b>:</label></b-col>
+                <b-col sm="2" class="text-right"><label><b>Enviado a</b>:</label></b-col>
                 <b-col>
                     <b-input v-model="regalo.destino" style="text-transform:uppercase;" :disabled="load"></b-input>
                 </b-col>

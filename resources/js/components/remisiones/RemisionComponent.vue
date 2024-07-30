@@ -84,18 +84,26 @@
                     </b-list-group>
                 </div>
             </b-collapse>
+            <b-row class="mt-3" v-if="remision.cliente.id == 304">
+                <b-col sm="2" align="right"><b>Enviado a</b></b-col>
+                <b-col sm="6">
+                    <b-input style="text-transform:uppercase;" v-model="remision.destino" autofocus></b-input>
+                </b-col>
+            </b-row>
             <hr>
-            <div class="row">
-                <label class="col-md-2"><b>Fecha de entrega</b></label>
-                <b-form-datepicker class="col-md-4" required :disabled="load" v-model="remision.fecha_entrega"
+            <b-row>
+                <b-col sm="2" align="right"><label><b>Fecha de entrega</b></label></b-col>
+                <b-col sm="4">
+                    <b-form-datepicker required :disabled="load" v-model="remision.fecha_entrega"
                     :state="state"></b-form-datepicker>
-                <div class="col-md-4"></div>
-                <div class="col-md-2" align="right">
+                </b-col>
+                <b-col sm="4"></b-col>
+                <b-col sm="2" align="right">
                     <b-button v-if="!editar" variant="dark" pill block @click="showScratch()">
                         Scratch
                     </b-button>
-                </div>
-            </div>
+                </b-col>
+            </b-row>
             <hr>
             <table class="table">
                 <thead>
@@ -121,7 +129,7 @@
                             <b>{{ temporal.ISBN }}</b>
                         </td>
                         <td>
-                            <b-input style="text-transform:uppercase;" v-model="temporal.titulo" autofocus
+                            <b-input style="text-transform:uppercase;" v-model="temporal.titulo"
                                 @keyup="mostrarLibros()" :disabled="position != null"></b-input>
                             <div class="list-group" v-if="resultslibros.length" id="listaL">
                                 <a class="list-group-item list-group-item-action" href="#"
@@ -186,7 +194,12 @@
             <b-modal ref="modal-confirmar-remision" size="xl" title="Resumen de la remisión" hide-footer>
                 <div v-if="!load">
                     <b-row class="mb-3">
-                        <b-col><b>Cliente:</b> {{ remision.cliente.name }}</b-col>
+                        <b-col>
+                            <b>Cliente:</b> {{ remision.cliente.name }} <br>
+                            <h6 v-if="remision.destino != null">
+                                <b>Enviado a</b>: <label style="text-transform:uppercase;">{{ remision.destino }}</label>
+                            </h6>
+                        </b-col>
                         <b-col sm="4"><b>Fecha de entrega:</b> {{ remision.fecha_entrega }}</b-col>
                     </b-row>
                     <table class="table">
@@ -355,7 +368,8 @@ export default {
                     nuevos: [],
                     eliminados: [],
                     editados: [],
-                    packs: []
+                    packs: [],
+                    destino: null
                 },
                 packs: [],
                 temporalScratch: {
@@ -392,7 +406,8 @@ export default {
                     nuevos: [],
                     eliminados: [],
                     editados: [],
-                    packs: []
+                    packs: [],
+                    destino: this.datoremision.destino
                 };
             }
             this.mostrarBusqueda = true;
@@ -405,17 +420,21 @@ export default {
         methods: {
             // CONFIRMAR DATOS DE LA REMISIÓN
             confirmarRemision() {
-                if(this.remision.fecha_entrega != ''){
-                    if(this.remision.datos.length > 0 || this.remision.nuevos.length > 0){
-                        this.state = true;
-                        this.$refs['modal-confirmar-remision'].show();
-                    } else {
-                        this.makeToast('warning', 'Aun no se ha agregado un libro a la remisión.');
+                if((this.remision.cliente.id == 304 && this.remision.destino !== null) || (this.remision.cliente.id !== 304 && this.remision.destino == null)){
+                    if(this.remision.fecha_entrega != ''){
+                        if(this.remision.datos.length > 0 || this.remision.nuevos.length > 0){
+                            this.state = true;
+                            this.$refs['modal-confirmar-remision'].show();
+                        } else {
+                            this.makeToast('warning', 'Aun no se ha agregado un libro a la remisión.');
+                        }
                     }
-                }
-                else{
-                    this.state = false;
-                    this.makeToast('warning', 'Selecciona fecha de entrega');
+                    else{
+                        this.state = false;
+                        this.makeToast('warning', 'Selecciona fecha de entrega');
+                    }
+                } else {
+                    this.makeToast('warning', 'Especifica a quien será enviada la remisión');
                 }
             },
             // GUARDAR DATOS DE REMISIÓN
@@ -453,6 +472,7 @@ export default {
                 this.mostrarBusqueda = false;
                 this.mostrarDatos = true;
                 this.remision.cliente = cliente;
+                this.remision.destino = null;
                 if(this.editar)
                     this.second = false;
             },
