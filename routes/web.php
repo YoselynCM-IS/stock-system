@@ -413,7 +413,7 @@ Route::get('get_remcliente', 'RemisionController@get_remcliente')->name('get_rem
 // MOSTRAR EDITORIALES
 Route::get('show_editoriales', 'OficinaController@show_editoriales')->name('show_editoriales');
 
-Route::name('pedido.')->prefix('pedido')->group(function () {
+Route::name('pedido.')->prefix('pedido')->middleware(['auth'])->group(function () {
     Route::get('index', 'PedidoController@index')->name('index');
     Route::post('store', 'PedidoController@store')->name('store');
     Route::get('/show/{pedido_id}/{notification_id?}', 'PedidoController@show')->name('show');
@@ -422,6 +422,8 @@ Route::name('pedido.')->prefix('pedido')->group(function () {
     Route::put('/despachar', 'PedidoController@despachar')->name('despachar');
     Route::put('/cancelar', 'PedidoController@cancelar')->name('cancelar');
     Route::get('/by_cliente', 'PedidoController@by_cliente')->name('by_cliente');
+    Route::get('/create_edit/{pedido_id}', 'PedidoController@create_edit')->name('create_edit');
+    Route::put('/update', 'PedidoController@update')->name('update');
 });
 
 Route::name('order.')->prefix('order')->group(function () {

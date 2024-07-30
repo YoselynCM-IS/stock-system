@@ -17,7 +17,8 @@ class Pedido extends Model
         'total',
         'total_solicitar',
         'estado',
-        'comentarios'
+        'comentarios',
+        'actualizado_por'
     ];
 
     public function user(){

@@ -9,7 +9,7 @@
                 </b-form-group> 
             </b-col>
             <b-col>
-                <search-select-cliente-component :titulo="'PARA:'" :status="'activo'" :load="load" @sendCliente="sendCliente"></search-select-cliente-component>
+                <search-select-cliente-component :titulo="'PARA:'" :status="'activo'" :load="load" :clientename="null" @sendCliente="sendCliente"></search-select-cliente-component>
             </b-col>
             <b-col sm="2">
                 <b-button @click="save_pedido()" class="mt-2" variant="success" pill block
@@ -18,7 +18,7 @@
                 </b-button>
             </b-col>
         </b-row>
-        <table-pedidos-component :load="load" @sendPedidos="sendPedidos"></table-pedidos-component>>
+        <table-pedidos-component :load="load" :ftotalq="0" :ftotal="0" :flibros="[]" @sendPedidos="sendPedidos"></table-pedidos-component>>
     </div>
 </template>
 

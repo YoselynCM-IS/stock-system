@@ -42,6 +42,29 @@ class PedidoController extends Controller
         return Pedido::whereId($pedido_id)->with('user', 'cliente', 'peticiones.libro')->first();
     }
 
+    // EDITAR PEDIDO
+    public function create_edit($pedido_id){
+        $pedido = 0;
+        if($pedido_id > 0) {
+            $pedido = $this->get_pedido($pedido_id);
+
+            if($pedido->actualizado_por !== null) return view('information.pedidos.lista-cliente');
+        }
+
+        return view('information.pedidos.create-edit', compact('pedido'));
+    }
+
+    public function set_peticiones($pedido, $peticione){
+        return [
+            'pedido_id' => $pedido->id,
+            'libro_id' => $peticione['libro']['id'], 
+            'tipo' => $peticione['tipo'], 
+            'quantity' => (int) $peticione['quantity'],
+            'price' => (float) $peticione['price'],
+            'total' => (double) $peticione['total']
+        ];
+    }
+
     // GUARDAR PEDIDO
     public function store(Request $request){
         \DB::beginTransaction();
@@ -55,24 +78,17 @@ class PedidoController extends Controller
             
             $peticiones = collect($request->libros);
             $peticiones->map(function($peticione) use ($pedido){
-                Peticione::create([
-                    'pedido_id' => $pedido->id,
-                    'libro_id' => $peticione['libro']['id'], 
-                    'tipo' => $peticione['tipo'], 
-                    'quantity' => (int) $peticione['quantity'],
-                    'price' => (float) $peticione['price'],
-                    'total' => (double) $peticione['total']
-                ]);
+                Peticione::create($this->set_peticiones($pedido, $peticione));
             });
 
             $reporte = 'creo un pedido del cliente '.$pedido->cliente->name;
             $this->create_report($pedido->id, $reporte);
 
-            $users = User::whereIn('role_id', [1,2,6])
-                            ->whereNotIn('id', [auth()->user()->id])->get();
-            foreach($users as $user){
-                //$user->notify(new NewPedClienteNotification($pedido, $pedido->user));
-            }
+            // $users = User::whereIn('role_id', [1,2,6])
+            //                 ->whereNotIn('id', [auth()->user()->id])->get();
+            // foreach($users as $user){
+            //     //$user->notify(new NewPedClienteNotification($pedido, $pedido->user));
+            // }
 
             \DB::commit();
         } catch (Exception $e) {
@@ -80,6 +96,46 @@ class PedidoController extends Controller
             return response()->json($exception->getMessage());
         }
         return response()->json($pedido);
+    }
+
+    // ACTUALIZAR PEDIDO
+    public function update(Request $request){
+        \DB::beginTransaction();
+        try {
+            // BUSCAR PEDIDO POR ID
+            $pedido = Pedido::whereId($request->id)->first();
+            $peticiones = collect($request->libros);
+
+            // ACTUALIZAR DATOS DEL PEDIDO
+            $pedido->update([
+                'cliente_id' => $request->cliente_id, 
+                'total_quantity' => (int) $request->total_quantity,
+                'total' => (double) $request->total,
+                'actualizado_por' => auth()->user()->name
+            ]);
+
+            // ELIMINAR PETICIONES
+            Peticione::where('pedido_id', $pedido->id)->whereNotIn('id', $peticiones->whereNotNull('id')->pluck('id'))->delete();
+
+            // ACTUALIZAR/AGREGAR PETICIONES
+            $peticiones->map(function($peticione) use ($pedido){
+                if($peticione['id'] == null){
+                    Peticione::create($this->set_peticiones($pedido, $peticione));
+                } else {
+                    Peticione::whereId($peticione['id'])->update($this->set_peticiones($pedido, $peticione));
+                }
+            });
+            
+            $reporte = 'edito un pedido del cliente '.$pedido->cliente->name;
+            $this->create_report($pedido->id, $reporte);
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
+        }
+
+        return response()->json(true);
     }
 
     // PREPRAR PEDIDO

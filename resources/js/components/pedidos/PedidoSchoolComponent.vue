@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="!openPedido">
+        <div>
             <b-row class="mb-3">
                 <b-col>
                     <!-- PAGINACIÓN -->
@@ -11,12 +11,11 @@
                     </pagination>
                 </b-col>
                 <b-col>
-                    <search-select-cliente-component :load="load" :status="'all'" @sendCliente="sendCliente"></search-select-cliente-component>
+                    <search-select-cliente-component :load="load" :status="'all'" :clientename="null" @sendCliente="sendCliente"></search-select-cliente-component>
                 </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button v-if="role_id == 5 || role_id == 9 || role_id == 6 || role_id == 7"
-                        variant="success" pill @click="newPedido()" 
-                        :disabled="load">
+                    <b-button v-if="role_id == 5 || role_id == 9 || role_id == 6"
+                        href="/pedido/create_edit/0" target="blank" variant="success" pill :disabled="load">
                         <i class="fa fa-plus-circle"></i> Nuevo pedido
                     </b-button>
                 </b-col>
@@ -37,10 +36,16 @@
                     <template v-slot:cell(estado)="row">
                         <estado-pedido :id="row.item.id" :comentarios="row.item.comentarios" :estado="row.item.estado"></estado-pedido>
                     </template>
-                    <template v-slot:cell(details)="row">
+                    <template v-slot:cell(actions)="row">
                         <b-button :href="`/pedido/show/${row.item.id}`" 
                             target="blank" variant="info" pill size="sm">
                             <i class="fa fa-info-circle"></i>
+                        </b-button>
+                        <b-button v-if="(role_id == 5 || role_id == 9 || role_id == 1) && 
+                                        row.item.estado == 'proceso' && row.item.actualizado_por == null"
+                            :href="`/pedido/create_edit/${row.item.id}`"
+                            target="blank" variant="warning" pill size="sm">
+                            <i class="fa fa-pencil"></i>
                         </b-button>
                     </template>
                 </b-table>
@@ -48,36 +53,20 @@
             </div>
             <load-component v-else></load-component>
         </div>
-        <div v-if="openPedido">
-            <b-row>
-                <b-col sm="10">
-                    <h4><b>Nuevo pedido</b></h4>
-                </b-col>
-                <b-col>
-                    <b-button pill block variant="secondary" @click="openPedido = false" 
-                        :disabled="load">
-                        <i class="fa fa-reply"></i> Volver
-                    </b-button>
-                </b-col>
-            </b-row><hr>
-            <new-pedido-component></new-pedido-component>
-        </div>
     </div>
 </template>
 
 <script>
 import SearchSelectClienteComponent from '../funciones/SearchSelectClienteComponent.vue';
-import NewPedidoComponent from './NewPedidoComponent.vue';
 import EstadoPedido from './partials/EstadoPedido.vue';
 import formatNumber from '../../mixins/formatNumber';
 export default {
     props: ['role_id'],
-    components: { NewPedidoComponent, EstadoPedido, SearchSelectClienteComponent },
+    components: { EstadoPedido, SearchSelectClienteComponent },
     mixins: [formatNumber],
     data(){
         return {
             load: false,
-            openPedido: false,
             pedidos: {},
             fields: [
                 {key: 'index', label: 'N.'},
@@ -86,8 +75,8 @@ export default {
                 {key: 'total', label: 'Total'},
                 {key: 'user.name', label: 'Creado por'},
                 {key: 'created_at', label: 'Creado el'},
-                {key: 'details', label: 'Detalles'},
-                {key: 'estado', label: 'Estado'}
+                {key: 'estado', label: 'Estado'},
+                {key: 'actions', label: ''},
             ],
             cliente_id: null
         }
@@ -108,10 +97,6 @@ export default {
             }).catch(error => {
                 this.load = true;
             });
-        },
-        newPedido(){
-            // this.editar = false;
-            this.openPedido = true;
         },
         rowClass(item, type){
             if (!item) return

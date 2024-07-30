@@ -76,6 +76,7 @@ Vue.component('codes-component', require('./components/libros/codigos/CodesCompo
 Vue.component('pedido-school-component', require('./components/pedidos/PedidoSchoolComponent.vue').default);
 Vue.component('details-pedido-component', require('./components/pedidos/DetailsPedidoComponent').default);
 Vue.component('preparar-pedido-component', require('./components/pedidos/PrepararPedidoComponent').default);
+Vue.component('new-edit-pedido-component', require('./components/pedidos/NewEditPedidoComponent').default);
 
 // ORDERS
 Vue.component('orders-component', require('./components/orders/OrdersComponent.vue').default);

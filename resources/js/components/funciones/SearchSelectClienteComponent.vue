@@ -18,8 +18,11 @@
 <script>
 import searchCliente from '../../mixins/searchCliente';
 export default {
-    props: ['load', 'titulo', 'status'],
+    props: ['load', 'titulo', 'status', 'clientename'],
     mixins: [searchCliente],
+    created: function (){
+        if(this.clientename != null) this.queryCliente = this.clientename;
+    },
     methods: {
         selectCliente(cliente){
             this.queryCliente = cliente.name;

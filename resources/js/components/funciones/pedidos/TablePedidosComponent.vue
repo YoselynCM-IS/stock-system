@@ -108,7 +108,7 @@ import formatNumber from '../../../mixins/formatNumber';
 import getLibros from '../../../mixins/getLibros';
 import toast from '../../../mixins/toast';
 export default {
-    props: ['load'],
+    props: ['load', 'ftotalq', 'ftotal', 'flibros'],
     mixins: [formatNumber, getLibros, toast],
     data(){
         return {
@@ -130,6 +130,7 @@ export default {
             editar2: false,
             position: null,
             registro: {
+                id: null,
                 libro: { id: null, ISBN: '', titulo: '', type: null},
                 tipo: null, 
                 quantity: 0,
@@ -145,6 +146,11 @@ export default {
             ],
         }
     },
+    created: function (){
+        this.form.libros = this.flibros;
+        this.form.total = this.ftotal;
+        this.form.total_quantity = this.ftotalq;
+    },
     methods: {
         datosLibro(libro){
             this.assign_datos(libro);
@@ -152,6 +158,7 @@ export default {
             this.resultsISBNs = [];
         },
         edit_register(register, index){
+            this.registro.id = register.id;
             this.registro.quantity = register.quantity;
             this.registro.price = register.price;
             this.registro.total = register.total;
@@ -173,6 +180,7 @@ export default {
                 if(!this.editar2){
                     this.form.libros.push(this.registro);
                 } else{
+                    this.form.libros[this.position].id = this.registro.id;
                     this.form.libros[this.position].quantity = this.registro.quantity;
                     this.form.libros[this.position].price = this.registro.price;
                     this.form.libros[this.position].total = this.registro.total;
@@ -197,7 +205,7 @@ export default {
         },
         inicializar_registro(){
             this.registro = { 
-                libro: { id: null, ISBN: '', titulo: '', type: null},
+                id: null, libro: { id: null, ISBN: '', titulo: '', type: null},
                 quantity: 0, price: 0, total: 0, tipo: null
             };
             this.queryISBN = null;
