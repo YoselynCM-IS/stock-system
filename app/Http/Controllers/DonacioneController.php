@@ -31,10 +31,11 @@ class DonacioneController extends Controller
     public function store(Request $request) {
         \DB::beginTransaction();
         try{
+            $destino = $request->destino == null ? null:strtoupper($request->destino);
             $regalo = Regalo::create([
                 'cliente_id' => $request->cliente_id,
                 'plantel' => $request->plantel,
-                'destino' => strtoupper($request->destino),
+                'destino' => $destino,
                 'descripcion' => strtoupper($request->descripcion),
                 'unidades' => (int) $request->unidades,
                 'entregado_por' => null,

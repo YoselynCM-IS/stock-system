@@ -127,25 +127,26 @@
         </div>
         <!-- MOSTRAR DETALLES DE LA DONACION -->
         <div v-if="mostrarDetalles">
-            <b-row>
+            <b-row class="mb-3">
                 <b-col>
                     <h6><b>Plantel</b>: {{ regalo.plantel }}</h6>
+                    <h6 v-if="regalo.descripcion != null"><b>Descripción</b>: {{ regalo.descripcion }}</h6>
+                    <h6 v-if="regalo.destino != null"><b>Enviado a</b>: {{ regalo.destino }}</h6>
+                </b-col>
+                <b-col sm="4">
                     <h6><b>Fecha</b>: {{ regalo.created_at | moment }}</h6>
-                </b-col>
-                <b-col>
-                    <h6 v-if="regalo.entregado_por != null"><b>Entregado por</b>: {{ regalo.entregado_por }}</h6>
                     <h6 v-if="regalo.creado_por != null"><b>Creado por</b>: {{ regalo.creado_por }}</h6>
-                </b-col>
-                <b-col sm="2">
-                    <b-button variant="dark" :href="`/download_regalo/${regalo.id}`"><i class="fa fa-download"></i> Descargar</b-button>
+                    <h6 v-if="regalo.entregado_por != null"><b>Entregado por</b>: {{ regalo.entregado_por }}</h6>
                 </b-col>
                 <b-col sm="2" align="right">
-                    <b-button variant="secondary" @click="listadoDonaciones = true; mostrarDetalles = false;">
+                    <b-button variant="secondary" @click="listadoDonaciones = true; mostrarDetalles = false;" pill block>
                         <i class="fa fa-mail-reply"></i> Regresar
+                    </b-button>
+                    <b-button variant="dark" :href="`/download_regalo/${regalo.id}`" pill block>
+                        <i class="fa fa-download"></i> Descargar
                     </b-button>
                 </b-col>
             </b-row>
-            <h6 v-if="regalo.descripcion != null"><b>Descripción</b>: {{ regalo.descripcion }}</h6>
             <b-table :items="regalo.donaciones" :fields="fieldsD">
                 <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.libro.ISBN }}</template>
@@ -564,6 +565,7 @@ import searchCliente from '../../mixins/searchCliente';
                     this.regalo.id = response.data.id;
                     this.regalo.donaciones = response.data.donaciones;
                     this.regalo.plantel = response.data.plantel;
+                    this.regalo.destino = response.data.destino;
                     this.regalo.unidades = response.data.unidades;
                     this.regalo.descripcion = response.data.descripcion;
                     this.regalo.created_at = response.data.created_at;
