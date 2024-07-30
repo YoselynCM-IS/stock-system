@@ -233,7 +233,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'Image' => Intervention\Image\Facades\Image::class,
-        'PDF' => Barryvdh\DomPDF\Facade\PDF::class,
+        // 'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
     ],
 
 ];
