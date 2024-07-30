@@ -116,6 +116,14 @@ class DonacioneController extends Controller
         return response()->json($regalos);
     }
 
+    // BUSQUEDA POR COINCIDENCIA DE DESTINO
+    public function by_destino(Request $request){
+        $queryDestino = $request->queryDestino;
+        $regalos = Regalo::where('destino','like','%'.$queryDestino.'%')
+                    ->orderBy('id','desc')->paginate(20);
+        return response()->json($regalos);
+    }
+
     public function by_fecha(Request $request){
         $inicio = $request->inicio;
         $final = $request->final;

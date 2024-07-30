@@ -4,20 +4,28 @@
         <div v-if="listadoDonaciones">
             <b-row>
                 <!-- BUSCAR DONACIÓN POR PLANTEL -->
-                <b-col sm="6">
-                    <b-row class="my-1">
-                        <b-col sm="2">
+                <b-col>
+                    <b-row>
+                        <b-col sm="2" class="text-right">
                             <label for="input-plantel">Plantel</label>
                         </b-col>
                         <b-col sm="10">
                             <b-input style="text-transform:uppercase;" v-model="queryPlantel" @keyup="porPlantel()"></b-input>
                         </b-col>
                     </b-row>
+                    <b-row>
+                        <b-col sm="2" class="text-right">
+                            <label for="input-plantel">Enviado a</label>
+                        </b-col>
+                        <b-col sm="10">
+                            <b-input style="text-transform:uppercase;" v-model="queryDestino" @keyup="porDestino()"></b-input>
+                        </b-col>
+                    </b-row>
                 </b-col> 
                 <!-- CREAR UNA DONACIÓN -->
-                <b-col sm="6">
+                <b-col sm="5">
                     <b-row>
-                        <b-col sm="3">
+                        <b-col sm="3" class="text-right">
                             <label for="input-inicio">De:</label>
                         </b-col>
                         <b-col sm="9">
@@ -30,7 +38,7 @@
                         </b-col>
                     </b-row>
                     <b-row>
-                        <b-col sm="3">
+                        <b-col sm="3" class="text-right">
                             <label for="input-final">A: </label>
                         </b-col>
                         <b-col sm="9">
@@ -410,6 +418,8 @@ import searchCliente from '../../mixins/searchCliente';
                     { key: 'index', label: 'N.' },
                     { key: 'codigo', label: 'Código' }
                 ],
+                queryDestino: null,
+                searchDestino: false
             }
         },
         filters: {
@@ -426,12 +436,14 @@ import searchCliente from '../../mixins/searchCliente';
         methods: {
             // OBTENER TODAS LAS DONACIONES
             getResults(page = 1){
-                if(!this.searchPlantel && !this.searchFecha)
+                if(!this.searchPlantel && !this.searchFecha && !this.searchDestino)
                     this.http_regalos(page);
                 if(this.searchPlantel)
                     this.http_plantel(page);
                 if(this.searchFecha)
                     this.http_fecha(page);
+                if(this.searchDestino)
+                    this.http_destino(page);
             },
             // HTTP REGALOS
             http_regalos(page = 1){
@@ -440,7 +452,7 @@ import searchCliente from '../../mixins/searchCliente';
                     this.regalosData = response.data;
                     this.regalos = response.data.data;
                     this.acumular_unidades();
-                    this.set_search(false, false);
+                    this.set_search(false, false, false);
                     this.load = false;
                 }).catch(error => {
                     this.load = true;
@@ -504,16 +516,17 @@ import searchCliente from '../../mixins/searchCliente';
                     this.regalosData = response.data;
                     this.regalos = response.data.data;
                     this.load = false;
-                    this.set_search(false, true);
+                    this.set_search(false, true, false);
                     this.acumular_unidades();
                 }).catch(error => {
                     this.load = false;
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                 });
             },
-            set_search(searchPlantel, searchFecha){
+            set_search(searchPlantel, searchFecha, searchDestino){
                 this.searchPlantel = searchPlantel;
                 this.searchFecha = searchFecha;
+                this.searchDestino = searchDestino;
             },
             // BUSCAR POR PLANTEL
             porPlantel(){
@@ -525,20 +538,45 @@ import searchCliente from '../../mixins/searchCliente';
                     }
                 }
             },
-            http_plantel(page = 1){
+            // BUSCAR POR ENVIADO A
+            porDestino(){
+                if(this.queryDestino !== null){
+                    if(this.queryDestino.length > 0){
+                        this.http_destino();
+                    } else{
+                        this.queryDestino = null;
+                    }
+                }
+            },
+            // HTTP POR DESTINO
+            http_destino(page = 1){
                 this.load = true;
-                axios.get(`/donaciones/by_plantel?page=${page}`, {params: {queryPlantel: this.queryPlantel}}).then(response => {
-                    this.regalosData = response.data;
-                    this.regalos = response.data.data;
-                    this.inicio = '0000-00-00';
-                    this.final = '0000-00-00';
-                    this.acumular_unidades();
-                    this.load = false;
-                    this.set_search(true, false);
+                axios.get(`/donaciones/by_destino?page=${page}`, {params: {queryDestino: this.queryDestino}}).then(response => {
+                    this.set_datos(response);
+                    this.set_search(false, false, true);
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                     this.load = false;
                 });
+            },
+            http_plantel(page = 1){
+                this.load = true;
+                axios.get(`/donaciones/by_plantel?page=${page}`, {params: {queryPlantel: this.queryPlantel}}).then(response => {
+                    this.set_datos(response);
+                    this.set_search(true, false, false);
+                }).catch(error => {
+                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                    this.load = false;
+                });
+            },
+            // INCIALIZAR DATOS
+            set_datos(response){
+                this.regalosData = response.data;
+                this.regalos = response.data.data;
+                this.inicio = '0000-00-00';
+                this.final = '0000-00-00';
+                this.acumular_unidades();
+                this.load = false;
             },
             // INICIALIZAR PARA CREAR UNA DONACION
             registrarDonacion(){

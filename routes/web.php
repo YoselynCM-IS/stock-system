@@ -534,6 +534,8 @@ Route::name('donaciones.')->prefix('donaciones')->group(function () {
     Route::get('by_fecha', 'DonacioneController@by_fecha')->name('by_fecha');
     // Obtener donaciones por plantel
     Route::get('by_plantel', 'DonacioneController@by_plantel')->name('by_plantel');
+    // Obtener donaciones por destino
+    Route::get('by_destino', 'DonacioneController@by_destino')->name('by_destino');
 });
 
 //Obtener todos los cliente
