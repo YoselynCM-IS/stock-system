@@ -29,7 +29,7 @@ class PedidoController extends Controller
 
     // DETALLES DEL PEDIDO
     public function show($pedido_id, $notification_id = null){
-        $pedido = Pedido::whereId($pedido_id)->with('user', 'cliente', 'peticiones.libro', 'orders.remisiones.cliente')->first();
+        $pedido = Pedido::whereId($pedido_id)->with('user', 'cliente', 'peticiones.libro', 'orders.remisiones.cliente', 'surtidos')->first();
         $notification = auth()->user()->unreadNotifications->where('id', $notification_id);
         $notification->map(function($n){
             $n->markAsRead();
@@ -331,5 +331,23 @@ class PedidoController extends Controller
         $pedidos = Pedido::where('cliente_id', $request->cliente_id)->orderBy('created_at', 'desc')
                     ->with('user', 'cliente')->paginate(20);
         return response()->json($pedidos);
+    }
+
+    // CERRAR PEDIDO
+    public function cerrar(Request $request){
+        \DB::beginTransaction();
+        try {
+            $pedido = Pedido::find($request->pedido_id);
+            $pedido->update([ 'cerrado_por' => auth()->user()->name ]);
+
+            $reporte = 'cerró un pedido del cliente '.$pedido->cliente->name;
+            $this->create_report($pedido->id, $reporte);
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
+        }
+        return response()->json(true);
     }
 }

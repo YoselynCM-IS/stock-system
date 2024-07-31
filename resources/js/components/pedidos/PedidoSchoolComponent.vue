@@ -36,16 +36,23 @@
                     <template v-slot:cell(estado)="row">
                         <estado-pedido :id="row.item.id" :comentarios="row.item.comentarios" :estado="row.item.estado"></estado-pedido>
                     </template>
+                    <template v-slot:cell(created_at)="row">
+                        {{ row.item.created_at | momentDet }}
+                    </template>
                     <template v-slot:cell(actions)="row">
                         <b-button :href="`/pedido/show/${row.item.id}`" 
                             target="blank" variant="info" pill size="sm">
                             <i class="fa fa-info-circle"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 5 || role_id == 9 || role_id == 1) && 
+                        <b-button v-if="(role_id == 5 || role_id == 9 || role_id == 6) && 
                                         row.item.estado == 'proceso' && row.item.actualizado_por == null"
                             :href="`/pedido/create_edit/${row.item.id}`"
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>
+                        </b-button>
+                        <b-button v-if="(role_id == 2 || role_id == 6) && row.item.cerrado_por == null && (row.item.estado == 'de inventario' || row.item.estado == 'en orden')"
+                            @click="cerrarPedido(row.item.id)" variant="dark" pill size="sm">
+                            <i class="fa fa-close"></i>
                         </b-button>
                     </template>
                 </b-table>
@@ -60,10 +67,12 @@
 import SearchSelectClienteComponent from '../funciones/SearchSelectClienteComponent.vue';
 import EstadoPedido from './partials/EstadoPedido.vue';
 import formatNumber from '../../mixins/formatNumber';
+import moment from '../../mixins/moment';
+import sweetAlert from '../../mixins/sweetAlert';
 export default {
     props: ['role_id'],
     components: { EstadoPedido, SearchSelectClienteComponent },
-    mixins: [formatNumber],
+    mixins: [formatNumber, moment, sweetAlert],
     data(){
         return {
             load: false,
@@ -101,8 +110,8 @@ export default {
         rowClass(item, type){
             if (!item) return
             if (item.estado == 'cancelado') return 'table-danger';
-            if (item.estado == 'de inventario') return 'table-success';
-            if (item.estado == 'en orden') return 'table-primary';
+            if (item.cerrado_por == null && (item.estado == 'en orden' || item.estado == 'de inventario')) return 'table-primary';
+            if (item.cerrado_por !== null) return 'table-success';
         },
         sendCliente(cliente){
             this.cliente_id = cliente.id;
@@ -115,6 +124,17 @@ export default {
                 this.load = false;
             }).catch(error => {
                 this.load = true;
+            });
+        },
+        // CERRAR EL PEDIDO PARA QUE YA NO SE HAGN MOVIMIENTOS
+        cerrarPedido(pedido_id){
+            this.load = true;
+            let form = {pedido_id: pedido_id};
+            axios.put('/pedido/cerrar', form).then(response => {
+                this.messageAlert('center', 'success', 'El pedido se ha cerrado.', null, 'reload');
+                this.load = false;
+            }).catch(error => {
+                this.load = false;
             });
         }
     }

@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Storage;
 use App\Exports\RemisionesExport;
 use App\Exports\RemisionExport;
 use App\Exports\RemisionesGExport;
-use App\Helper\CollectionHelper;
 use App\Exports\GAccountExport;
 use Illuminate\Http\Request;
 use App\Destinatario;
@@ -19,27 +18,22 @@ use App\Comentario;
 use App\Paqueteria;
 use Carbon\Carbon;
 use App\Remisione;
-use App\Donacione;
 use App\Deposito;
 use App\Cctotale;
+use App\Surtido;
 use App\Vendido;
 use App\Cliente;
 use App\Reporte;
+use App\Pedido;
 use App\Libro;
 use App\Fecha;
 use App\Corte;
 use App\Dato;
-use App\Pago;
 use App\Code;
 use App\Pack;
 use Excel;
 use PDF;
 use DB;
-// use App\Entrada;
-// use App\Registro;
-// use App\Ectotale;
-// use App\Editoriale;
-// use App\Enteditoriale;
 
 class RemisionController extends Controller
 {
@@ -681,59 +675,214 @@ class RemisionController extends Controller
             $total = (double) $request->total;
             $destino = $request->destino == null ? null:strtoupper($request->destino);
             // CREAR REMISIÓN
-            $remision = Remisione::create([
-                'user_id' => auth()->user()->id,
-                'corte_id' => $corte_id,
-                'cliente_id' => $request->cliente['id'],
-                'destino' => $destino,
-                'total' => $total,
-                'total_pagar' => $total,
-                'fecha_entrega' => $request->fecha_entrega,
-                'estado' => 'Proceso',
-                'fecha_creacion' => $hoy->format('Y-m-d'),
-                'fecha_devolucion' => $hoy->format('Y-m-d')
-            ]);
+            $remision = Remisione::create($this->set_remisione($corte_id, $request->cliente['id'], $destino, $total, $request->fecha_entrega, $hoy));
             
             // GUARDAR DATOS Y DEVOLUCIONES DE LA REMISIÓN
             $this->save_datos($request->datos, $remision, $hoy);
             // DISMINUIR PIEZAS DE PACK
             $packs = collect($request->packs);
-            $packs->map(function($pack) use (&$prueba){
+            $packs->map(function($pack){
                 \DB::table('packs')->whereId($pack['id'])
                                     ->decrement('piezas',  (int) $pack['unidades']);
             });
 
-            // ACTUALIZA LA CUENTA DEL CORTE CORRESPONDIENTE
-            $cctotale = $this->get_cctotale($remision, $remision->cliente_id);
-            $cctotale->update([
-                'total' => $cctotale->total + $remision->total,
-                'total_pagar' => $cctotale->total_pagar + $remision->total
-            ]);
-            
-
-            // BUSCAR EL CLIENTE Y AFECTAR SU CUENTA GENERAL
-            $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
-            if($remcliente === null){
-                Remcliente::create([
-                    'cliente_id' => $remision->cliente_id,
-                    'total' => $remision->total,
-                    'total_pagar' => $remision->total
-                ]);
-            } else {
-                $remcliente->update([
-                    'total' => $remcliente->total + $remision->total,
-                    'total_pagar' => $remcliente->total_pagar + $remision->total
-                ]);
-            }
-            
-            $reporte = 'creo la remisión '.$remision->id.' para '.$remision->cliente->name;
-            $this->create_report($remision->id, $reporte, 'cliente', 'remisiones');
+            // ACTUALIZAR LA CUENTA DEL CLIENTE
+            $this->update_edocuenta($remision);
             \DB::commit();
         } catch (Exception $e) {
             \DB::rollBack();
-            return response()->json($exception->getMessage());
+            return response()->json($e->getMessage());
         }
         return response()->json();
+    }
+
+    // CREAR REMISIÓN APARTIR DE UN PEDIDO
+    public function surtir(Request $request){
+        $this->validate($request, [
+            'nota' => 'required',
+            'comentario' => 'required|min:5'
+        ]);
+
+        \DB::beginTransaction();
+        try {
+            // OBTENER EL PEDIDO
+            $pedido = Pedido::whereId($request->pedido_id)->first();
+            // OBTENER SI HAY COMO MINIMO 1 DE ALUMNO O FISICO SOLO
+            $count_peticiones = $pedido->peticiones->whereIn('tipo', ['alumno', null])->count();
+            
+            if($count_peticiones > 0){
+                // OBTENER LA FECHA ACTUAL
+                $hoy = Carbon::now();
+                // OBTENER EL PERIODO ACTUAL
+                $corte_id = $this->search_corte_actual();
+                // ASIGNAR VALORES A VARIABLES
+                $total = (double) $pedido->total;
+                // INSERTAR DATOS APARTIR DE LAS PETICIONES
+                $lista_datos = [];
+                $pedido->peticiones->map(function($peticion) use(&$lista_datos, $hoy){
+                    if($peticion->tipo == null || $peticion->tipo == 'alumno'){
+                        // ** OBTENER CUANTO HAY EN EXISTENCIA
+                        $packs = Pack::where('libro_fisico', $peticion->libro_id)
+                            ->OrWhere('libro_digital', $peticion->libro_id)
+                            ->sum('piezas');
+                        // UNIDADES REALES AL MOMENTO PARA TOMAR
+                        $existencia = $peticion->libro->piezas - $packs;
+                        // ** FIN
+                        // ** ESPECIFICAR CUANTAS UNIDADES SE TOMAN
+                        $unidades = $peticion->quantity;
+                        if($unidades > $existencia) $unidades = $existencia;
+                        // ** FIN
+                        // ** CONSTRUIR ARRAY DE REGISTROS DE DATOS
+                        if($unidades > 0){
+                            $total = $peticion->price * $unidades;
+                            $lista_datos[] = $this->set_datos(null, null, $peticion->libro_id, $peticion->price, $unidades, $total, $hoy);
+                        }
+                        // ** FIN
+                    }
+                });
+
+                if(count($lista_datos) > 0){
+                    // CREAR LA REMISIÓN
+                    $remision = Remisione::create($this->set_remisione($corte_id, $pedido->cliente_id, null, $total, $hoy->format('Y-m-d'), $hoy));
+                    foreach ($lista_datos as $key => $value) {
+                        $lista_datos[$key]['remisione_id'] = $remision->id;
+                    }
+                    // CREAR REGISTROS DE DATOS
+                    Dato::insert($lista_datos);
+                    // GUARDAR LAS DEVOLUCIONES
+                    $lista_devoluciones = [];
+                    $lista_codes = collect();
+                    $datos = Dato::where('remisione_id', $remision->id)->get();
+                    $datos->map(function($dato) use(&$lista_devoluciones, &$lista_codes, $hoy){
+                        // LISTADO DE DEVOLUCIONES
+                        $lista_devoluciones[] = $this->set_devoluciones($dato, $hoy);
+                        // LISTADO DE CODES
+                        $lista_codes = $this->set_codes($dato, $lista_codes);
+                        // DISMINUIR PIEZAS DE LOS LIBROS
+                        $this->libros_decrement($dato);
+                    
+                    });
+
+                    // CREAR REGISTROS DE DEVOLUCION
+                    Devolucione::insert($lista_devoluciones);
+                    // OBTENER CODIGOS DE LOS LIBROS DIGITALES
+                    $lista_codes->map(function($lc){
+                        $this->get_codes($lc['libro_id'], $lc['unidades'], $lc['dato_id']);
+                    });
+
+                    // ACTUALIZAR LA CUENTA DEL CLIENTE
+                    $this->update_edocuenta($remision);
+
+                    // REGISTRAR EL SURTIDO
+                    Surtido::create([
+                        'pedido_id' => $pedido->id, 
+                        'relacion_tabla' => 'remisiones', 
+                        'relacion_id' => $remision->id, 
+                        'comentario' => strtoupper($request->comentario)
+                    ]);
+                } else
+                    return response()->json(false);
+            } else
+                return response()->json(false);
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
+        }
+        return response()->json(true);
+    }
+
+    // ASIGNAR DATOS PARA CREAR DATOS DE REMISIÓN
+    public function set_datos($remisione_id, $pack_id, $libro_id, $costo_unitario, $unidades, $total, $hoy){
+        return [
+            'remisione_id' => $remisione_id,
+            'pack_id' => $pack_id,
+            'libro_id'  => $libro_id,
+            'costo_unitario' => $costo_unitario,
+            'unidades'  => $unidades,
+            'total'     => $total,
+            'created_at' => $hoy,
+            'updated_at' => $hoy
+        ];
+    }
+
+    // ASIGNAR DATOS PARA CREAR DEVOLUCIONES DE REMISIÓN
+    public function set_devoluciones($dato, $hoy){
+        return [
+            'remisione_id' => $dato->remisione_id,
+            'dato_id'   => $dato->id,
+            'libro_id' => $dato->libro_id,
+            'unidades_resta' => $dato->unidades,
+            'total_resta' => $dato->total,
+            'created_at' => $hoy,
+            'updated_at' => $hoy
+        ];
+    }
+
+    // ASIGNAR DATOS PARA CREAR CODIGOS DE REMISIÓN
+    public function set_codes($dato, $lista_codes){
+        if($dato->libro->type == 'digital' && $dato->pack_id == null){
+            $lista_codes->push([
+                'dato_id'   => $dato->id,
+                'libro_id'  => $dato->libro_id,
+                'unidades'  => $dato->unidades
+            ]);
+        }
+        return $lista_codes;
+    }
+
+    // ACTUALIZAR CUENTAS DEL CLIENTE
+    public function update_edocuenta($remision){
+        // ACTUALIZA LA CUENTA DEL CORTE CORRESPONDIENTE
+        $cctotale = $this->get_cctotale($remision, $remision->cliente_id);
+        $cctotale->update([
+            'total' => $cctotale->total + $remision->total,
+            'total_pagar' => $cctotale->total_pagar + $remision->total
+        ]);
+        
+
+        // BUSCAR EL CLIENTE Y AFECTAR SU CUENTA GENERAL
+        $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
+        if($remcliente === null){
+            Remcliente::create([
+                'cliente_id' => $remision->cliente_id,
+                'total' => $remision->total,
+                'total_pagar' => $remision->total
+            ]);
+        } else {
+            $remcliente->update([
+                'total' => $remcliente->total + $remision->total,
+                'total_pagar' => $remcliente->total_pagar + $remision->total
+            ]);
+        }
+        
+        $reporte = 'creo la remisión '.$remision->id.' para '.$remision->cliente->name;
+        $this->create_report($remision->id, $reporte, 'cliente', 'remisiones');
+    }
+
+    // DISMINUIR PIEZAS DE INVENTARIO
+    public function libros_decrement($dato){
+        \DB::table('libros')->whereId($dato->libro_id)->decrement('piezas',  $dato->unidades);
+
+        $reporte = 'registro la salida (remision) de '.$dato->unidades.' unidades - '.$dato->libro->editorial.': '.$dato->libro->type.' '.$dato->libro->ISBN.' / '.$dato->libro->titulo.' para '.$dato->remisione_id.' / '.$dato->remisione->cliente->name;
+        $this->create_report($dato->id, $reporte, 'libro', 'datos');
+    }
+
+    // ASIGNAR DATOS PARA CREAR REMISIÓN
+    public function set_remisione($corte_id, $cliente_id, $destino, $total, $fecha_entrega, $hoy){
+        return [
+            'user_id' => auth()->user()->id,
+            'corte_id' => $corte_id,
+            'cliente_id' => $cliente_id,
+            'destino' => $destino,
+            'total' => $total,
+            'total_pagar' => $total,
+            'fecha_entrega' => $fecha_entrega,
+            'estado' => 'Proceso',
+            'fecha_creacion' => $hoy->format('Y-m-d'),
+            'fecha_devolucion' => $hoy->format('Y-m-d')
+        ];
     }
 
     public function save_datos($req_datos, $remision, $hoy){
@@ -743,16 +892,7 @@ class RemisionController extends Controller
         $request_datos->map(function($dato) use (&$lista_datos, $remision, $hoy){
             $libro_id = $dato['libro']['id'];
             $unidades = (int) $dato['unidades'];
-            $lista_datos[] = [
-                'remisione_id' => $remision->id,
-                'pack_id' => $dato['pack_id'],
-                'libro_id'  => $libro_id,
-                'costo_unitario' => (float) $dato['costo_unitario'],
-                'unidades'  => $unidades,
-                'total'     => (double) $dato['total'],
-                'created_at' => $hoy,
-                'updated_at' => $hoy
-            ];
+            $lista_datos[] = $this->set_datos($remision->id, $dato['pack_id'], $libro_id, (float) $dato['costo_unitario'], $unidades, (double) $dato['total'], $hoy);
         });
         
         // CREAR REGISTROS DE DATOS
@@ -762,38 +902,19 @@ class RemisionController extends Controller
         $lista_codes = collect();
         $datos = Dato::where('remisione_id', $remision->id)->get();
         $datos->map(function($dato) use(&$lista_devoluciones, &$lista_codes, $hoy){
-            $libro_id = $dato->libro_id;
-            $lista_devoluciones[] = [
-                'remisione_id' => $dato->remisione_id,
-                'dato_id'   => $dato->id,
-                'libro_id' => $libro_id,
-                'unidades_resta' => $dato->unidades,
-                'total_resta' => $dato->total,
-                'created_at' => $hoy,
-                'updated_at' => $hoy
-            ];
-
-            if($dato->libro->type == 'digital' && $dato->pack_id == null){
-                $lista_codes->push([
-                    'dato_id'   => $dato->id,
-                    'libro_id'  => $dato->libro_id,
-                    'unidades'  => $dato->unidades
-                ]);
-            }
-            
+            // LISTADO DE DEVOLUCIONES
+            $lista_devoluciones[] = $this->set_devoluciones($dato, $hoy);
+            // LISTADO DE CODES
+            $lista_codes = $this->set_codes($dato, $lista_codes);
             // DISMINUIR PIEZAS DE LOS LIBROS
-            \DB::table('libros')->whereId($libro_id)
-                                ->decrement('piezas',  $dato->unidades);
-
-            $reporte = 'registro la salida (remision) de '.$dato->unidades.' unidades - '.$dato->libro->editorial.': '.$dato->libro->type.' '.$dato->libro->ISBN.' / '.$dato->libro->titulo.' para '.$dato->remisione_id.' / '.$dato->remisione->cliente->name;
-            $this->create_report($dato->id, $reporte, 'libro', 'datos');
+            $this->libros_decrement($dato);
         });
 
         // CREAR REGISTROS DE DEVOLUCION
         Devolucione::insert($lista_devoluciones);
 
         // OBTENER CODIGOS DE LOS LIBROS DIGITALES
-        $lista_codes->map(function($lc, $hoy){
+        $lista_codes->map(function($lc){
             $this->get_codes($lc['libro_id'], $lc['unidades'], $lc['dato_id']);
         });
     }

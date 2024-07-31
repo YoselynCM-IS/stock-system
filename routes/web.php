@@ -141,6 +141,8 @@ Route::name('remisiones.')->prefix('remisiones')
     Route::post('save_envio', 'RemisionController@save_envio')->name('save_envio');
     // ABRIR VENTANA PARA ELIMINAR DEVOLUCIÓN
     Route::get('/delete_dev/{remisione_id}', 'RemisionController@delete_dev')->name('delete_dev');
+    // Surtir remisión desde un pedido
+    Route::post('surtir', 'RemisionController@surtir')->name('surtir');
     
     // HISTORIAL
     // Verificar que no exista el folio
@@ -424,6 +426,7 @@ Route::name('pedido.')->prefix('pedido')->middleware(['auth'])->group(function (
     Route::get('/by_cliente', 'PedidoController@by_cliente')->name('by_cliente');
     Route::get('/create_edit/{pedido_id}', 'PedidoController@create_edit')->name('create_edit');
     Route::put('/update', 'PedidoController@update')->name('update');
+    Route::put('/cerrar', 'PedidoController@cerrar')->name('cerrar');
 });
 
 Route::name('order.')->prefix('order')->group(function () {
