@@ -10,8 +10,8 @@ use App\Element;
 use App\Reporte;
 use App\Pedido;
 use App\Order;
-use App\User;
 use App\Code;
+use App\Pack;
 
 class PedidoController extends Controller
 {
@@ -43,7 +43,7 @@ class PedidoController extends Controller
     }
 
     // EDITAR PEDIDO
-    public function create_edit($pedido_id){
+    public function create_edit($tipo, $pedido_id){
         $pedido = 0;
         if($pedido_id > 0) {
             $pedido = $this->get_pedido($pedido_id);
@@ -51,7 +51,7 @@ class PedidoController extends Controller
             if($pedido->actualizado_por !== null) return view('information.pedidos.lista-cliente');
         }
 
-        return view('information.pedidos.create-edit', compact('pedido'));
+        return view('information.pedidos.create-edit', compact('tipo', 'pedido'));
     }
 
     public function set_peticiones($pedido, $peticione){
@@ -344,6 +344,52 @@ class PedidoController extends Controller
             $this->create_report($pedido->id, $reporte);
 
             \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
+        }
+        return response()->json(true);
+    }
+
+    // REVISAR SI EL LIBRO ES COMPATIBLE PARA SCRATCH
+    public function check_scratch(Request $request){
+        // OBTENER PETICION DE LIBRO DIGITAL
+        $peticion_digital = Peticione::find($request->peticion_id);
+        // OBTENER PETICIONES DEL PEDIDO, SOLO LOS LIBROS FISICOS
+        $peticiones = \DB::table('peticiones')->select('peticiones.id', 'peticiones.libro_id', 'libros.type')
+                        ->join('libros', 'peticiones.libro_id', '=', 'libros.id')
+                        ->where('peticiones.pedido_id', $peticion_digital->pedido_id)
+                        ->where('libros.type', 'venta')->get();
+
+        $resultado = null;
+        // REVISAR SI HAY PACKS PARA SCRATCH
+        $peticiones->map(function($peticion) use(&$resultado, $peticion_digital){
+            if($resultado == null){
+                $pack = Pack::where('libro_fisico', $peticion->libro_id)
+                                ->where('libro_digital', $peticion_digital->libro_id)->first();
+                if($pack != null){
+                    $resultado = [
+                        'peticion_ids' => [$peticion_digital->id, $peticion->id],
+                        'pack_id' => $pack->id
+                    ];
+                }
+            }
+        });
+
+        $status = $resultado == null ? false:true;
+
+        return response()->json(['status' => $status, 'resultado' => $resultado]);
+    }
+
+    // GUARDAR LOS LIBROS QUE SE SELECCIONARON PARA SCRATCH
+    public function save_scratch(Request $request){
+        \DB::beginTransaction();
+        try {
+            $scratch = collect($request->scratch);
+            $scratch->map(function($s) use(&$prueba){
+                Peticione::whereIn('id', $s['peticion_ids'])->update(['pack_id' => $s['pack_id']]);
+            });
+        \DB::commit();
         } catch (Exception $e) {
             \DB::rollBack();
             return response()->json($e->getMessage());

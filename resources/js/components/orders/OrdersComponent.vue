@@ -16,7 +16,7 @@
                     </b-form-select>
                 </b-col>
                 <b-col>
-                    <search-select-cliente-component :titulo="'Buscar por cliente'" :status="'all'" :load="load" :clientename="null" @sendCliente="sendCliente"></search-select-cliente-component>
+                    <search-select-cliente-component :titulo="'Buscar por cliente'" :status="'all'" :load="load" :clientename="null" :tipo="null" @sendCliente="sendCliente"></search-select-cliente-component>
                 </b-col>
                 <b-col sm="2">
                     <b-button v-if="role_id == 1 || role_id == 2 || role_id == 6"

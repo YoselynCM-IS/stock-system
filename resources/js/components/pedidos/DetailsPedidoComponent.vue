@@ -7,6 +7,12 @@
             <b-col sm="2">
                 <estado-pedido :id="pedido.id" :comentarios="pedido.comentarios" :estado="pedido.estado"></estado-pedido>
             </b-col>
+            <b-col sm="1">
+                <b-button v-if="(role_id == 2 || role_id == 6) && pedido.estado == 'de inventario' && pedido.cerrado_por == null"
+                    :href="`/pedido/create_edit/2/${pedido.id}`" variant="warning" pill>
+                    <i class="fa fa-pencil"></i>
+                </b-button>
+            </b-col>
             <b-col sm="2">
                 <b-button v-if="(role_id == 5|| role_id == 9 || role_id == 6 || role_id == 7) && pedido.estado == 'proceso'" 
                     :disabled="load" variant="danger" pill block @click="cancelarPedido()">
@@ -37,6 +43,10 @@
         <b-table :items="pedido.peticiones" :fields="fields">
             <template v-slot:cell(index)="row">
                 {{ row.index + 1 }}
+            </template>
+            <template v-slot:cell(libro)="row">
+                {{ row.item.libro.titulo }}
+                <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
             </template>
             <template v-slot:cell(quantity)="row">
                 {{ row.item.quantity | formatNumber }}
@@ -126,7 +136,7 @@ export default {
             fields: [
                 {key: 'index', label: 'N.'},
                 {key: 'libro.ISBN', label: 'ISBN'},
-                {key: 'libro.titulo', label: 'Titulo'},
+                {key: 'libro', label: 'Titulo'},
                 {key: 'tipo', label: ''},
                 {key: 'quantity', label: 'Unidades'},
                 {key: 'price', label: 'Precio'},

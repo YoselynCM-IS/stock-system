@@ -2,7 +2,7 @@
     <div>
         <b-form-group :label="titulo" label-class="font-weight-bold">
             <b-input v-model="queryCliente" @keyup="mostrarClientes(status)" autofocus
-                style="text-transform:uppercase;" :disabled="load" required
+                style="text-transform:uppercase;" :disabled="load || tipo == 2" required
                 placeholder="BUSCAR CLIENTE">
             </b-input>
             <div class="list-group" v-if="clientes.length" id="listP">
@@ -18,7 +18,7 @@
 <script>
 import searchCliente from '../../mixins/searchCliente';
 export default {
-    props: ['load', 'titulo', 'status', 'clientename'],
+    props: ['load', 'titulo', 'status', 'clientename', 'tipo'],
     mixins: [searchCliente],
     created: function (){
         if(this.clientename != null) this.queryCliente = this.clientename;

@@ -15,6 +15,11 @@ export default {
                     window.opener.document.location = ruta; 
                 });
             }
+            if (tipo == 'redirect') {
+                swal.then((result) => {
+                    location.href = ruta; 
+                });
+            }
             if (tipo == 'close') 
                 swal.then((result) => window.close());
             if (tipo == 'reload') 

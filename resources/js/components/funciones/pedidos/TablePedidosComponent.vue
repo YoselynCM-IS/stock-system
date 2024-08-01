@@ -14,17 +14,26 @@
                 ${{ data.item.total | formatNumber }}
             </template>
             <template v-slot:cell(edit)="data">
-                <b-button variant="warning" pill @click="edit_register(data.item, data.index)"
-                    :disabled="load">
-                    <i v-if="!editar2 || data.index !== position" class="fa fa-edit"></i>
-                        <i v-if="editar2 && data.index == position" class="fa fa-spinner"> Editando</i>
-                </b-button>
-                <b-button variant="danger" pill @click="delete_register(data.item, data.index)"
-                    :disabled="load">
-                    <i class="fa fa-trash"></i>
-                </b-button>
+                <div v-if="tipo !== 2">
+                    <b-button variant="warning" pill @click="edit_register(data.item, data.index)"
+                        :disabled="load">
+                        <i v-if="!editar2 || data.index !== position" class="fa fa-edit"></i>
+                            <i v-if="editar2 && data.index == position" class="fa fa-spinner"> Editando</i>
+                    </b-button>
+                    <b-button variant="danger" pill @click="delete_register(data.item, data.index)"
+                        :disabled="load">
+                        <i class="fa fa-trash"></i>
+                    </b-button>
+                </div>
+                <div v-if="tipo == 2 && data.item.libro.type == 'digital'">
+                    <b-button v-if="data.item.pack_id == null" :disabled="loadScratch"
+                        variant="dark" pill size="sm" @click="assignScratch(data.item, data.index)">
+                        Scratch
+                    </b-button>
+                    <b-badge v-else variant="success"><i class="fa fa-check-circle"></i></b-badge>
+                </div>
             </template>
-            <template #thead-top="row">
+            <template #thead-top="row" v-if="tipo !== 2">
                 <tr>
                     <th><b>{{ !editar2 ? 'Agregar':'Editar' }}</b></th>
                     <th>ISBN</th>
@@ -108,14 +117,15 @@ import formatNumber from '../../../mixins/formatNumber';
 import getLibros from '../../../mixins/getLibros';
 import toast from '../../../mixins/toast';
 export default {
-    props: ['load', 'ftotalq', 'ftotal', 'flibros'],
+    props: ['load', 'ftotalq', 'ftotal', 'flibros', 'tipo'],
     mixins: [formatNumber, getLibros, toast],
     data(){
         return {
             form: {
                 total_quantity: 0,
                 total: 0,
-                libros: []
+                libros: [],
+                scratch: []
             },
             fields: [
                 {label: 'N.', key: 'index'},
@@ -131,6 +141,7 @@ export default {
             position: null,
             registro: {
                 id: null,
+                pack_id: null,
                 libro: { id: null, ISBN: '', titulo: '', type: null},
                 tipo: null, 
                 quantity: 0,
@@ -144,6 +155,7 @@ export default {
                 {value: 'demo', text: 'demo'},
                 {value: 'profesor', text: 'profesor'}
             ],
+            loadScratch: false
         }
     },
     created: function (){
@@ -205,7 +217,7 @@ export default {
         },
         inicializar_registro(){
             this.registro = { 
-                id: null, libro: { id: null, ISBN: '', titulo: '', type: null},
+                id: null, pack_id: null, libro: { id: null, ISBN: '', titulo: '', type: null},
                 quantity: 0, price: 0, total: 0, tipo: null
             };
             this.queryISBN = null;
@@ -221,6 +233,23 @@ export default {
             this.queryISBN = libro.ISBN;
             this.queryTitulo = libro.titulo;
         },
+        // ASIGNAR SCRATCH
+        assignScratch(peticion, position){
+            this.loadScratch = true;
+            axios.get(`/pedido/check_scratch`, {params: {peticion_id: peticion.id}}).then(response => {
+                if(response.data.status){
+                    this.form.libros[position].pack_id = response.data.resultado.pack_id;
+                    this.form.scratch.push(response.data.resultado);
+                    this.$emit('sendPedidos', this.form);
+                } else{
+                    this.makeToast('warning', 'No se encontró coincidencia con libro físico.');
+                }
+                
+                this.loadScratch = false;
+            }).catch(error => {
+                this.loadScratch = true;
+            });
+        }
     }
 }
 </script>

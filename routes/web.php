@@ -424,9 +424,11 @@ Route::name('pedido.')->prefix('pedido')->middleware(['auth'])->group(function (
     Route::put('/despachar', 'PedidoController@despachar')->name('despachar');
     Route::put('/cancelar', 'PedidoController@cancelar')->name('cancelar');
     Route::get('/by_cliente', 'PedidoController@by_cliente')->name('by_cliente');
-    Route::get('/create_edit/{pedido_id}', 'PedidoController@create_edit')->name('create_edit');
+    Route::get('/create_edit/{tipo}/{pedido_id}', 'PedidoController@create_edit')->name('create_edit');
     Route::put('/update', 'PedidoController@update')->name('update');
     Route::put('/cerrar', 'PedidoController@cerrar')->name('cerrar');
+    Route::get('/check_scratch', 'PedidoController@check_scratch')->name('check_scratch');
+    Route::put('/save_scratch', 'PedidoController@save_scratch')->name('save_scratch');
 });
 
 Route::name('order.')->prefix('order')->group(function () {

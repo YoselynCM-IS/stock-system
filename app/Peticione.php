@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
+use App\Pedido;
 use App\Libro;
 
 class Peticione extends Model
@@ -26,5 +27,11 @@ class Peticione extends Model
 
     public function libro(){
         return $this->belongsTo(Libro::class);
+    }
+
+    //Uno a muchos (inversa)
+    //Una peticion solo puede pertencer a un pedido
+    public function pedido(){
+        return $this->belongsTo(Pedido::class);
     }
 }

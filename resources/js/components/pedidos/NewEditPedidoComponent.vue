@@ -1,9 +1,16 @@
 <template>
     <div>
-        <h4><b>{{ pedido == 0 ? 'Nuevo':'Editar' }} pedido</b></h4><hr>
+        <h4><b>{{ set_titulo() }}</b></h4><hr>
         <b-row>
             <b-col sm="6">
-                <search-select-cliente-component :titulo="'PARA:'" :status="'activo'" :load="load" :clientename="form.cliente_name" @sendCliente="sendCliente"></search-select-cliente-component>
+                <search-select-cliente-component 
+                    :titulo="'PARA:'" 
+                    :status="'activo'" 
+                    :load="load" 
+                    :clientename="form.cliente_name" 
+                    :tipo="tipo"
+                    @sendCliente="sendCliente">
+                </search-select-cliente-component>
             </b-col>
             <b-col></b-col>
             <b-col sm="2">
@@ -13,18 +20,26 @@
                 </b-button>
             </b-col>
         </b-row>
-        <table-pedidos-component :load="load" :ftotalq="form.total_quantity" :ftotal="form.total" :flibros="form.libros" @sendPedidos="sendPedidos"></table-pedidos-component>
+        <table-pedidos-component 
+            :load="load" 
+            :ftotalq="form.total_quantity" 
+            :ftotal="form.total" 
+            :flibros="form.libros" 
+            :tipo="tipo"
+            @sendPedidos="sendPedidos">
+        </table-pedidos-component>
     </div>
 </template>
 
 <script>
 import sweetAlert from '../../mixins/sweetAlert';
+import toast from '../../mixins/toast';
 import TablePedidosComponent from '../funciones/pedidos/TablePedidosComponent.vue';
 import SearchSelectClienteComponent from '../funciones/SearchSelectClienteComponent.vue';
 export default {
-    props: ['pedido'],
+    props: ['pedido', 'tipo'],
     components: { SearchSelectClienteComponent, TablePedidosComponent },
-    mixins: [sweetAlert],
+    mixins: [sweetAlert, toast],
     data(){
         return {
             form: {
@@ -33,7 +48,8 @@ export default {
                 cliente_name: null,
                 total_quantity: 0,
                 total: 0,
-                libros: []
+                libros: [],
+                scratch: []
             },
             load: false,
         }
@@ -52,6 +68,7 @@ export default {
                     price: peticion.price,
                     total: peticion.total,
                     tipo: peticion.tipo,
+                    pack_id: peticion.pack_id,
                     libro: { id: peticion.libro.id, ISBN: peticion.libro.ISBN, titulo: peticion.libro.titulo, type: peticion.libro.type}
                 }
                 this.form.libros.push(datos);
@@ -61,15 +78,25 @@ export default {
     methods: {
         save_pedido(){
             this.load = true;
-            if(this.pedido == 0) {
-                axios.post('/pedido/store', this.form).then(response => {
-                    this.messageAlert('center', 'success', 'El pedido se guardo correctamente.', '/information/pedidos/cliente', 'close-opener');
+            if(this.tipo == 2){
+                if(this.form.scratch.length > 0){
+                    axios.put('/pedido/save_scratch', this.form).then(response => {
+                        this.messageAlert('center', 'success', 'El pedido se actualizo correctamente.', `/pedido/show/${this.pedido.id}`, 'redirect');
+                        this.load = false;
+                    }).catch(error => {
+                        this.load = false;
+                    });
+                } else {
+                    this.makeToast('warning', 'No se ha seleccionado ningún libro para scratch.');
                     this.load = false;
-                }).catch(error => {
-                    this.load = false;
-                });
+                }
             } else {
-                axios.put('/pedido/update', this.form).then(response => {
+                var methodaxios = null;
+
+                if(this.pedido == 0) methodaxios = axios.post('/pedido/store', this.form);
+                else methodaxios = axios.put('/pedido/update', this.form);
+                
+                methodaxios.then(response => {
                     this.messageAlert('center', 'success', 'El pedido se guardo correctamente.', '/information/pedidos/cliente', 'close-opener');
                     this.load = false;
                 }).catch(error => {
@@ -84,6 +111,15 @@ export default {
             this.form.total_quantity = form.total_quantity;
             this.form.total = form.total;
             this.form.libros = form.libros;
+            this.form.scratch = form.scratch;
+        },
+        // ESTABLECER TITULO DE LA ACTUALIZACION
+        set_titulo(){
+            if(this.tipo == 2) return 'Asignar scratch al pedido';
+            if(this.tipo != 2){
+                if(this.pedido == 0) return 'Nuevo pedido';
+                else return 'Editar pedido';
+            } 
         }
     }
 }
