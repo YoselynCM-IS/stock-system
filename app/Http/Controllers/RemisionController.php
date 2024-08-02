@@ -681,10 +681,7 @@ class RemisionController extends Controller
             $this->save_datos($request->datos, $remision, $hoy);
             // DISMINUIR PIEZAS DE PACK
             $packs = collect($request->packs);
-            $packs->map(function($pack){
-                \DB::table('packs')->whereId($pack['id'])
-                                    ->decrement('piezas',  (int) $pack['unidades']);
-            });
+            $this->packs_decrement($packs);
 
             // ACTUALIZAR LA CUENTA DEL CLIENTE
             $this->update_edocuenta($remision);
@@ -722,11 +719,18 @@ class RemisionController extends Controller
                 $pedido->peticiones->map(function($peticion) use(&$lista_datos, $hoy){
                     if($peticion->tipo == null || $peticion->tipo == 'alumno'){
                         // ** OBTENER CUANTO HAY EN EXISTENCIA
-                        $packs = Pack::where('libro_fisico', $peticion->libro_id)
-                            ->OrWhere('libro_digital', $peticion->libro_id)
-                            ->sum('piezas');
-                        // UNIDADES REALES AL MOMENTO PARA TOMAR
-                        $existencia = $peticion->libro->piezas - $packs;
+                        if($peticion->pack_id == null){
+                            // SI LA PETICION NO ES PACK SE RESTA DEL GENERAL LO DE PACKS
+                            $packs = Pack::where('libro_fisico', $peticion->libro_id)
+                                ->OrWhere('libro_digital', $peticion->libro_id)
+                                ->sum('piezas');
+                            // UNIDADES REALES AL MOMENTO PARA TOMAR
+                            $existencia = $peticion->libro->piezas - $packs;
+                        } else {
+                            // SI LA PETICION ES PACK SOLO SE TOMA COMO EXISTENCIA LO QUE HAY EN SCRATCH
+                            $pack = Pack::find($peticion->pack_id);
+                            $existencia = $pack->piezas;
+                        }
                         // ** FIN
                         // ** ESPECIFICAR CUANTAS UNIDADES SE TOMAN
                         $unidades = $peticion->quantity;
@@ -735,7 +739,7 @@ class RemisionController extends Controller
                         // ** CONSTRUIR ARRAY DE REGISTROS DE DATOS
                         if($unidades > 0){
                             $total = $peticion->price * $unidades;
-                            $lista_datos[] = $this->set_datos(null, null, $peticion->libro_id, $peticion->price, $unidades, $total, $hoy);
+                            $lista_datos[] = $this->set_datos(null, $peticion->pack_id, $peticion->libro_id, $peticion->price, $unidades, $total, $hoy);
                         }
                         // ** FIN
                     }
@@ -751,9 +755,10 @@ class RemisionController extends Controller
                     Dato::insert($lista_datos);
                     // GUARDAR LAS DEVOLUCIONES
                     $lista_devoluciones = [];
+                    $lista_packs = collect();
                     $lista_codes = collect();
                     $datos = Dato::where('remisione_id', $remision->id)->get();
-                    $datos->map(function($dato) use(&$lista_devoluciones, &$lista_codes, $hoy){
+                    $datos->map(function($dato) use(&$lista_devoluciones, &$lista_packs, &$lista_codes, $hoy){
                         // LISTADO DE DEVOLUCIONES
                         $lista_devoluciones[] = $this->set_devoluciones($dato, $hoy);
                         // LISTADO DE CODES
@@ -761,8 +766,14 @@ class RemisionController extends Controller
                         // DISMINUIR PIEZAS DE LOS LIBROS
                         $this->libros_decrement($dato);
                     
+                        // GUARDAR EN COLLECT PARA PACKS
+                        if($dato->libro->type == 'digital' && $dato->pack_id !== null){
+                            $lista_packs->push(['id' => $dato->pack_id, 'unidades' => $dato->unidades]);
+                        }
                     });
 
+                    // DISMINUIR PIEZAS DE PACK
+                    $this->packs_decrement($lista_packs);
                     // CREAR REGISTROS DE DEVOLUCION
                     Devolucione::insert($lista_devoluciones);
                     // OBTENER CODIGOS DE LOS LIBROS DIGITALES
@@ -867,6 +878,14 @@ class RemisionController extends Controller
 
         $reporte = 'registro la salida (remision) de '.$dato->unidades.' unidades - '.$dato->libro->editorial.': '.$dato->libro->type.' '.$dato->libro->ISBN.' / '.$dato->libro->titulo.' para '.$dato->remisione_id.' / '.$dato->remisione->cliente->name;
         $this->create_report($dato->id, $reporte, 'libro', 'datos');
+    }
+
+    // DISMINUIR PIEZAS DE INVENTARIO DE SCRATCH
+    public function packs_decrement($packs){
+        $packs->map(function($pack){
+            \DB::table('packs')->whereId($pack['id'])
+                                ->decrement('piezas',  (int) $pack['unidades']);
+        });
     }
 
     // ASIGNAR DATOS PARA CREAR REMISIÓN
