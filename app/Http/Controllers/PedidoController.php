@@ -48,7 +48,8 @@ class PedidoController extends Controller
         if($pedido_id > 0) {
             $pedido = $this->get_pedido($pedido_id);
 
-            if($pedido->actualizado_por !== null) return view('information.pedidos.lista-cliente');
+            if($tipo != 2 && ($pedido->actualizado_por !== null || $pedido->estado !== 'proceso')) 
+                return redirect('/information/pedidos/cliente');
         }
 
         return view('information.pedidos.create-edit', compact('tipo', 'pedido'));

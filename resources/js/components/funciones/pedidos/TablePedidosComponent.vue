@@ -25,7 +25,7 @@
                         <i class="fa fa-trash"></i>
                     </b-button>
                 </div>
-                <div v-if="tipo == 2 && data.item.libro.type == 'digital'">
+                <div v-if="tipo == 2 && data.item.libro.type == 'digital' && data.item.tipo == 'alumno'">
                     <b-button v-if="data.item.pack_id == null" :disabled="loadScratch"
                         variant="dark" pill size="sm" @click="assignScratch(data.item, data.index)">
                         Scratch
@@ -54,7 +54,7 @@
                     </th>
                     <th>
                         <b-input
-                            v-model="queryISBN" @keyup="buscarISBN()" :disabled="load"
+                            v-model="queryISBN" @keyup="buscarISBN()" :disabled="load || (editar2 && tipo == 1)"
                         ></b-input>
                         <div class="list-group" v-if="resultsISBNs.length" id="listaL">
                             <a class="list-group-item list-group-item-action" 
@@ -66,7 +66,7 @@
                     </th>
                     <th>
                         <b-input style="text-transform:uppercase;"
-                            v-model="queryTitulo" :disabled="load"
+                            v-model="queryTitulo" :disabled="load || (editar2 && tipo == 1)"
                             @keyup="getLibros(queryTitulo)"
                         ></b-input>
                         <div class="list-group" v-if="resultslibros.length" id="listaL">
@@ -79,7 +79,7 @@
                     </th>
                     <th>
                         <b-form-select v-if="registro.libro.type == 'digital'" v-model="registro.tipo" :options="code_tipos"
-                                    required :disabled="load"></b-form-select>
+                                    required :disabled="load || (editar2 && tipo == 1)"></b-form-select>
                     </th>
                     <th>
                         <b-input required type="number" v-model="registro.quantity" :disabled="load"></b-input>
@@ -165,6 +165,7 @@ export default {
     },
     methods: {
         datosLibro(libro){
+            this.registro.tipo = null;
             this.assign_datos(libro);
             this.resultslibros = [];
             this.resultsISBNs = [];
@@ -187,33 +188,46 @@ export default {
             this.$emit('sendPedidos', this.form);
         },
         save_register(){
-            if(this.registro.libro.id != null && this.registro.quantity > 0 && parseFloat(this.registro.price) >= 0){
-                this.registro.total = parseInt(this.registro.quantity) * parseFloat(this.registro.price);
-                if(!this.editar2){
-                    this.form.libros.push(this.registro);
-                } else{
-                    this.form.libros[this.position].id = this.registro.id;
-                    this.form.libros[this.position].quantity = this.registro.quantity;
-                    this.form.libros[this.position].price = this.registro.price;
-                    this.form.libros[this.position].total = this.registro.total;
-                    this.form.libros[this.position].libro.id = this.registro.libro.id;
-                    this.form.libros[this.position].libro.ISBN = this.registro.libro.ISBN;
-                    this.form.libros[this.position].libro.titulo = this.registro.libro.titulo;
-                    this.form.libros[this.position].libro.type = this.registro.libro.type;
-                    this.form.libros[this.position].tipo = this.registro.tipo;
-                }
-                this.inicializar_registro();
+            if((this.registro.libro.id != null && this.registro.libro.type !== 'digital') || (this.registro.libro.type == 'digital' && this.registro.tipo !== null)){
+                var check = true;
+                const mismo_libro = this.form.libros.filter(p => (p.libro.id == this.registro.libro.id && p.tipo == this.registro.tipo));
+                // VERIFICAR QUE EL LIBRO NO ESTE AGREGADO EN LA LISTA
+                if((!this.editar2 && mismo_libro.length > 0) || (this.editar2 && mismo_libro.length > 1) ) check = false;
 
-                this.form.total_quantity = 0;
-                this.form.total = 0;
-                this.form.libros.forEach(registro => {
-                    this.form.total_quantity += parseInt(registro.quantity);
-                    this.form.total += parseFloat(registro.total);
-                });
+                if(check){
+                    if(this.registro.quantity > 0 && parseFloat(this.registro.price) >= 0){
+                        this.registro.total = parseInt(this.registro.quantity) * parseFloat(this.registro.price);
+                        if(!this.editar2){
+                            this.form.libros.push(this.registro);
+                        } else{
+                            this.form.libros[this.position].id = this.registro.id;
+                            this.form.libros[this.position].quantity = this.registro.quantity;
+                            this.form.libros[this.position].price = this.registro.price;
+                            this.form.libros[this.position].total = this.registro.total;
+                            this.form.libros[this.position].libro.id = this.registro.libro.id;
+                            this.form.libros[this.position].libro.ISBN = this.registro.libro.ISBN;
+                            this.form.libros[this.position].libro.titulo = this.registro.libro.titulo;
+                            this.form.libros[this.position].libro.type = this.registro.libro.type;
+                            this.form.libros[this.position].tipo = this.registro.tipo;
+                        }
+                        this.inicializar_registro();
+
+                        this.form.total_quantity = 0;
+                        this.form.total = 0;
+                        this.form.libros.forEach(registro => {
+                            this.form.total_quantity += parseInt(registro.quantity);
+                            this.form.total += parseFloat(registro.total);
+                        });
+                        this.$emit('sendPedidos', this.form);
+                    } else {
+                        this.makeToast('warning', 'Las unidades deben ser mayor a 0 y el precio igual o mayor a 0');
+                    }
+                } else {
+                    this.makeToast('warning', 'El libro ya ha sido agregado.');
+                }
             } else {
-                this.makeToast('warning', 'Las unidades deben ser mayor a 0 y el precio igual o mayor a 0');
+                this.makeToast('warning', 'No se ha seleccionado el libro.');
             }
-            this.$emit('sendPedidos', this.form);
         },
         inicializar_registro(){
             this.registro = { 

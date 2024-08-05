@@ -18,7 +18,7 @@
                 </b-button>
             </b-col>
         </b-row>
-        <table-pedidos-component :load="load" :ftotalq="0" :ftotal="0" :flibros="[]" @sendPedidos="sendPedidos" :tipo="null"></table-pedidos-component>>
+        <table-pedidos-component :load="load" :ftotalq="0" :ftotal="0" :flibros="[]" @sendPedidos="sendPedidos" :tipo="1"></table-pedidos-component>>
     </div>
 </template>
 
