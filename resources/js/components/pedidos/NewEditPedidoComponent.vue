@@ -1,6 +1,8 @@
 <template>
     <div>
-        <h4><b>{{ set_titulo() }}</b></h4><hr>
+        <h4><b>{{ set_titulo() }}</b></h4>
+        <label v-if="tipo == 2">Para asignar scratch, las unidades del libro digital y libro fisico deben ser iguales.</label>
+        <hr>
         <b-row>
             <b-col sm="6">
                 <search-select-cliente-component 

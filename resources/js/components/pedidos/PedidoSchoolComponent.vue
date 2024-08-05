@@ -44,8 +44,7 @@
                             target="blank" variant="info" pill size="sm">
                             <i class="fa fa-info-circle"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 5 || role_id == 9 || role_id == 6) && 
-                                        row.item.estado == 'proceso' && row.item.actualizado_por == null"
+                        <b-button v-if="row.item.estado == 'proceso' && (((role_id == 5 || role_id == 9) && row.item.actualizado_por == null) || role_id == 6)"
                             :href="`/pedido/create_edit/1/${row.item.id}`"
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>

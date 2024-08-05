@@ -357,7 +357,7 @@ class PedidoController extends Controller
         // OBTENER PETICION DE LIBRO DIGITAL
         $peticion_digital = Peticione::find($request->peticion_id);
         // OBTENER PETICIONES DEL PEDIDO, SOLO LOS LIBROS FISICOS
-        $peticiones = \DB::table('peticiones')->select('peticiones.id', 'peticiones.libro_id', 'libros.type')
+        $peticiones = \DB::table('peticiones')->select('peticiones.id', 'peticiones.quantity', 'peticiones.libro_id', 'libros.type')
                         ->join('libros', 'peticiones.libro_id', '=', 'libros.id')
                         ->where('peticiones.pedido_id', $peticion_digital->pedido_id)
                         ->where('libros.type', 'venta')->get();
@@ -368,7 +368,7 @@ class PedidoController extends Controller
             if($resultado == null){
                 $pack = Pack::where('libro_fisico', $peticion->libro_id)
                                 ->where('libro_digital', $peticion_digital->libro_id)->first();
-                if($pack != null){
+                if($pack != null && $peticion_digital->quantity == $peticion->quantity){
                     $resultado = [
                         'peticion_ids' => [$peticion_digital->id, $peticion->id],
                         'pack_id' => $pack->id
