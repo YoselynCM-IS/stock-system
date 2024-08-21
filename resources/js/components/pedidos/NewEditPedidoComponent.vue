@@ -38,10 +38,11 @@ import sweetAlert from '../../mixins/sweetAlert';
 import toast from '../../mixins/toast';
 import TablePedidosComponent from '../funciones/pedidos/TablePedidosComponent.vue';
 import SearchSelectClienteComponent from '../funciones/SearchSelectClienteComponent.vue';
+import setDatosPedido from '../../mixins/setDatosPedido';
 export default {
     props: ['pedido', 'tipo'],
     components: { SearchSelectClienteComponent, TablePedidosComponent },
-    mixins: [sweetAlert, toast],
+    mixins: [sweetAlert, toast, setDatosPedido],
     data(){
         return {
             form: {
@@ -63,17 +64,8 @@ export default {
             this.form.cliente_name = this.pedido.cliente.name;
             this.form.total_quantity = this.pedido.total_quantity;
             this.form.total = this.pedido.total;
-            this.pedido.peticiones.forEach(peticion => {
-                let datos = {
-                    id: peticion.id,
-                    quantity: peticion.quantity,
-                    price: peticion.price,
-                    total: peticion.total,
-                    tipo: peticion.tipo,
-                    pack_id: peticion.pack_id,
-                    libro: { id: peticion.libro.id, ISBN: peticion.libro.ISBN, titulo: peticion.libro.titulo, type: peticion.libro.type}
-                }
-                this.form.libros.push(datos);
+            this.pedido.peticiones.forEach(p => {
+                this.form.libros.push(this.setDatosPedido(p.id, p.quantity, p.price, p.total, p.tipo, p.pack_id, p.libro));
             });
         }
     },

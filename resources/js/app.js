@@ -82,6 +82,7 @@ Vue.component('new-edit-pedido-component', require('./components/pedidos/NewEdit
 Vue.component('orders-component', require('./components/orders/OrdersComponent.vue').default);
 Vue.component('add-costos-order-component', require('./components/orders/AddCostosOrderComponent.vue').default);
 Vue.component('details-order-component', require('./components/orders/DetailsOrderComponent.vue').default);
+Vue.component('new-edit-order-component', require('./components/orders/NewEditOrderComponent').default);
 
 // CLIENTES
 Vue.component('clientes-component', require('./components/clientes/ClientesComponent.vue').default);

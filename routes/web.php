@@ -441,6 +441,8 @@ Route::name('order.')->prefix('order')->group(function () {
     Route::post('relacionar', 'OrderController@relacionar')->name('relacionar');
     Route::get('/by_provider', 'OrderController@by_provider')->name('by_provider');
     Route::get('by_cliente', 'OrderController@by_cliente')->name('by_cliente');
+    Route::get('/create_edit/{tipo}/{order_id}', 'OrderController@create_edit')->name('create_edit');
+    Route::put('update', 'OrderController@update')->name('update');
 });
 
 //REMCLIENTE

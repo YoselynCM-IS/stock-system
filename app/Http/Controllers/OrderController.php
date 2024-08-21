@@ -173,17 +173,9 @@ class OrderController extends Controller
             $tipo_order = 'fisicos';
             $almacen = 'SI';
             $libros->map(function($libro) use (&$order, &$tipo_order, &$almacen){
-                $tipo = $libro['tipo'];
-                $element = Element::create([
-                    'order_id' => $order->id,
-                    'libro_id' => $libro['libro']['id'],
-                    'tipo' => $tipo, 
-                    'quantity' => (int) $libro['quantity'],
-                    'unit_price' => (float) $libro['price'],
-                    'total' => (double) $libro['total']
-                ]);
+                Element::create($this->set_elements($order, $libro));
 
-                if($tipo != null) {
+                if($libro['tipo'] != null) {
                     $tipo_order = 'digitales';
                     $almacen = 'NO';
                 }
@@ -205,6 +197,17 @@ class OrderController extends Controller
         return response()->json(true);
     }
 
+    public function set_elements($order, $libro){
+        return [
+            'order_id' => $order->id,
+            'libro_id' => $libro['libro']['id'],
+            'tipo' => $libro['tipo'], 
+            'quantity' => (int) $libro['quantity'],
+            'unit_price' => (float) $libro['price'],
+            'total' => (double) $libro['total']
+        ];
+    }
+
     public function relacionar(Request $request){
         \DB::beginTransaction();
         try{
@@ -221,6 +224,59 @@ class OrderController extends Controller
         } catch (Exception $e) {
             \DB::rollBack();
             return response()->json($exception->getMessage());
+        }
+        return response()->json(true);
+    }
+
+    // ABRIR VISTA PARA CREAR/EDITAR ORDEN
+    public function create_edit($tipo, $order_id){
+        $order = 0;
+        if($order_id > 0) {
+            $order = Order::whereId($order_id)->with('elements.libro')->first();
+
+            if($order->actualizado_por !== null || $order->status !== 'iniciado')
+                return redirect('/information/pedidos/proveedor');
+        }
+
+        return view('information.orders.create-edit', compact('tipo', 'order'));
+    }
+
+    // ACTUALIZAR ORDEN
+    public function update(Request $request){
+        \DB::beginTransaction();
+        try {
+            // BUSCAR ORDEN POR ID
+            $order = Order::whereId($request->id)->first();
+            $elements = collect($request->libros);
+
+            // ACTUALIZAR DATOS DE LA ORDEN
+            $order->update([
+                'cliente_id' => $request->cliente_id,
+                'destination' => $request->cliente_name,
+                'provider' => $request->editorial,
+                'total_bill' => (double) $request->total_bill,
+                'actualizado_por' => auth()->user()->name
+            ]);
+
+            // ELIMINAR ELEMENTS
+            Element::where('order_id', $order->id)->whereNotIn('id', $elements->whereNotNull('id')->pluck('id'))->delete();
+
+            // ACTUALIZAR/AGREGAR ELEMENTS
+            $elements->map(function($element) use ($order){
+                if($element['id'] == null){
+                    Element::create($this->set_elements($order, $element));
+                } else {
+                    Element::whereId($element['id'])->update($this->set_elements($order, $element));
+                }
+            });
+
+            $reporte = 'edito el PEDIDO: '.$order->identifier;
+            $this->create_report($order->id, $reporte);
+
+            \DB::commit();
+        } catch (Exception $e) {
+            \DB::rollBack();
+            return response()->json($e->getMessage());
         }
         return response()->json(true);
     }

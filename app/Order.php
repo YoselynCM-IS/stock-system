@@ -23,7 +23,8 @@ class Order extends Model
         'status', 
         'observations', 
         'actual_total_bill',
-        'creado_por'
+        'creado_por',
+        'actualizado_por'
     ];
 
     public function elements(){

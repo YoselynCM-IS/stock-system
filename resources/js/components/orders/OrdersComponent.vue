@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="!openPedido">
+        <div>
             <b-row class="mb-2">
                 <b-col>
                     <pagination size="default" :limit="1" :data="pedidosData" 
@@ -20,7 +20,7 @@
                 </b-col>
                 <b-col sm="2">
                     <b-button v-if="role_id == 1 || role_id == 2 || role_id == 6"
-                        variant="success" pill block @click="addPedido()">
+                        href="/order/create_edit/1/0" target="_blank" variant="success" pill :disabled="load">
                         <i class="fa fa-plus-circle"></i> Nuevo pedido
                     </b-button>
                 </b-col>
@@ -38,9 +38,14 @@
                         {{ data.item.date | moment }}
                     </template>
                     <template v-slot:cell(details)="data" pill>
-                        <b-button variant="info" pill :disabled="load"
+                        <b-button variant="info" pill :disabled="load" size="sm"
                             :href="`/order/show/${data.item.id}`" target="blank">
                             <i class="fa fa-exclamation-circle"></i>
+                        </b-button>
+                        <b-button v-if="(((role_id == 1 || role_id == 2) && data.item.actualizado_por == null) || role_id == 6) && data.item.status == 'iniciado'"
+                            :href="`/order/create_edit/1/${data.item.id}`"
+                            target="blank" variant="warning" pill size="sm">
+                            <i class="fa fa-pencil"></i>
                         </b-button>
                     </template>
                     <template v-slot:cell(status)="data">
@@ -62,20 +67,6 @@
                 <strong>Cargando...</strong>
             </div>
         </div>
-        <div v-else>
-            <b-row>
-                <b-col sm="10">
-                    <h4><b>Nuevo pedido</b></h4>
-                </b-col>
-                <b-col>
-                    <b-button pill block variant="secondary" @click="openPedido = false" 
-                        :disabled="load">
-                        <i class="fa fa-reply"></i> Volver
-                    </b-button>
-                </b-col>
-            </b-row><hr>
-            <new-order-component></new-order-component>
-        </div>
     </div>
 </template>
 
@@ -84,10 +75,9 @@ import EstadoOrder from './partials/EstadoOrder.vue';
 import getEditoriales from '../../mixins/getEditoriales';
 import formatNumber from '../../mixins/formatNumber';
 import moment from '../../mixins/moment';
-import NewOrderComponent from './NewOrderComponent.vue';
 import SearchSelectClienteComponent from '../funciones/SearchSelectClienteComponent.vue';
     export default {
-        components: { EstadoOrder, NewOrderComponent, SearchSelectClienteComponent },
+        components: { EstadoOrder, SearchSelectClienteComponent },
         mixins: [formatNumber, moment, getEditoriales],
         props: ['role_id'],
         data(){
@@ -99,15 +89,14 @@ import SearchSelectClienteComponent from '../funciones/SearchSelectClienteCompon
                     {label: 'Fecha', key: 'date'},
                     {label: 'Identificador', key: 'identifier'},
                     {label: 'Proveedor', key: 'provider'},
-                    {label: 'Para:', key: 'destination'},
+                    {label: 'Para', key: 'destination'},
                     {label: 'Total Factura', key: 'total_bill'},
                     {label: 'Detalles', key: 'details'},
-                    {label: 'Estado', key: 'status'}
+                    {label: '', key: 'status'}
                 ],
                 load: false,
                 pedidosData: {},
                 searchProveedor: false,
-                openPedido: false,
                 cliente_id: null
             }
         },
@@ -116,9 +105,6 @@ import SearchSelectClienteComponent from '../funciones/SearchSelectClienteCompon
             this.get_editoriales();
         },
         methods: {
-            addPedido(){
-                this.openPedido = true;
-            },
             getResults(page = 1){
                 if(!this.searchProveedor && this.cliente_id == null){
                     this.http_pedidos(page);
