@@ -20,6 +20,12 @@ use App\Pack;
 
 class DevolucioneController extends Controller
 {
+    // VISTA PARA LOS PEDIDOS DE LOS CLIENTES
+    public function lista(){
+        $responsables = \DB::table('responsables')->orderBy('responsable', 'asc')->get();
+        return view('information.devoluciones.lista', compact('responsables'));
+    }
+
     // GUARDAR DEVOLUCIÓN DE REMISIÓN
     // Función utilizada en DevolucionController
     public function update(Request $request){

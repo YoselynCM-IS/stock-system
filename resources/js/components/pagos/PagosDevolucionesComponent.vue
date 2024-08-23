@@ -77,7 +77,7 @@
                             @click="registrarDevolucion(row.item, row.index)">Devolución
                         </b-button> -->
                         <b-button 
-                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 3 || role_id == 6)" 
+                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 3 || role_id == 6 || role_id == 10)" 
                             variant="dark" 
                             @click="registrarDevolucion(row.item, row.index)">Devolución
                         </b-button>
@@ -90,7 +90,7 @@
                             variant="secondary">Cerrar
                         </b-button>  -->
                         <b-button 
-                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 2 || role_id == 6)" 
+                            v-if="row.item.total_pagar >= 0 && row.item.estado == 'Proceso' && (role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10)" 
                             @click="cerrarRemision(row.item, row.index)"
                             variant="secondary">Cerrar
                         </b-button> 
