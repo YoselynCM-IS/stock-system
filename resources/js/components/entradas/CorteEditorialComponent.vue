@@ -24,7 +24,7 @@
                         <b-col sm="2"><b>Temporada {{ corte.corte.tipo }}</b></b-col>
                         <b-col><b>{{ corte.corte.inicio }} - {{ corte.corte.final }}</b></b-col>
                         <b-col sm="2">
-                            <b-button v-if="corte.total_pagar > 0 && (role_id === 1 || role_id === 2 || role_id == 6)" 
+                            <b-button v-if="corte.total_pagar > 0 && (role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10)" 
                                 @click="registrarPago(corte)"
                                 pill size="sm" variant="primary">
                                 Realizar pago

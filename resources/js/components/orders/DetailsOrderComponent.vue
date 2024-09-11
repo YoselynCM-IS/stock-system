@@ -9,32 +9,32 @@
                     </a>
                 </b-col>
                 <b-col sm="2">
-                    <b-button v-if="(pedido.status == 'iniciado' && pedido.total_bill > 0) && (role_id === 1 || role_id == 2 || role_id == 6)" 
+                    <b-button v-if="(pedido.status == 'iniciado' && pedido.total_bill > 0) && (role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10)" 
                         @click="sendPedido()" pill block variant="dark">
                         <i class="fa fa-send"></i> {{ pedido.almacen == 'SI' ? 'Enviar':'Preparar' }}
                     </b-button>
                     <estado-order v-else :id="pedido.id" :status="pedido.status" :observations="pedido.observations"></estado-order>
                 </b-col>
                 <b-col sm="2">
-                    <b-button v-if="pedido.status == 'espera' && (role_id === 1 || role_id == 2 || role_id == 6)" variant="danger"
+                    <b-button v-if="pedido.status == 'espera' && (role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10)" variant="danger"
                         pill :disabled="load" @click="openCancelar = true">
                         <i class="fa fa-close"></i> Cancelar
                     </b-button>
                 </b-col>
                 <b-col sm="2">
-                    <b-button v-if="(pedido.status == 'iniciado' && pedido.total_bill == 0) && (role_id === 1 || role_id == 2 || role_id == 6)" 
+                    <b-button v-if="(pedido.status == 'iniciado' && pedido.total_bill == 0) && (role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10)" 
                         @click="addCostos()" pill variant="success" block>
                         <i class="fa fa-dollar"></i> Agregar costos
                     </b-button>
                 </b-col>
                 <b-col sm="2">
                     <div v-if="(pedido.total_bill > 0) && (pedido.status == 'espera')">
-                        <b-button v-if="(role_id == 2 && pedido.almacen == 'NO') || (role_id == 3 || role_id == 6)" variant="primary" 
+                        <b-button v-if="(role_id == 2 && pedido.almacen == 'NO') || (role_id == 3 || role_id == 6 || role_id == 10)" variant="primary" 
                             pill @click="act_status()" :disabled="load">
                             <i class="fa fa-refresh"></i> Actualizar
                         </b-button>
                     </div>
-                    <div v-if="(role_id == 1 || role_id == 2 || role_id == 6) && 
+                    <div v-if="(role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10) && 
                         (pedido.pedido_id > 0 && (pedido.status == 'incompleto' || pedido.status == 'completo'))">
                         <b-button v-if="pedido.remisiones_count == 0" 
                             variant="dark" pill :disabled="load" @click="relacionarRems()">

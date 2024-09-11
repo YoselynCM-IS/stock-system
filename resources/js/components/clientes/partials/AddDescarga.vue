@@ -6,7 +6,7 @@
             </b-col>
             <!-- AGREGAR NUEVO CLIENTE -->
             <b-col class="text-right">
-                <b-button v-if="(role_id === 1 || role_id === 2 || role_id == 5|| role_id == 9 || role_id == 6)" 
+                <b-button v-if="(role_id === 1 || role_id === 2 || role_id == 5|| role_id == 9 || role_id == 6 || role_id == 10)" 
                             variant="success" @click="newCliente()" pill block>
                     <i class="fa fa-plus"></i> Agregar cliente
                 </b-button>

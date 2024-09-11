@@ -24,7 +24,7 @@
                         {{ row.index + 1 }}
                     </template>
                     <template v-slot:cell(editar)="row">
-                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 9" 
+                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 9 || role_id == 10" 
                             v-b-modal.modal-editarCliente variant="warning" :disabled="loadDetails"
                             style="color: white;" pill size="sm" block
                             @click="editarCliente(row.item, row.index)">

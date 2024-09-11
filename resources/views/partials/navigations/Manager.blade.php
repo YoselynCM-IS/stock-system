@@ -6,13 +6,13 @@
 		<a class="dropdown-item" href="{{ route('manager.cortes.lista') }}">
 			{{ __("Lista") }}
 		</a>
-		<a class="dropdown-item" href="{{ route('manager.cortes.pagos') }}">
+		<a class="dropdown-item" href="{{ route('information.clientes.pagos') }}">
 			{{ __("Pagos") }}
 		</a>
 		<a class="dropdown-item" href="{{ route('information.remisiones.lista') }}">
 			{{ __('Remisiones') }}
 		</a>
-		<a class="dropdown-item" href="{{ route('manager.remisiones.pago_devolucion') }}">
+		<a class="dropdown-item" href="{{ route('information.devoluciones.lista') }}">
 			{{ __('Devoluciones / Cerrar') }}
 		</a>
 		<a class="dropdown-item" href="{{ route('historial.remisiones.lista', 0) }}">
@@ -25,10 +25,10 @@
 		Entradas <span class="caret"></span>
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('manager.entradas.lista') }}">
+		<a class="dropdown-item" href="{{ route('information.entradas.lista') }}">
 			{{ __("Lista") }}
 		</a>
-		<a class="dropdown-item" href="{{ route('manager.entradas.pagos') }}">
+		<a class="dropdown-item" href="{{ route('information.entradas.pagos') }}">
 			{{ __("Pagos") }}
 		</a>
 	</div>
@@ -38,12 +38,12 @@
 		Libros <span class="caret"></span>
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('manager.libros') }}">{{ __("Lista") }}</a>
-		<a class="dropdown-item" href="{{ route('manager.codes') }}">{{ __("Códigos") }}</a>
+		<a class="dropdown-item" href="{{ route('information.libros.lista') }}">{{ __("Lista") }}</a>
+		<a class="dropdown-item" href="{{ route('information.libros.codes') }}">{{ __("Códigos") }}</a>
 	</div>
 </li>
 <li>
-	<a class="nav-link" href="{{ route('manager.clientes') }}">{{ __("Clientes") }}</a>
+	<a class="nav-link" href="{{ route('information.clientes.lista') }}">{{ __("Clientes") }}</a>
 </li>
 <li class="nav-item dropdown">
 	<a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -73,8 +73,8 @@
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
 		<a class="dropdown-item" href="{{ route('information.promotions.lista') }}">{{ __("Promociones") }}</a>
-		<a class="dropdown-item" href="{{ route('manager.otros.donaciones') }}">{{ __("Donaciones") }}</a>
-		<a class="dropdown-item" href="{{ route('manager.salidas') }}">{{ __("Salidas") }}</a>
+		<a class="dropdown-item" href="{{ route('information.donations.lista') }}">{{ __("Donaciones") }}</a>
+		<a class="dropdown-item" href="{{ route('information.salidas.lista') }}">{{ __("Salidas") }}</a>
 		<a class="dropdown-item" href="{{ route('manager.otros.notas') }}">{{ __("Notas") }}</a>
 	</div>
 </li>
@@ -89,7 +89,7 @@
 		<a class="dropdown-item" href="{{ route('manager.movimientos.libros') }}">
 			{{ __("Libros") }}
 		</a>
-		<a class="dropdown-item" href="{{ route('manager.movimientos.entradas-salidas') }}">
+		<a class="dropdown-item" href="{{ route('information.movimientos.entradas-salidas') }}">
 			{{ __("Entradas / Salidas") }}
 		</a>
 		<a class="dropdown-item" href="{{ route('manager.remisiones.fecha_adeudo') }}">

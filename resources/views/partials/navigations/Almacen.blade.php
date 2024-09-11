@@ -2,7 +2,7 @@
 	<a class="nav-link" href="{{ route('information.remisiones.lista') }}">{{ __("Remisiones") }}</a>
 </li>
 <li>
-	<a class="nav-link" href="{{ route('almacen.devoluciones') }}">{{ __("Devoluciones") }}</a>
+	<a class="nav-link" href="{{ route('information.devoluciones.lista') }}">{{ __("Devoluciones") }}</a>
 </li>
 <li>
 	<a class="nav-link" href="{{ route('information.pedidos.proveedor') }}">{{ __("Pedidos") }}</a>
@@ -11,10 +11,10 @@
 	<a class="nav-link" href="{{ route('information.entradas.lista') }}">{{ __("Entradas") }}</a>
 </li>
 <li>
-	<a class="nav-link" href="{{ route('almacen.libros') }}">{{ __("Libros") }}</a>
+	<a class="nav-link" href="{{ route('information.libros.lista') }}">{{ __("Libros") }}</a>
 </li>
 <li>
-	<a class="nav-link" href="{{ route('almacen.codes') }}">{{ __("Códigos") }}</a>
+	<a class="nav-link" href="{{ route('information.libros.codes') }}">{{ __("Códigos") }}</a>
 </li>
 <li class="nav-item dropdown">
 	<a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -30,6 +30,6 @@
 	</div>
 </li>
 <li>
-	<a class="nav-link" href="{{ route('almacen.entradas-salidas') }}">{{ __("Entradas / Salidas") }}</a>
+	<a class="nav-link" href="{{ route('information.movimientos.entradas-salidas') }}">{{ __("Entradas / Salidas") }}</a>
 </li>
 @include('partials.navigations.logged')

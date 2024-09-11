@@ -84,7 +84,7 @@
                     </a>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <div v-if="role_id === 1 || role_id == 2 || role_id == 6">
+                    <div v-if="role_id === 1 || role_id == 6">
                         <b-button variant="success" @click="func_crearNota()"><i class="fa fa-plus"></i> Crear nota</b-button>
                     </div>
                 </b-col>
@@ -113,14 +113,14 @@
                     </template>
                     <template v-slot:cell(pagar)="row">
                         <b-button 
-                            v-if="(role_id == 2 || role_id == 6) && row.item.total_pagar > 0" 
+                            v-if="(role_id == 6) && row.item.total_pagar > 0" 
                             variant="secondary" 
                             @click="registrarPago(row.item, row.index)">Pago
                         </b-button>
                     </template>
                     <template v-slot:cell(devolucion)="row">
                         <b-button
-                            v-if="(role_id == 2 || role_id == 6) && row.item.total_pagar > 0" 
+                            v-if="(role_id == 6) && row.item.total_pagar > 0" 
                             variant="primary"
                             @click="registrarDevolucion(row.item, row.index)">Devolución</b-button>
                     </template>

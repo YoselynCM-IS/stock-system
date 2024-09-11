@@ -727,6 +727,7 @@ Route::name('information.')->prefix('information')->middleware(['auth'])->group(
     Route::name('clientes.')->prefix('clientes')->group(function () {
         Route::get('/lista', 'ClienteController@lista')->name('lista');
         Route::get('/cortes', 'ClienteController@cortes')->name('cortes');
+        Route::get('/pagos', 'PagoController@pagos')->name('pagos');
     });
 
     Route::name('remisiones.')->prefix('remisiones')->group(function () {
@@ -745,6 +746,7 @@ Route::name('information.')->prefix('information')->middleware(['auth'])->group(
     Route::name('entradas.')->prefix('entradas')->group(function () {
         Route::get('/lista', 'EntradaController@lista')->name('lista');
         Route::get('/cortes/{editorial}', 'EntradaController@cortes')->name('cortes');
+        Route::get('/pagos', 'EntradaController@pagos')->name('pagos');
     });
 
     Route::name('promotions.')->prefix('promotions')->group(function () {
@@ -757,6 +759,19 @@ Route::name('information.')->prefix('information')->middleware(['auth'])->group(
 
     Route::name('devoluciones.')->prefix('devoluciones')->group(function () {
         Route::get('/lista', 'DevolucioneController@lista')->name('lista');
+    });
+
+    Route::name('libros.')->prefix('libros')->group(function () {
+        Route::get('/lista', 'LibroController@lista')->name('lista');
+        Route::get('/codes', 'CodeController@codes')->name('codes');
+    });
+
+    Route::name('salidas.')->prefix('salidas')->group(function () {
+        Route::get('/lista', 'SalidaController@lista')->name('lista');
+    });
+
+    Route::name('movimientos.')->prefix('movimientos')->group(function () {
+        Route::get('/entradas-salidas', 'LibroController@lista_entradas_salidas')->name('entradas-salidas');
     });
 }); 
 

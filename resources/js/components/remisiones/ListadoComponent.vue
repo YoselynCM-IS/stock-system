@@ -98,7 +98,7 @@
                         </b-button>
                     </b-col>
                     <b-col sm="3" class="text-right">
-                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6" variant="success"
+                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10" variant="success"
                             :disabled="load" target="blank" :href="`/remisiones/ce_remision/${0}/${false}`">
                             <i class="fa fa-plus"></i> Crear remisión
                         </b-button>
@@ -138,7 +138,7 @@
                                     variant="dark" block><i class="fa fa-male"></i>
                                 </b-button>
                                 <b-button @click="selectPaqueteria(row.item, row.index)"
-                                    v-if="(role_id === 1 || role_id == 6 || role_id === 2) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
+                                    v-if="(role_id === 1 || role_id == 6 || role_id === 2 || role_id == 10) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
                                     variant="dark" block><i class="fa fa-truck"></i>
                                 </b-button>
                             </div>

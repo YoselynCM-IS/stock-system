@@ -12,6 +12,11 @@ use App\Salida;
 
 class SalidaController extends Controller
 {
+    // OBTENER VISTA PRINCIPAL DE LAS SALIDAS
+    public function lista(){
+        return view('information.salidas.lista');
+    }
+
     // GUARDAR SALIDA
     public function store(Request $request){
         $this->validate($request, [

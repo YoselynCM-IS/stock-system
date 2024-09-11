@@ -11,7 +11,7 @@
             <template v-if="showTitle" #thead-top="row">
                 <tr><th colspan="5" class="text-center">Pagos</th></tr>
             </template>
-            <template v-if="role_id == 1 || role_id == 2 || role_id == 6" 
+            <template v-if="role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10" 
                 v-slot:cell(fotos)="row">
                 <b-button v-if="!row.item.foto" pill size="sm" variant="info" 
                     @click="selectImage(row.item)">

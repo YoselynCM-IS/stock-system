@@ -47,19 +47,19 @@
                 </pagination>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="dark" pill
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
                     block href="/libro/all_sistemas" target="_blank">
                     Sistemas
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="dark" pill
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
                     block href="/codes/scratch" target="_blank">
                     Scratch
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6" variant="dark" pill block
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10" variant="dark" pill block
                     href="/codes/licencias_demos" target="_blank">
                     Licencias / Demos
                 </b-button>
@@ -75,7 +75,7 @@
             </b-col>
             <b-col sm="2" class="text-right">
                 <!-- AGREGAR UN NUEVO LIBRO -->
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6" variant="success" pill
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="success" pill
                     block v-b-modal.modal-newLibro>
                     <i class="fa fa-plus"></i> Nuevo libro
                 </b-button>

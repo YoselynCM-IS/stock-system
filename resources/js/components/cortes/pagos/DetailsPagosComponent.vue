@@ -182,12 +182,7 @@ export default {
         },
         // REGRESAR A LA PANTALLA ANTERIOR
         goBack(){
-            let ruta = '#';
-            if(this.role_id == 1) ruta = '/administrador/pagos'; // ADMINISTRADOR
-            if(this.role_id == 2) ruta = '/oficina/pagos'; // OFICINA
-            if(this.role_id == 6) ruta = '/manager/cortes/pagos'; // MANAGER
             window.close();
-            window.opener.document.location=ruta;
         },
         // REGISTRAR PAGO DEL CORTE
         registrarPago(corte){

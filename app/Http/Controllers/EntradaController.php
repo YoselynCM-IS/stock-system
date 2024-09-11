@@ -44,6 +44,14 @@ class EntradaController extends Controller
         return response()->json($entradas);
     }
 
+    // OBTENER LA VISTA PARA LOS PAGOS DE PROVEEDORES
+    // PAGOS DE ENTRADAS
+    public function pagos(){
+        $editoriales = Enteditoriale::orderBy('editorial', 'asc')
+                        ->withCount('entdepositos')->get();
+        return view('information.entradas.pagos', compact('editoriales'));
+    }
+
     // GUARDAR ENTRADA DE LIBROS FISICOS *CHECK
     // Función utilizada en EntradasComponent
     public function store(Request $request){

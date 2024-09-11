@@ -63,14 +63,14 @@
                         :href="'/download_promotion/' + queryPlantel + '/' + inicio + '/' + final + '/general'">
                         <i class="fa fa-download"></i> General
                     </a>
-                    <a v-if="promotions.length > 0 && (role_id === 1 || role_id === 2 || role_id == 6)"
+                    <a v-if="promotions.length > 0 && (role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10)"
                         class="btn btn-dark"
                         :href="'/download_promotion/' + queryPlantel + '/' + inicio + '/' + final + '/detallado'">
                         <i class="fa fa-download"></i> Detallado
                     </a>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6" variant="success"
+                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10" variant="success"
                         @click="registrarPromocion()">
                         <i class="fa fa-plus"></i> Registrar promoción
                     </b-button>
@@ -89,7 +89,7 @@
                     </template>
                     <template v-slot:cell(paqueteria)="row">
                         <b-button
-                            v-if="(role_id === 1 || role_id == 6 || role_id === 2) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
+                            v-if="(role_id === 1 || role_id == 6 || role_id === 2 || role_id == 10) && row.item.paqueteria_id == null && row.item.estado !== 'Cancelado'"
                             variant="dark" pill size="sm" @click="selectPaqueteria(row.item, row.index)">
                             <i class="fa fa-truck"></i>
                         </b-button>
@@ -103,7 +103,7 @@
                             Devolución
                         </b-button> -->
                         <b-button v-if="row.item.estado == 'Enviado' && row.item.unidades_pendientes > 0 &&
-                            (role_id === 1 || role_id == 2 || role_id == 6)" variant="primary" pill
+                            (role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10)" variant="primary" pill
                             @click="registrarDevolucion(row.item)">
                             Devolución
                         </b-button>
@@ -174,7 +174,7 @@
                         variant="danger" pill block v-b-modal.modal-cancel>
                         <i class="fa fa-close"></i> Cancelar
                     </b-button> -->
-                    <b-button v-if="(role_id == 1 || role_id == 2 || role_id == 6) &&
+                    <b-button v-if="(role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10) &&
                         (promotion.estado == 'Enviado' && promotion.unidades_devolucion == 0)" variant="danger" pill
                         block v-b-modal.modal-cancel>
                         <i class="fa fa-close"></i> Cancelar

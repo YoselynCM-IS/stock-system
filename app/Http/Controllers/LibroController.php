@@ -31,6 +31,18 @@ use App\Code;
 
 class LibroController extends Controller
 {
+
+    // MOSTRAR VISTA PRINCIPAL DE LIBROS
+    public function lista(){
+        $editoriales = \DB::table('editoriales')->orderBy('editorial', 'asc')->get();
+        return view('information.libros.lista', compact('editoriales'));
+    } 
+
+    // MOSTRAR VISTA PRINCIPAL DE LAS ENTRADAS-SALIDAS
+    public function lista_entradas_salidas(){
+        return view('information.movimientos.entradas-salidas');
+    }
+
     // MOSTRAR TODOS LOS LIBROS
     public function index(){
         $libros = $this->all_libros_paginate()->paginate(20);

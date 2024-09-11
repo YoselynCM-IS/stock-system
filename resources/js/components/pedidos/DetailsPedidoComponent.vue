@@ -8,7 +8,7 @@
                 <estado-pedido :id="pedido.id" :comentarios="pedido.comentarios" :estado="pedido.estado"></estado-pedido>
             </b-col>
             <b-col sm="1">
-                <b-button v-if="(role_id == 2 || role_id == 6) && pedido.estado == 'de inventario' && pedido.cerrado_por == null"
+                <b-button v-if="(role_id == 2 || role_id == 6 || role_id == 10) && pedido.estado == 'de inventario' && pedido.cerrado_por == null"
                     :href="`/pedido/create_edit/2/${pedido.id}`" variant="warning" pill>
                     <i class="fa fa-pencil"></i>
                 </b-button>
@@ -18,13 +18,13 @@
                     :disabled="load" variant="danger" pill block @click="cancelarPedido()">
                     <i class="fa fa-close"></i> Cancelar
                 </b-button>
-                <b-button v-if="(role_id == 2 || role_id == 6) && pedido.estado == 'de inventario' && pedido.cerrado_por == null"
+                <b-button v-if="(role_id == 2 || role_id == 6 || role_id == 10) && pedido.estado == 'de inventario' && pedido.cerrado_por == null"
                     @click="surtirPedido()" variant="dark" pill>
                     <i class="fa fa-clone"></i> Surtir
                 </b-button>
             </b-col>
             <b-col sm="2">
-                <b-button v-if="(role_id == 2 || role_id == 6) && pedido.estado == 'proceso'"
+                <b-button v-if="(role_id == 2 || role_id == 6 || role_id == 10) && pedido.estado == 'proceso'"
                     :href="`/pedido/preparar/${pedido.id}`" 
                     variant="dark" pill block :disabled="load">
                     Preparar pedido

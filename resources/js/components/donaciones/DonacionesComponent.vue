@@ -76,7 +76,7 @@
                     </a>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6" variant="success" @click="registrarDonacion()">
+                    <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10" variant="success" @click="registrarDonacion()">
                         <i class="fa fa-plus"></i> Registrar donación
                     </b-button>
                 </b-col>
@@ -94,7 +94,7 @@
                     <template v-slot:cell(entregado_por)="row">
                         <b-button 
                             variant="warning" 
-                            v-if="row.item.entregado_por === null && (role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6)"
+                            v-if="row.item.entregado_por === null && (role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10)"
                             :disabled="load"
                             v-on:click="marcarEntrega(row.item, row.index)">
                             <i class="fa fa-frown-o"></i>

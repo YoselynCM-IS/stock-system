@@ -19,7 +19,7 @@
                     <search-select-cliente-component :titulo="'Buscar por cliente'" :status="'all'" :load="load" :clientename="null" :tipo="null" @sendCliente="sendCliente"></search-select-cliente-component>
                 </b-col>
                 <b-col sm="2">
-                    <b-button v-if="role_id == 1 || role_id == 2 || role_id == 6"
+                    <b-button v-if="role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10"
                         href="/order/create_edit/1/0" target="_blank" variant="success" pill :disabled="load">
                         <i class="fa fa-plus-circle"></i> Nuevo pedido
                     </b-button>

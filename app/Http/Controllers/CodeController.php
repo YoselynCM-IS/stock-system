@@ -14,6 +14,11 @@ use App\Pack;
 
 class CodeController extends Controller
 {
+    // OBTENER LA VISTA PRINCIPAL DE CODIGOS
+    public function codes(){
+        return view('information.libros.codes');
+    }
+
     // LISTA DE CODIGOS
     public function index(){
         $codes = Code::whereNotIn('estado', ['proceso', 'eliminado'])

@@ -49,7 +49,7 @@
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 2 || role_id == 6) && row.item.cerrado_por == null && (row.item.estado == 'de inventario' || row.item.estado == 'en orden')"
+                        <b-button v-if="(role_id == 2 || role_id == 6 || role_id == 10) && row.item.cerrado_por == null && (row.item.estado == 'de inventario' || row.item.estado == 'en orden')"
                             @click="cerrarPedido(row.item.id)" variant="dark" pill size="sm">
                             <i class="fa fa-close"></i>
                         </b-button>

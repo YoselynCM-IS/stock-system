@@ -20,6 +20,11 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class PagoController extends Controller
 {
+    // VISTA PARA OBTENER LOS PAGOS A LOS CLIENTES
+    public function pagos(){
+        return view('information.cortes.clientes.pagos');
+    }
+
     public function pagos_remision_cliente(Request $request){
         $cliente_id = $request->cliente_id;
         $remisiones = Remisione::where('cliente_id', $cliente_id)
