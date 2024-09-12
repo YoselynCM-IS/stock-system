@@ -164,7 +164,7 @@
                     <h6><b>Plantel</b>: {{ promotion.plantel }}</h6>
                     <h6 v-if="promotion.descripcion.length > 0"><b>Descripción</b>: {{ promotion.descripcion }}</h6>
                 </b-col>
-                <b-col sm="2" v-if="role_id != 8 && role_id != 9">
+                <b-col sm="2" v-if="role_id != 8">
                     <b-button variant="dark" pill block :href="`/download_promocion/${promotion.id}`">
                         <i class="fa fa-download"></i> Descargar
                     </b-button>
