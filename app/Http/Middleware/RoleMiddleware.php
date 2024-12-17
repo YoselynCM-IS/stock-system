@@ -24,6 +24,9 @@ class RoleMiddleware
         if(auth()->user()->role_id == 7){
             return redirect()->route('/information/actividades/simple');
         }
+        if(auth()->user()->role_id == 11){
+            return redirect()->route('/libro/all_sistemas');
+        }
         // if(auth()->user()->role_id === 1){
         //     return redirect()->route('administrador.remisiones');
         // }
