@@ -13,6 +13,7 @@ use App\Exports\LibrosExport;
 use App\Exports\MovLibrosExport;
 use App\Exports\MovFechasExport;
 use App\Exports\MovMontoExport;
+use App\Exports\libros\BothExport;
 use App\Exports\EntSal\EntSalExport;
 use App\Exports\movimientos\MovDayLibrosExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -1464,6 +1465,12 @@ class LibroController extends Controller
                         ->where('editorial', 'MAJESTIC EDUCATION')->get();
         $ls = $this->organizar_todo($s1, $s2);
         return response()->json($ls);
+    }
+
+    // DESCARGAR AMBOS INVENTARIOS (MAJESTIC Y OMEGA)
+    public function download_both(){
+        $hoy 	= Carbon::now();
+        return Excel::download(new BothExport, $hoy->format('Y-m-d').'.xlsx');
     }
 
     public function all_sistemas(){

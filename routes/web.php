@@ -508,6 +508,9 @@ Route::name('libro.')->prefix('libro')->group(function () {
     Route::get('/get_scratch', 'LibroController@get_scratch')->name('get_scratch');
     // GUARDAR PACK
     Route::post('/save_pack', 'LibroController@save_pack')->name('save_pack');
+    // DESCARGAR AMBOS INVENTARIOS (MAJESTIC Y OMEGA)
+    Route::get('/download_both', 'LibroController@download_both')->name('download_both');
+
 });
 
 // PAGOS

@@ -17,6 +17,11 @@
                     @keyup="getLibro()"
                 ></b-input>
             </b-col>
+            <b-col sm="2" class="text-right">
+                <b-button variant="dark" pill href="/libro/download_both">
+                    <i class="fa fa-download"></i> Descargar
+                </b-button>
+            </b-col>
         </b-row>
         <div v-if="!load">
             <b-table id="my-table" :per-page="perPage" :current-page="currentPage" 
@@ -67,7 +72,7 @@ export default {
         }
     },
     created: function (){
-        this.getResults();
+        // this.getResults();
     },
     methods: {
         getResults(){
