@@ -59,22 +59,9 @@ class LibroController extends Controller
     public function get_all_detallado($libros){
         $resultados = collect();
         $libros->map(function($libro) use(&$resultados){
-            $sum_scratch = 0;
-            $count_solo = $libro->piezas;
-            if($libro->type != 'promocion'){
-                $sum_scratch = Pack::where('libro_fisico', $libro->id)
-                        ->OrWhere('libro_digital', $libro->id)
-                        ->sum('piezas');
-
-                if($libro->type == 'digital') {
-                    $count_solo = Code::where('libro_id', $libro->id)
-                                    ->where('tipo', 'alumno')
-                                    ->where('estado', 'inventario')->count();
-                }
-                if($libro->type == 'venta')
-                    $count_solo = $libro->piezas - $sum_scratch;
-            }
-            
+            $data = $this->get_only_scratch('mysql', $libro->id, $libro->piezas, $libro->type);
+            $sum_scratch = (int) $data['sum_scratch'];
+            $count_solo = (int) $data['count_solo'];
             $resultados->push([
                 'id' => $libro->id, 
                 'ISBN' => $libro->ISBN,  
@@ -87,12 +74,35 @@ class LibroController extends Controller
                 'estado' => $libro->estado,
                 'type' => $libro->type,
                 'externo' => $libro->externo,
-                'scratch' => (int) $sum_scratch,
-                'count_solo' => (int) $count_solo,
+                'scratch' => $sum_scratch,
+                'count_solo' => $count_solo,
                 'check' => $libro->piezas == ($sum_scratch + $count_solo)
             ]);
         });
         return $resultados;
+    }
+
+    // OBTENER SOLOS Y SCRATCH
+    public function get_only_scratch($sistema, $id, $piezas, $type){
+        $sum_scratch = 0;
+        $count_solo = $piezas;
+        if($type != 'promocion'){
+            $sum_scratch = Pack::on($sistema)->where('libro_fisico', $id)
+                    ->OrWhere('libro_digital', $id)
+                    ->sum('piezas');
+
+            if($type == 'digital') {
+                $count_solo = Code::on($sistema)->where('libro_id', $id)
+                                ->where('tipo', 'alumno')
+                                ->where('estado', 'inventario')->count();
+            }
+            if($type == 'venta')
+                $count_solo = $piezas - $sum_scratch;
+        }
+        return [
+            'sum_scratch' => $sum_scratch, 
+            'count_solo' => $count_solo,  
+        ];
     }
 
     // MOSTRAR COINCIDENCIAS DE TITULO PAGINADO
@@ -1401,24 +1411,41 @@ class LibroController extends Controller
     public function organizar_todo($s1, $s2){
         $ls = collect();
         $s1->map(function($libro) use(&$ls, $s2){
+            $data1 = $this->get_only_scratch('mysql', $libro->id, $libro->piezas, $libro->type);
+            $sum_scratch1 = (int) $data1['sum_scratch'];
+            $count_solo1 = (int) $data1['count_solo'];
+
             $dato = [
                 'ISBN' => $libro->ISBN,
                 'titulo' => $libro->titulo,
                 'type' => $libro->type,
                 'editorial' => $libro->editorial,
                 'piezas_1' => $libro->piezas,
+                'scratch1' => $sum_scratch1,
+                'solo1' => $count_solo1,
                 'defectuosos_1' => $libro->defectuosos,
                 'piezas_2' => 0,
+                'scratch2' => 0,
+                'solo2' => 0,
                 'defectuosos_2' => 0,
                 'total_piezas' => $libro->piezas, 
+                'total_scratch' => $sum_scratch1, 
+                'total_solo' => $count_solo1, 
                 'total_defectuosos' => $libro->defectuosos
             ];
 
             $s2->map(function($opuesto) use ($libro, &$dato){
                 if($opuesto->titulo == $libro->titulo){
+                    $data2 = $this->get_only_scratch('opuesto', $opuesto->id, $opuesto->piezas, $opuesto->type);
+                    $sum_scratch2 = (int) $data2['sum_scratch'];
+                    $count_solo2 = (int) $data2['count_solo'];
                     $dato['piezas_2'] = $opuesto->piezas;
+                    $dato['scratch2'] = $sum_scratch2;
+                    $dato['solo2'] = $count_solo2;
                     $dato['defectuosos_2'] = $opuesto->defectuosos;
                     $dato['total_piezas'] = $dato['total_piezas'] + $opuesto->piezas;
+                    $dato['total_scratch'] = $dato['total_scratch'] + $sum_scratch2;
+                    $dato['total_solo'] = $dato['total_solo'] + $count_solo2;
                     $dato['total_defectuosos'] = $dato['total_defectuosos'] + $opuesto->defectuosos;
                 }
             });

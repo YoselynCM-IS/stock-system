@@ -20,13 +20,13 @@
         </b-row>
         <div v-if="!load">
             <b-table id="my-table" :per-page="perPage" :current-page="currentPage" 
-                :items="libros" :fields="fields">
+                :items="libros" :fields="fields" responsive>
                 <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                 <template #thead-top="row">
-                    <th colspan="5"></th>
-                    <th colspan="2">{{ sistema_1 }}</th>
-                    <th colspan="2">{{ sistema_2 }}</th>
-                    <th colspan="2">TODO</th>
+                    <b-th colspan="4"></b-th>
+                    <b-th colspan="4" variant="danger">{{ sistema_1 }}</b-th>
+                    <b-th colspan="4" variant="primary">{{ sistema_2 }}</b-th>
+                    <b-th colspan="4">TODO</b-th>
                 </template>
             </b-table>
         </div>
@@ -45,12 +45,19 @@ export default {
             fields: [
                 {key: 'index', label: 'N.'},
                 {key: 'type', label: 'tipo'},
-                'ISBN', 'titulo', 'editorial',
-                {key: 'piezas_1', label: `Piezas`},
-                {key: 'defectuosos_1', label: `Defectuosos`},
-                {key: 'piezas_2', label: `Piezas`},
-                {key: 'defectuosos_2', label: `Defectuosos`},
-                'total_piezas', 'total_defectuosos'
+                'ISBN', 'titulo',
+                {key: 'piezas_1', label: `Piezas`, variant: 'danger'},
+                {key: 'scratch1', label: `Scratch`, variant: 'danger'},
+                {key: 'solo1', label: `Digital/Físico`, variant: 'danger'},
+                {key: 'defectuosos_1', label: `Defectuosos`, variant: 'danger'},
+                {key: 'piezas_2', label: `Piezas`, variant: 'primary'},
+                {key: 'scratch2', label: `Scratch`, variant: 'primary'},
+                {key: 'solo2', label: `Digital/Físico`, variant: 'primary'},
+                {key: 'defectuosos_2', label: `Defectuosos`, variant: 'primary'},
+                {key: 'total_piezas', label: `Piezas`},
+                {key: 'total_scratch', label: `Scratch`},
+                {key: 'total_solo', label: `Digital/Físico`},
+                {key: 'total_defectuosos', label: `Defectuosos`},
             ],
             sistema_1: null,
             sistema_2: null,
