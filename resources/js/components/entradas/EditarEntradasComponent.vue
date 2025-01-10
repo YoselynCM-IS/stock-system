@@ -73,7 +73,7 @@
                 </b-col>
                 <b-col sm="3" class="text-right">
                     <b-button v-if="role_id === 1 || role_id == 3 || role_id == 6" variant="success"
-                        @click="nuevaEntrada()">
+                        href="/entradas/addupdate/0/true" target="blank">
                         <i class="fa fa-plus"></i> Nueva entrada
                     </b-button>
                 </b-col>
@@ -104,10 +104,10 @@
                         <b-button variant="info" @click="detallesEntrada(row.item)" pill>
                             <i class="fa fa-exclamation"></i>
                         </b-button>
-                        <!-- <b-button v-if="role_id == 6" variant="warning" pill
-                            :href="`/entradas/actualizar/${row.item.id}`" target="_blank">
+                        <b-button v-if="role_id == 6" variant="warning" pill
+                            :href="`/entradas/addupdate/${row.item.id}/false`" target="_blank">
                             <i class="fa fa-edit"></i>
-                        </b-button> -->
+                        </b-button>
                     </template>
                     <template v-slot:cell(created_at)="row">
                         {{ row.item.created_at | moment }}
@@ -372,11 +372,6 @@
                 </div>
             </b-modal>
         </div>
-        <!-- NUEVA ENTRADA-->
-        <div v-if="mostrarAdd">
-            <add-edit-entrada :agregar="agregar" :form="form" :editoriales="editoriales"
-                @goBack="goBack"></add-edit-entrada>
-        </div>
         <!-- AGREGAR DEVOLUCION -->
         <div v-if="mostrarDevolucion">
             <b-row class="mb-2">
@@ -419,11 +414,10 @@
 <script>
 import getEditoriales from '../../mixins/getEditoriales';
 import getImprentas from '../../mixins/editoriales/getImprentas';
-import AddEditEntrada from './partials/AddEditEntrada.vue';
 import DevolucionEntrada from './partials/DevolucionEntrada.vue';
 import sweetAlert from '../../mixins/sweetAlert';
     export default {
-    components: { AddEditEntrada, DevolucionEntrada },
+    components: { DevolucionEntrada },
     mixins: [getEditoriales, sweetAlert, getImprentas],
         props: ['role_id'],
         data() {
@@ -528,16 +522,6 @@ import sweetAlert from '../../mixins/sweetAlert';
                 total_unidades: 0,
                 entdevoluciones: [],
                 agregar: false,
-                form: {
-                    id: 0,
-                    unidades: 0,
-                    folio: null,
-                    editorial: null,
-                    imprenta_id: null,
-                    queretaro: false,
-                    registros: [],
-                    files: []
-                },
                 mostrarAdd: false,
                 mostrarDevolucion: false,
                 formDev: {},
@@ -862,22 +846,6 @@ import sweetAlert from '../../mixins/sweetAlert';
                     variant: variant,
                     solid: true
                 })
-            },
-            // INICIALIZAR PARA CREAR UNA ENTRADA
-            nuevaEntrada(){
-                this.listadoEntradas = false;
-                this.agregar = true;
-                this.form = {
-                    id: 0,
-                    unidades: 0,
-                    folio: null,
-                    editorial: null,
-                    imprenta_id: null,
-                    queretaro: false,
-                    registros: [],
-                    files: []
-                };
-                this.mostrarAdd = true;
             },
             goBack(){
                 this.listadoEntradas = true;

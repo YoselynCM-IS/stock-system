@@ -294,6 +294,9 @@ Route::name('entradas.')->prefix('entradas')->group(function () {
 
     // OBTENER COMPROBANTE
     Route::get('comprobante_url', 'EntradaController@comprobante_url')->name('comprobante_url');
+
+    // AGREGAR/ACTUALIZAR ENTRADA
+    Route::get('/addupdate/{entrada_id}/{agregar}', 'EntradaController@addupdate')->name('addupdate');
 });
 
 //PAGOS

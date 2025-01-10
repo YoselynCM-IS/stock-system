@@ -1,7 +1,7 @@
 <template>
     <div>
         <b-row>
-            <b-col sm="8">
+            <b-col>
                 <h4 style="color: #170057">{{ agregar ? 'Nueva' : 'Editar' }} entrada</h4>
             </b-col>
             <b-col sm="2" class="text-right">
@@ -10,12 +10,6 @@
                     @click="confirmarEntrada()" variant="success" pill block>
                     <i v-if="agregar === true" class="fa fa-check"> {{ !load ? 'Guardar' : 'Guardando' }}</i>
                     <i v-else class="fa fa-check"> {{ !load ? 'Guardar  cambios' : 'Guardando' }}</i>
-                </b-button>
-            </b-col>
-            <b-col sm="2" class="text-right">
-                <!-- PENDIENTE EL BOTON DE REGRESAR -->
-                <b-button variant="secondary" pill @click="goBack()" block>
-                    <i class="fa fa-mail-reply"></i> Regresar
                 </b-button>
             </b-col>
         </b-row>
@@ -235,15 +229,25 @@ import formatNumber from './../../../mixins/formatNumber';
 import toast from './../../../mixins/toast';
 import AddScratchsComponent from '../../funciones/AddScratchsComponent.vue';
 import getImprentas from '../../../mixins/editoriales/getImprentas';
+import getEditoriales from '../../../mixins/getEditoriales';
 export default {
   components: { SubirFotoComponent, AddScratchsComponent },
-    props: ['agregar', 'form', 'editoriales'],
-    mixins: [formatNumber, toast, sweetAlert, getImprentas],
+    props: ['agregar'],
+    mixins: [formatNumber, toast, sweetAlert, getImprentas, getEditoriales],
     data(){
         return {
+            form: {
+                id: 0,
+                unidades: 0,
+                folio: null,
+                editorial: null,
+                imprenta_id: null,
+                queretaro: false,
+                registros: [],
+                files: []
+            },
             stateN: null,
             stateE: null,
-            options: [],
             fieldsRE: [
                 {key: 'index', label: 'N.'}, 
                 {key: 'ISBN', label: 'ISBN'}, 
@@ -283,16 +287,7 @@ export default {
         }
     },
     created: function(){
-        this.options.push({
-            value: null,
-            text: 'Selecciona una opción'
-        });
-        this.editoriales.forEach(editorial => {
-            this.options.push({
-                value: editorial.editorial,
-                text: editorial.editorial
-            });
-        });
+        this.get_editoriales();
     },
     methods: {
         editorialSelected(){
@@ -341,7 +336,7 @@ export default {
             axios.post('/entradas/store', formData, { 
                 headers: { 'content-type': 'multipart/form-data' } })
                 .then(response => {
-                this.messageAlert('center', 'success', 'La entrada se creo correctamente', null, 'reload');
+                this.messageAlert('center', 'success', 'La entrada se creo correctamente', '/information/entradas/lista', 'close-opener');
                 this.load = false;
             }).catch(error => {
                 this.load = false;
@@ -448,9 +443,6 @@ export default {
                 this.total_unidades_que += parseInt(registro.unidades_que);
             });
             this.total_unidades = this.form.unidades + this.total_unidades_que;
-        },
-        goBack(){
-            this.$emit('goBack', true);
         },
         fileChange(e){
             var fileInput = document.getElementById('archivoType');

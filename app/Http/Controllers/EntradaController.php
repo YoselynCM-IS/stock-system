@@ -1234,4 +1234,10 @@ class EntradaController extends Controller
                             ->orderBy('id','desc')->paginate(20);
         return response()->json($entradas);
     }
+
+    // AGREGAR/ACTUALIZAR ENTRADA
+    public function addupdate($entrada_id, $agregar){
+        $entrada = Entrada::whereId($entrada_id)->first();
+        return view('information.entradas.addupdate', compact('agregar'));
+    }
 }
