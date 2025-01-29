@@ -65,8 +65,8 @@
                 </b-col> -->
                 <b-col sm="2" class="text-right">
                     <!-- CARGAR CODIGOS -->
-                    <!-- v-if="role_id === 1 || role_id === 2 || role_id == 6" -->
-                    <b-button v-if="role_id !== 3" variant="success" pill 
+                    <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10"
+                        variant="success" pill 
                         block @click="showAddEntrada = !showAddEntrada">
                         <i class="fa fa-plus-circle"></i> Crear entrada
                     </b-button>
