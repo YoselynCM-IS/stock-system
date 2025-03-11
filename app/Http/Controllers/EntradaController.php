@@ -77,31 +77,13 @@ class EntradaController extends Controller
             ]);
 
             $rs = json_decode($request->registros);
-            $unidades = 0;
             $registros = collect($rs);
+            $unidades = 0;
             $hoy = Carbon::now();
             $registros->map(function($item) use($entrada, &$unidades, $hoy){
                 $unidades_base = (int) $item->unidades;
                 $libro_id = $item->id;
-                // CREAR LISTA DE REGISTROS
-                $registro = Registro::create([
-                    'entrada_id' => $entrada->id,
-                    'pack_id' => $item->pack_id,
-                    'libro_id'  => $libro_id,
-                    'unidades'  => $unidades_base,
-                    'unidades_que'  => $item->unidades_que,
-                    'unidades_pendientes'  => $unidades_base,
-                    'created_at' => $hoy,
-                    'updated_at' => $hoy
-                ]);
-
-                $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' unidades - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
-                $this->create_report($registro->id, $reporte, 'libro', 'registros');
-
-                // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
-                \DB::table('libros')->whereId($libro_id)
-                    ->increment('piezas', $unidades_base);   
-                
+                $this->save_registros($entrada, $item->pack_id, $libro_id, $unidades_base, $item->unidades_que, 0, 0, $hoy);
                 $unidades += $unidades_base;
             });
 
@@ -269,57 +251,110 @@ class EntradaController extends Controller
         return response()->json($url);
     }
 
-    public function save_registros($request_items, $entrada){
-        $unidades = 0;
-        $entradas = collect($request_items);
-        $hoy = Carbon::now();
-        $entradas->map(function($item) use($entrada, &$unidades, $hoy){
-            $unidades_base = (int) $item['unidades'];
-            $libro_id = $item['id'];
-            // CREAR LISTA DE REGISTROS
-            $registro = Registro::create([
-                'entrada_id' => $entrada->id,
-                'libro_id'  => $libro_id,
-                'unidades'  => $unidades_base,
-                'unidades_que'  => $item['unidades_que'],
-                'unidades_pendientes'  => $unidades_base,
-                'created_at' => $hoy,
-                'updated_at' => $hoy
-            ]);
+    public function save_registros($entrada, $pack_id, $libro_id, $unidades_base, $unidades_que, $costo_unitario, $total, $hoy){
+        // CREAR LISTA DE REGISTROS
+        $registro = Registro::create([
+            'entrada_id' => $entrada->id,
+            'pack_id' => $pack_id,
+            'libro_id'  => $libro_id,
+            'unidades'  => $unidades_base,
+            'unidades_que'  => $unidades_que,
+            'unidades_pendientes'  => $unidades_base,
+            'costo_unitario' => $costo_unitario,
+            'total' => $total,
+            'created_at' => $hoy,
+            'updated_at' => $hoy
+        ]);
 
-            $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' unidades - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
-            $this->create_report($registro->id, $reporte, 'libro', 'registros');
+        $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' unidades - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
+        $this->create_report($registro->id, $reporte, 'libro', 'registros');
 
-            // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
-            \DB::table('libros')->whereId($libro_id)
-                ->increment('piezas', $unidades_base);   
-            
-            $unidades += $unidades_base;
-        });
-
-        return $unidades;
+        // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
+        \DB::table('libros')->whereId($libro_id)
+            ->increment('piezas', $unidades_base); 
     }
     
     // ACTUALIZAR DATOS DE ENTRADA
     // Función utilizada en EntradasComponent
     public function update(Request $request){
         $entrada = Entrada::whereId($request->id)->first();
+        $total_ant = $entrada->total;
+            
         \DB::beginTransaction();
         try {
-            $this->save_registros($request->nuevos, $entrada);
+            // EDITAR REGISTROS QUE YA EXISTIAN
+            $editados = collect($request->registros)->where('registro_id', '>', 0);
+            $editados->map(function($editado){
+                $registro = Registro::find($editado['registro_id']);
+                $registro->update([
+                    'costo_unitario' => (float) $editado['costo_unitario'],
+                    'total' => (double) $editado['total']
+                ]);
+            });
 
-            $entrada->folio = strtoupper($request->folio);
-            $entrada->editorial = $request->editorial;
-            $entrada->unidades = $request->unidades;
-            $entrada->save();
+            // AGREGAR REGISTROS NUEVOS
+            $nuevos = collect($request->registros)->where('nuevo', true);
+            $hoy = Carbon::now();
+            $nuevos->map(function($item) use($entrada, $hoy){
+                $unidades_base = (int) $item['unidades'];
+                $costo_unitario = (float) $item['costo_unitario'];
+                $total = (double) $item['total'];
+                $libro_id = $item['id'];
+                $this->save_registros($entrada, $item['pack_id'], $libro_id, $unidades_base, $item['unidades_que'], $costo_unitario, $total, $hoy);
+            });
+
+            // AUMENTAR PIEZAS EN PACK
+            $packs = collect($request->packs);
+            $packs->map(function($pack){
+                \DB::table('packs')->whereId($pack['id'])
+                                    ->increment('piezas',  (int) $pack['unidades']);
+            });
+
+            // ELIMINAR REGISTROS DEL ARRAY
+            $eliminados = collect($request->eliminados);
+            $eliminados->map(function($eliminado){
+                $registro_id = $eliminado['registro_id'];
+                $unidades = (int) $eliminado['unidades'];
+                $registro = Registro::find($registro_id);
+
+                // DISMINUIR PIEZAS DE LOS LIBROS ELIMINADOS
+                \DB::table('libros')->whereId($eliminado['id'])
+                                    ->decrement('piezas',  $unidades);
+
+                // ELIMINAR REGISTRO
+                $registro->delete();
+            });
+
+            // ACTUALIZAR TOTALES
+            $total = $entrada->registros->sum('total');
+            $entrada->update([
+                'folio' => strtoupper($request->folio),
+                'imprenta_id' => $request->imprenta_id,
+                'unidades' => $request->unidades,
+                'total' => $total
+            ]);
+
+            // ACTUALIZAR ECTOTALE
+            $ectotale = $this->get_we_ectotale($entrada->editorial, $entrada->corte_id);
+            $ectotale->update([
+                'total' => ($ectotale->total - $total_ant) + $entrada->total,
+                'total_pagar' => ($ectotale->total_pagar - $total_ant) + $entrada->total
+            ]);
+
+            // ACTUALIZAR ENTEDITORIALE
+            $editorial = Enteditoriale::where('editorial', $entrada->editorial)->first();
+            $editorial->update([
+                'total' => ($editorial->total - $total_ant) + $entrada->total,
+                'total_pendiente' => ($editorial->total_pendiente - $total_ant) + $entrada->total
+            ]);
 
             \DB::commit();
 
         } catch (Exception $e) {
             \DB::rollBack();
-            return response()->json($exception->getMessage());
+            return response()->json($e->getMessage());
         }
-        return response()->json($entrada);
+        return response()->json(true);
     }
 
     // MOSTRAR ENTRADAS POR EDITORIAL
@@ -1237,7 +1272,12 @@ class EntradaController extends Controller
 
     // AGREGAR/ACTUALIZAR ENTRADA
     public function addupdate($entrada_id, $agregar){
-        $entrada = Entrada::whereId($entrada_id)->first();
-        return view('information.entradas.addupdate', compact('agregar'));
+        $entrada = 0;
+        if($agregar == 'false' && auth()->user()->role->rol == 'Manager') {
+            $entrada = Entrada::whereId($entrada_id)->with('registros.libro')->first();
+            if($entrada->total_devolucion > 0) 
+                return view('information.entradas.lista');
+        }
+        return view('information.entradas.addupdate', compact('entrada', 'agregar'));
     }
 }

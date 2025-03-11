@@ -2,14 +2,13 @@
     <div>
         <b-row>
             <b-col>
-                <h4 style="color: #170057">{{ agregar ? 'Nueva' : 'Editar' }} entrada</h4>
+                <h4>{{ agregar ? 'Nueva' : 'Editar' }} entrada</h4>
             </b-col>
             <b-col sm="2" class="text-right">
                 <b-button :disabled="load || form.registros.length == 0 || stateN != true ||
                         (form.editorial == 'MAJESTIC EDUCATION' && form.queretaro && total_unidades_que == 0)"
                     @click="confirmarEntrada()" variant="success" pill block>
-                    <i v-if="agregar === true" class="fa fa-check"> {{ !load ? 'Guardar' : 'Guardando' }}</i>
-                    <i v-else class="fa fa-check"> {{ !load ? 'Guardar  cambios' : 'Guardando' }}</i>
+                    <i class="fa fa-check"></i>  {{ !load ? 'Guardar' : 'Guardando' }}
                 </b-button>
             </b-col>
         </b-row>
@@ -42,7 +41,7 @@
                             <b-col sm="2"><label>Imprenta</label></b-col>
                             <b-col>
                                 <b-form-select v-model="form.imprenta_id" autofocus :state="stateE"
-                                    :disabled="load || form.registros.length > 0" :options="imprentas">
+                                    :disabled="load || (form.registros.length > 0 && agregar)" :options="imprentas">
                                 </b-form-select>    
                             </b-col>
                         </b-row>
@@ -58,7 +57,7 @@
                 </b-col>
             </b-row>
             <hr>
-            <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsRE">
+            <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:( form.total > 0 ? fieldsREcosto:fieldsRE)">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
                 <template v-slot:cell(titulo)="row">
@@ -68,10 +67,16 @@
                 <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>
                 <template v-slot:cell(unidades_que)="row">{{ row.item.unidades_que | formatNumber }}</template>
                 <template v-slot:cell(total_unidades)="row">{{ row.item.total_unidades | formatNumber }}</template>
-                <template v-slot:cell(eliminar)="row">
-                    <b-button v-if="agregar == true && !row.item.scratch" pill size="sm"
+                <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
+                <template v-slot:cell(total)="row">${{ row.item.total | formatNumber }}</template>
+                <template v-slot:cell(actions)="row">
+                    <b-button v-if="!row.item.scratch && row.item.type != 'digital'" pill size="sm"
                         variant="danger" @click="eliminarRegistro(row.item, row.index)">
                         <i class="fa fa-minus-circle"></i>
+                    </b-button>
+                    <b-button v-if="(agregar && !row.item.scratch) || (!agregar && form.total > 0)" pill size="sm" variant="warning" 
+                        @click="editRegistro(row.item, row.index)">
+                        <i :class="`fa fa-${position == row.index ? 'spinner':'pencil'}`"></i>
                     </b-button>
                 </template>
                 <template #thead-top="row">
@@ -81,11 +86,13 @@
                         <th>Libro</th>
                         <th>{{ form.queretaro ? 'Unidades (CDMX)':'Unidades' }}</th>
                         <th v-if="form.queretaro">Unidades (QUE)</th>
+                        <th v-if="form.total > 0">Costo unitario</th>
+                        <th v-if="form.total > 0">Total</th>
                     </tr>
                     <tr v-if="form.editorial !== null">
                         <th colspan="1"></th>
                         <th>
-                            <b-input autofocus v-model="temporal.isbn" 
+                            <b-input autofocus v-model="temporal.isbn" :disabled="position != null"
                                 @keyup="buscarLibroISBN()"
                             ></b-input>
                             <div class="list-group" v-if="resultsISBNS.length" id="listaLR">
@@ -96,7 +103,7 @@
                             </div>
                         </th>
                         <th>
-                            <b-input style="text-transform:uppercase;"
+                            <b-input style="text-transform:uppercase;" :disabled="position != null"
                                 v-model="temporal.titulo" @keyup="mostrarLibros()">
                             </b-input>
                             <div class="list-group" v-if="resultslibros.length" id="listaLR">
@@ -107,7 +114,7 @@
                             </div>
                         </th>
                         <th>
-                            <b-form-input v-model="temporal.unidades" 
+                            <b-form-input v-model="temporal.unidades" :disabled="temporal.registro_id != null"
                                 type="number" required>
                             </b-form-input>
                         </th>
@@ -116,14 +123,14 @@
                                 type="number" required>
                             </b-form-input>
                         </th>
-                        <th v-if="form.queretaro" colspan="2">
-                            <b-button :disabled="temporal.id == null" size="sm"
-                                variant="success" pill @click="saveTemporal()">
-                                <i class="fa fa-level-down"></i>
-                            </b-button>
+                        <th v-if="form.total > 0">
+                            <b-form-input v-model="temporal.costo_unitario" 
+                                type="number" required>
+                            </b-form-input>
                         </th>
-                        <th v-else>
-                            <b-button :disabled="temporal.id == null || temporal.unidades <= 0" size="sm"
+                        <th v-if="form.total > 0"></th>
+                        <th colspan="2">
+                            <b-button :disabled="temporal.id == null" size="sm"
                                 variant="success" pill @click="saveTemporal()">
                                 <i class="fa fa-level-down"></i>
                             </b-button>
@@ -134,6 +141,8 @@
                         <th>{{ form.unidades | formatNumber }}</th>
                         <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th>
                         <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th>
+                        <th></th>
+                        <th>${{ form.total | formatNumber }}</th>
                     </tr>
                 </template>
             </b-table>
@@ -146,7 +155,7 @@
                             <label><b>Editorial:</b> {{form.editorial}}</label>
                         </b-col>
                         <b-col class="text-right">
-                            <b-form-group>
+                            <b-form-group v-if="agregar">
                                 <input :disabled="load" type="file" id="archivoType" 
                                     v-on:change="fileChange" name="file" multiple>
                                 <label for="archivoType">
@@ -165,7 +174,7 @@
                                 :titulo="'Subir factura'" @uploadImage="uploadImage"></subir-foto-component> -->
                         </b-col>
                     </b-row>
-                    <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsRE">
+                    <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:( form.total > 0 ? fieldsREcosto:fieldsRE)">
                         <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                         <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
                         <template v-slot:cell(titulo)="row">
@@ -181,6 +190,8 @@
                                 <th>{{ form.unidades | formatNumber }}</th>
                                 <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th>
                                 <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th>
+                                <th></th>
+                                <th>${{ form.total | formatNumber }}</th>
                             </tr>
                         </template>
                     </b-table>
@@ -191,7 +202,7 @@
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                            <b-button type="submit" variant="success" :disabled="load || form.files.length == 0">
+                            <b-button type="submit" variant="success" :disabled="load || (form.files.length == 0 && agregar)">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
@@ -232,7 +243,7 @@ import getImprentas from '../../../mixins/editoriales/getImprentas';
 import getEditoriales from '../../../mixins/getEditoriales';
 export default {
   components: { SubirFotoComponent, AddScratchsComponent },
-    props: ['agregar'],
+    props: ['entrada', 'agregar'],
     mixins: [formatNumber, toast, sweetAlert, getImprentas, getEditoriales],
     data(){
         return {
@@ -243,8 +254,11 @@ export default {
                 editorial: null,
                 imprenta_id: null,
                 queretaro: false,
+                total: 0,
                 registros: [],
-                files: []
+                files: [],
+                eliminados: [],
+                packs: []
             },
             stateN: null,
             stateE: null,
@@ -252,8 +266,17 @@ export default {
                 {key: 'index', label: 'N.'}, 
                 {key: 'ISBN', label: 'ISBN'}, 
                 {key: 'titulo', label: 'Libro'}, 
-                'unidades', 
-                {key: 'eliminar', label: ''}
+                {key: 'unidades', label: 'Unidades'}, 
+                {key: 'actions', label: ''}
+            ],
+            fieldsREcosto: [
+                {key: 'index', label: 'N.'}, 
+                {key: 'ISBN', label: 'ISBN'}, 
+                {key: 'titulo', label: 'Libro'}, 
+                {key: 'unidades', label: 'Unidades'}, 
+                {key: 'costo_unitario', label: 'Costo unitario'}, 
+                {key: 'total', label: 'Total'}, 
+                {key: 'actions', label: ''}
             ],
             fieldsQO: [
                 {key: 'index', label: 'N.'}, 
@@ -262,15 +285,18 @@ export default {
                 {key: 'unidades', label: 'Unidades (CDMX)'}, 
                 {key: 'unidades_que', label: 'Unidades (QUE)'}, 
                 {key: 'total_unidades', label: 'Total'}, 
-                {key: 'eliminar', label: ''}
+                {key: 'actions', label: ''}
             ],
             temporal: {
+                registro_id: null,
                 id: null,
                 isbn: null,
                 titulo: null,
                 unidades: null,
                 unidades_que: null,
+                costo_unitario: 0,
                 total_unidades: 0,
+                total: 0
             },
             resultslibros: [],
             resultsISBNS: [],
@@ -284,26 +310,56 @@ export default {
                 'titulo', 'unidades',
                 { key: 'actions', label: '' }
             ],
+            position: null
         }
     },
     created: function(){
         this.get_editoriales();
+
+        if(!this.agregar){
+            this.form.id = this.entrada.id;
+            this.form.unidades = this.entrada.unidades,
+            this.form.folio = this.entrada.folio;
+            this.form.editorial = this.entrada.editorial;
+            this.form.imprenta_id = this.entrada.imprenta_id;
+            this.form.total = this.entrada.total;
+            this.getImprentas('all');
+            this.stateN = true; // PARA ARPOBAR QUE EL FOLIO ES VALIDO
+            this.entrada.registros.forEach(registro => {
+                let r = {
+                    registro_id: registro.id,
+                    id: registro.libro_id, //Esta de esta manera debido a la estructura que se tenia en un inicio al solo crear las entradas
+                    pack_id: registro.pack_id,
+                    type: registro.libro.type,
+                    isbn: registro.libro.ISBN,
+                    titulo: registro.libro.titulo,
+                    costo_unitario: registro.costo_unitario,
+                    total: registro.total,
+                    unidades: registro.unidades,
+                    unidades_que: registro.unidades_que,
+                    total_unidades: registro.unidades + registro.unidades_que,
+                    scratch: registro.pack_id != null ? true:false,
+                    pack_id: registro.pack_id
+                };
+                this.form.registros.push(r);
+            });
+        }
     },
     methods: {
         editorialSelected(){
             if(this.form.editorial == 'MAJESTIC EDUCATION'){
                 this.getImprentas('fisico');
-                Swal.fire({
-                    title: "¿Se enviarán libros a Querétaro?",
-                    showDenyButton: true,
-                    confirmButtonText: "SI",
-                    denyButtonText: `NO`
-                }).then((result) => {
-                    if (result.isConfirmed)
-                        this.form.queretaro = true;
-                    else if (result.isDenied)
-                        this.form.queretaro = false;
-                });
+                // Swal.fire({
+                //     title: "¿Se enviarán libros a Querétaro?",
+                //     showDenyButton: true,
+                //     confirmButtonText: "SI",
+                //     denyButtonText: `NO`
+                // }).then((result) => {
+                //     if (result.isConfirmed)
+                //         this.form.queretaro = true;
+                //     else if (result.isDenied)
+                //         this.form.queretaro = false;
+                // });
             }
             if(this.form.editorial != 'MAJESTIC EDUCATION') {
                 this.form.queretaro = false;
@@ -320,23 +376,29 @@ export default {
         onSubmit(e){
             e.preventDefault();
             this.load = true;
-            let formData = new FormData();
-            // formData.append('file', this.form.file, this.form.file.name);
-            for (var i = 0; i < this.form.files.length; i++) {
-                let file = this.form.files[i];
-                formData.append('files[]', file);
+            if(this.agregar){
+                let formData = new FormData();
+                for (var i = 0; i < this.form.files.length; i++) {
+                    let file = this.form.files[i];
+                    formData.append('files[]', file);
+                }
+                formData.append('unidades', this.form.unidades);
+                formData.append('folio', this.form.folio);
+                formData.append('editorial', this.form.editorial);
+                formData.append('imprenta_id', this.form.imprenta_id);
+                formData.append('queretaro', this.form.queretaro);
+                formData.append('packs', JSON.stringify(this.packs));
+                formData.append('registros', JSON.stringify(this.form.registros));
+
+                var ax = axios.post('/entradas/store', formData, { headers: { 'content-type': 'multipart/form-data' } });
+            } else {
+                this.form.packs = [];
+                this.form.packs = this.packs;
+                var ax = axios.put('/entradas/update', this.form);
             }
-            formData.append('unidades', this.form.unidades);
-            formData.append('folio', this.form.folio);
-            formData.append('editorial', this.form.editorial);
-            formData.append('imprenta_id', this.form.imprenta_id);
-            formData.append('queretaro', this.form.queretaro);
-            formData.append('registros', JSON.stringify(this.form.registros));
-            formData.append('packs', JSON.stringify(this.packs));
-            axios.post('/entradas/store', formData, { 
-                headers: { 'content-type': 'multipart/form-data' } })
-                .then(response => {
-                this.messageAlert('center', 'success', 'La entrada se creo correctamente', '/information/entradas/lista', 'close-opener');
+
+            ax.then(response => {
+                this.messageAlert('center', 'success', 'La entrada se guardo correctamente', '/information/entradas/lista', 'close-opener');
                 this.load = false;
             }).catch(error => {
                 this.load = false;
@@ -363,7 +425,15 @@ export default {
         },
         // ELIMINAR REGISTRO DE ENTRADA
         eliminarRegistro(item, i){
+            if(!this.agregar && !item.nuevo){
+                this.form.eliminados.push(item);
+            }
             this.restasUnidades(item, i);
+        },
+        // EDITAR REGISTRO DE ENTRADA
+        editRegistro(item, i){
+            this.position = i;
+            this.inicializar_temporal(item.id, item.titulo, item.isbn, item.registro_id, item.unidades, item.unidades_que, item.total_unidades, item.costo_unitario, item.total);
         },
         restasUnidades(item, i){
             this.form.registros.splice(i, 1);
@@ -380,13 +450,17 @@ export default {
                 this.resultsISBNS = [];
             }
         },
-        inicializar_temporal(id, titulo, ISBN){
+        
+        inicializar_temporal(id, titulo, ISBN, ri = null, u = 0, uq = 0, tu = 0, cu = 0, t = 0){
             this.temporal.id = id;
             this.temporal.titulo = titulo;
             this.temporal.isbn = ISBN;
-            this.temporal.unidades = 0;
-            this.temporal.unidades_que = 0;
-            this.temporal.total_unidades = 0;
+            this.temporal.registro_id = ri;
+            this.temporal.unidades = u;
+            this.temporal.unidades_que = uq;
+            this.temporal.total_unidades = tu;
+            this.temporal.costo_unitario = cu;
+            this.temporal.total = t;
         },
         mostrarLibros(){
             if(this.temporal.titulo.length > 0){ 
@@ -408,14 +482,28 @@ export default {
         saveTemporal() {
             // COMPROBAR QUE EL LIBRO NO ESTE EN LA LISTA GENERAL
             var check = this.form.registros.find(r => r.id == this.temporal.id);
-            if (check == undefined) {
+            if (check == undefined || (check !== undefined && this.position != null)) {
                 let u = parseInt(this.temporal.unidades);
                 let uq = parseInt(this.temporal.unidades_que);
                 let total_unidades = u + uq;
                 if (total_unidades > 0) {
-                    this.form.registros.push(this.assign_registro(this.temporal.id, this.temporal.isbn, this.temporal.titulo, u, uq, total_unidades, false, null));
-                    this.acum_total();
-                    this.inicializar_temporal(null, null, null);
+                    if(this.agregar || (!this.agregar && this.form.total > 0 && this.temporal.costo_unitario > 0) || 
+                        (!this.agregar && this.form.total == 0 && this.temporal.costo_unitario == 0)){
+                        let total = total_unidades * this.temporal.costo_unitario;
+                        if(this.position == null){
+                            this.form.registros.push(this.assign_registro(this.temporal.id, this.temporal.isbn, this.temporal.titulo, u, uq, total_unidades, this.temporal.costo_unitario, total, false, null, this.agregar ? false:true));
+                        } else {
+                            this.form.registros[this.position].unidades = u;
+                            this.form.registros[this.position].total_unidades = total_unidades;
+                            this.form.registros[this.position].costo_unitario = this.temporal.costo_unitario;
+                            this.form.registros[this.position].total = total; 
+                            this.position = null;
+                        }
+                        this.acum_total();
+                        this.inicializar_temporal(null, null, null);
+                    } else {
+                        this.makeToast('warning', 'El costo unitario debe ser mayor a 0');
+                    }
                 } else {
                     this.makeToast('warning', 'El total de unidades debe ser mayor a 0');
                 }
@@ -423,7 +511,7 @@ export default {
                 this.makeToast('warning', 'El libro ya ha sido agregado.');
             }
         },
-        assign_registro(id, isbn, titulo, u, uq, total_unidades, scratch, pack_id) {
+        assign_registro(id, isbn, titulo, u, uq, total_unidades, costo_unitario, total, scratch, pack_id, nuevo) {
             return {
                 id: id,
                 isbn: isbn,
@@ -431,16 +519,21 @@ export default {
                 unidades: u,
                 unidades_que: uq,
                 total_unidades: total_unidades,
+                costo_unitario: costo_unitario,
+                total: total,
                 scratch: scratch,
-                pack_id: pack_id
+                pack_id: pack_id,
+                nuevo: nuevo
             }
         },
         acum_total(){
             this.form.unidades = 0;
             this.total_unidades_que = 0;
+            this.form.total = 0;
             this.form.registros.forEach(registro => {
                 this.form.unidades += parseInt(registro.unidades);
                 this.total_unidades_que += parseInt(registro.unidades_que);
+                this.form.total += parseInt(registro.total);
             });
             this.total_unidades = this.form.unidades + this.total_unidades_que;
         },
@@ -481,7 +574,7 @@ export default {
                         this.packs.push(temporal);
                         response.data.forEach(r => {
                             // AGREGAR LOS 2 LIBROS A LA LISTA PRINCIPAL Y SUMAR UNIDADES
-                            this.form.registros.push(this.assign_registro(r.id, r.ISBN, r.titulo, temporal.unidades, 0, temporal.unidades, true, temporal.id));
+                            this.form.registros.push(this.assign_registro(r.id, r.ISBN, r.titulo, temporal.unidades, 0, temporal.unidades, 0, 0, true, temporal.id, this.agregar ? false:true));
                             this.acum_total();
                         });
                     }).catch(error => { });

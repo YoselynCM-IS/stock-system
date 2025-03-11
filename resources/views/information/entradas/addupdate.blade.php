@@ -1,5 +1,5 @@
 @extends('layouts.app-simple')
 
 @section('content')
-    <add-edit-entrada :agregar="{{$agregar}}"></add-edit-entrada>
+    <add-edit-entrada :agregar="{{$agregar}}" :entrada="{{$entrada}}"></add-edit-entrada>
 @endsection

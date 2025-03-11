@@ -104,10 +104,10 @@
                         <b-button variant="info" @click="detallesEntrada(row.item)" pill>
                             <i class="fa fa-exclamation"></i>
                         </b-button>
-                        <!-- <b-button v-if="role_id == 6" variant="warning" pill
-                            :href="`/entradas/addupdate/${row.item.id}/false`" target="_blank">
+                        <b-button v-if="(role_id == 6) && row.item.total_devolucion == 0 && row.item.lugar == 'CMX'" variant="warning" pill
+                            :href="`/entradas/addupdate/${row.item.id}/false`" target="blank">
                             <i class="fa fa-edit"></i>
-                        </b-button> -->
+                        </b-button>
                     </template>
                     <template v-slot:cell(created_at)="row">
                         {{ row.item.created_at | moment }}
