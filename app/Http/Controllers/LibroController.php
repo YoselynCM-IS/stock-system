@@ -462,6 +462,7 @@ class LibroController extends Controller
         $entradas = \DB::table('registros')
                             // ->where('registros.created_at','like', '%2022-12%')
                             ->whereNotIn('id', $code_registro->pluck('registro_id'))
+                            ->whereNull('registros.deleted_at')
                             ->select('libro_id as libro_id', \DB::raw('SUM(unidades) as entradas'))
                             ->groupBy('libro_id')
                             ->get(); 
