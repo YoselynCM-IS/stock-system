@@ -77,7 +77,7 @@
                 </b-col>
                 <b-col sm="3" class="text-right">
                     <b-button v-if="role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10" variant="success" @click="registrarDonacion()">
-                        <i class="fa fa-plus"></i> Registrar donación
+                        <i class="fa fa-plus"></i> Crear donación
                     </b-button>
                 </b-col>
             </b-row>
@@ -158,7 +158,10 @@
             <b-table :items="regalo.donaciones" :fields="fieldsD">
                 <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.libro.ISBN }}</template>
-                <template v-slot:cell(titulo)="row">{{ row.item.libro.titulo }}</template>
+                <template v-slot:cell(titulo)="row">
+                    {{ row.item.libro.titulo }}
+                    <b-badge v-if="row.item.pack_id !== null" variant="info">scratch</b-badge>
+                </template>
                 <template #cell(codes)="row">
                     <b-button v-if="row.item.codes.length > 0" 
                         size="sm" @click="row.toggleDetails" pill variant="info">
@@ -189,7 +192,7 @@
         <!-- CREAR UNA DONACION -->
         <div v-if="mostrarRegistrar">
             <b-row>
-                <b-col><h4>Registrar donación</h4></b-col>
+                <b-col><h4>Crear donación</h4></b-col>
                 <b-col sm="3" align="right">
                     <b-button variant="success" @click="confirmarDonacion()" :disabled="load" pill>
                         <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="load"></b-spinner>
@@ -221,18 +224,27 @@
                 </b-col>
             </b-row>
             <b-row class="mb-3">
-                <b-col sm="2" class="text-right"><label><b>Comentario</b>: <b id="txtObligatorio">*</b></label></b-col>
+                <b-col sm="2" class="text-right"><label><b>Descripción</b>: <b id="txtObligatorio">*</b></label></b-col>
                 <b-col>
                     <b-form-textarea v-model="regalo.descripcion" required
                         rows="2" max-rows="2" style="text-transform:uppercase;"></b-form-textarea>
+                </b-col>
+                <b-col v-if="role_id === 6" sm="2" class="mt-3">
+                    <b-button variant="dark" pill block @click="showScratch()">
+                        Scratch
+                    </b-button>
                 </b-col>
             </b-row>
             <b-table :items="regalo.donaciones" :fields="fieldsR">
                 <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.ISBN }}</template>
-                <template v-slot:cell(titulo)="row">{{ row.item.titulo }}</template>
-                <template v-slot:cell(eliminar)="row">
-                    <b-button variant="danger" @click="eliminarRegistro(row.index)">
+                <template v-slot:cell(titulo)="row">
+                    {{ row.item.titulo }}
+                    <b-badge v-if="row.item.scratch || row.item.pack_id !== null" variant="info">scratch</b-badge>
+                </template>
+                <template v-slot:cell(actions)="row">
+                    <b-button v-if="!row.item.scratch && row.item.pack_id == null"
+                        variant="danger" pill size="sm" @click="eliminarRegistro(row.index)">
                         <i class="fa fa-minus-circle"></i>
                     </b-button>
                 </template>
@@ -288,7 +300,7 @@
                                 </b-form-input>
                             </th>
                             <th>
-                                <b-button 
+                                <b-button pill size="sm"
                                     variant="secondary"
                                     @click="eliminarTemporal()" 
                                     v-if="inputUnidades"
@@ -315,7 +327,10 @@
                 <b-table :items="regalo.donaciones" :fields="fieldsD">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(ISBN)="row">{{ row.item.ISBN }}</template>
-                    <template v-slot:cell(titulo)="row">{{ row.item.titulo }}</template>
+                    <template v-slot:cell(titulo)="row">
+                        {{ row.item.titulo }}
+                        <b-badge v-if="row.item.scratch || row.item.pack_id !== null" variant="info">scratch</b-badge>
+                    </template>
                     <template #thead-top="row">
                         <tr>
                             <th colspan="3"></th>
@@ -332,12 +347,53 @@
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                             <b-button variant="success" @click="guardarDonacion()" :disabled="load">
+                             <b-button variant="success" pill @click="guardarDonacion()" :disabled="load">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
                     </b-row>
                 </div>
+            </b-modal>
+            <!-- Agregar Scratch -->
+            <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
+                <table class="table mb-2">
+                    <thead>
+                        <tr>
+                            <th style="width: 60%;">Libro</th>
+                            <th>Unidades</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td scope="col">
+                                <busq-scratch-component @assignScracth="assignScracth"></busq-scratch-component>
+                            </td>
+                            <td scope="col">
+                                <b-input v-model="temporalScratch.unidades" type="number" min="1" max="9999"></b-input>
+                            </td>
+                            <td scope="col">
+                                <b-button variant="success" pill block @click="saveScratch()">
+                                    <i class="fa fa-level-down"></i>
+                                </b-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- LISTAR PACKS AGREGADOS -->
+                <b-table :items="regalo.packs" :fields="fieldsScratch">
+                    <template v-slot:cell(index)="row">
+                        {{ row.index + 1 }}
+                    </template>
+                    <template v-slot:cell(unidades)="row">
+                        {{ row.item.unidades | formatNumber }}
+                    </template>
+                    <template v-slot:cell(actions)="row">
+                        <b-button variant="danger" pill size="sm" @click="deleteScratch(row.item, row.index)">
+                            <i class="fa fa-close"></i>
+                        </b-button>
+                    </template>
+                </b-table>
             </b-modal>
         </div>
     </div>
@@ -347,9 +403,11 @@
 import setResponsables from '../../mixins/setResponsables'
 import getLibros from '../../mixins/getLibros';
 import searchCliente from '../../mixins/searchCliente';
+import busqScratchComponent from '../funciones/scratch/busqScratchComponent.vue';
     export default {
         props: ['role_id'],
         mixins: [setResponsables,getLibros,searchCliente],
+        components: {busqScratchComponent},
         data() {
             return {
                 regalosData: {},
@@ -369,7 +427,8 @@ import searchCliente from '../../mixins/searchCliente';
                     {key: 'index', label: 'N.'}, 
                     {key: 'ISBN', label: 'ISBN'}, 
                     {key: 'titulo', label: 'Libro'}, 
-                    'unidades', 'eliminar'
+                    {key: 'unidades', label: 'Unidades'}, 
+                    {key: 'actions', label: ''}, 
                 ],
                 fieldsD: [
                     {key: 'index', label: 'N.'}, 
@@ -394,6 +453,7 @@ import searchCliente from '../../mixins/searchCliente';
                     unidades: 0,
                     created_at: '',
                     donaciones: [],
+                    packs: [],
                     entregado_por: null,
                     creado_por: null
                 },
@@ -419,7 +479,20 @@ import searchCliente from '../../mixins/searchCliente';
                     { key: 'codigo', label: 'Código' }
                 ],
                 queryDestino: null,
-                searchDestino: false
+                searchDestino: false,
+                fieldsScratch: [
+                    { key: 'index', label: 'N.' },
+                    'titulo', 'unidades',
+                    { key: 'actions', label: '' }
+                ],
+                temporalScratch: {
+                    id: null,
+                    titulo: null, 
+                    libro_fisico: null,
+                    libro_digital: null,
+                    piezas: 0,
+                    unidades: 0
+                },
             }
         },
         filters: {
@@ -591,6 +664,7 @@ import searchCliente from '../../mixins/searchCliente';
                     unidades: 0,
                     created_at: '',
                     donaciones: [],
+                    packs: [],
                     entregado_por: null,
                     creado_por: null
                 };
@@ -618,42 +692,115 @@ import searchCliente from '../../mixins/searchCliente';
             },
             // MODAL PARA CONFIRMAR LA DONACION
             confirmarDonacion(){
-                if(this.queryCliente.length > 4){
+                if(this.regalo.cliente_id !== null){
                     this.state = true;
-                    if(this.regalo.donaciones.length > 0){
-                        this.$refs['modal-confirmar-regalo'].show();
-                    } else {
-                        this.makeToast('warning', 'Aun no se ha agregado un libro a la donación.');
+                    if(this.regalo.descripcion.length > 4){
+                        if(this.regalo.donaciones.length > 0){
+                            this.$refs['modal-confirmar-regalo'].show();
+                        } else {
+                            this.makeToast('warning', 'Aun no se ha agregado un libro a la donación.');
+                        }
+                    } else{
+                        this.makeToast('warning', 'Campo obligatorio, ingresar descripción mayor a 5 caracteres.');
                     }
-                }
-                else{
+                } else{
                     this.state = false;
                     this.makeToast('warning', 'Campo obligatorio, elegir cliente.');
                 }
             },
             // GUARDAR LA DONACION
             guardarDonacion(){
-                if(this.queryCliente.length > 4){
-                    this.state = true;
-                    this.load = true;
-                    axios.post('/donaciones/store', this.regalo).then(response => {
-                        this.load = false;
-                        this.regalos.unshift(response.data);
-                        this.acumular_unidades();
-                        this.makeToast('success', 'La donación se guardo correctamente.');
-                        this.$refs['modal-confirmar-regalo'].hide();
-                        this.mostrarRegistrar = false;
-                        this.listadoDonaciones = true;
-                    })
-                    .catch(error => {
-                        this.load = false;
-                        this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
-                    });
+                this.load = true;
+                axios.post('/donaciones/store', this.regalo).then(response => {
+                    this.load = false;
+                    this.regalos.unshift(response.data);
+                    this.acumular_unidades();
+                    this.makeToast('success', 'La donación se guardo correctamente.');
+                    this.$refs['modal-confirmar-regalo'].hide();
+                    this.mostrarRegistrar = false;
+                    this.listadoDonaciones = true;
+                }).catch(error => {
+                    this.load = false;
+                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                });
+            },
+            // MOSTRAR MODAL DE SCRATCH
+            showScratch() {
+                this.ini_temporalScratch();
+                this.$refs['modal-scratch'].show();
+            },
+            // ASIGNAR DATOS DEL PACK SELECCIONADO
+            assignScracth(libro) {
+                this.temporalScratch.id = libro.id;
+                this.temporalScratch.libro_fisico = libro.libro_fisico;
+                this.temporalScratch.libro_digital = libro.libro_digital;
+                this.temporalScratch.piezas = libro.piezas;
+                this.temporalScratch.titulo = `PACK: ${libro.lf_titulo}`;
+            },
+            // AGREGAR SCRATCH A LA LISTA
+            saveScratch(){
+                // VERIFICA SI EL LIBRO DIGITAL O LIBRO FISICO NO SE HA AGREGADO A LA DONACION
+                var check_f = this.regalo.donaciones.find(d => d.id == this.temporalScratch.libro_fisico);
+                var check_d = this.regalo.donaciones.find(d => d.id == this.temporalScratch.libro_digital);
+                // VERIFICA SI EL PACK NO SE A AGREADO A LA LISTA
+                var check = this.regalo.packs.find(p => p.id == this.temporalScratch.id);
+                 // SI LAS TRES CONDIFICONES SON UNDEFINES, CONTINUA
+                if (check == undefined && check_f == undefined && check_d == undefined) {
+                    // VERIFICAR QUE LAS UNIDADES SEAN MAYOR QUE 0
+                    if (this.temporalScratch.unidades > 0) {
+                        // SE VERIFICA QUE LAS UNIDADES SEAN MENOR O IGUAL QUE LAS PIEZAS EN EXISTENCIA DE SCRATCH
+                        if (this.temporalScratch.unidades <= this.temporalScratch.piezas) {
+                            // GET PARA OBTENER LIBRO FISICO Y DIGITAL DEL PACK SELECCIONADO
+                            axios.get('/libro/scratch_libros', { params: {
+                                f: this.temporalScratch.libro_fisico, d: this.temporalScratch.libro_digital}})
+                                .then(response => {
+                                // SE AGREGA EL PACK AL ARRAY PACKS
+                                this.regalo.packs.push(this.temporalScratch);
+                                response.data.forEach(r => {
+                                    this.regalo.donaciones.push(this.assign_donacion(r.id, r.ISBN, r.titulo, r.piezas, this.temporalScratch.unidades, true, this.temporalScratch.id));
+                                });
+                                this.acum_unidades_crear();
+                                this.ini_temporalScratch();
+                            }).catch(error => { });
+                        } else {
+                            this.makeToast('warning', `${this.temporalScratch.piezas} piezas en existencia.`);
+                        }
+                    } else {
+                        this.makeToast('warning', 'Las unidades deben ser mayor a 0.');
+                    }
+                } else {
+                    this.makeToast('warning', 'El libro ya ha sido agregado.');
                 }
-                else{
-                    this.state = false;
-                    this.makeToast('warning', 'Campo obligatorio, elegir cliente.');
-                }
+            },
+            // INICIALIZAR TEMPORAL SCRATCH
+            ini_temporalScratch(){
+                this.temporalScratch = {
+                    id: null,
+                    titulo: null,
+                    libro_fisico: null,
+                    libro_digital: null,
+                    piezas: 0,
+                    unidades: 0
+                };
+                this.resultsScratch = [];
+            },
+            // ELIMINAR PACK DE LA LISTA
+            deleteScratch(pack, position) {
+                let positions = [];
+                // OBTENER POSICIONES DEL LIBRO FISICO Y DIGITAL
+                this.regalo.donaciones.findIndex(function (value, index) {
+                    if (value.pack_id == pack.id) positions.push(index);
+                });
+                
+                // ELIMINAR AMBOS LIBROS DE LA LISTA GENERAL, EMPEZANDO DESDE EL ULTIMO
+                positions.reverse()
+                positions.forEach(p => {
+                    this.regalo.donaciones.splice(p, 1);
+                });
+                // ELIMINAR DE LISTADO DE PACKS
+                this.regalo.packs.splice(position, 1);
+                // CAMBIAR TOTAL DE UNIDADES
+                this.acum_unidades_crear();
             },
             // ELIMINAR REGISTRO DEL ARRAY
             eliminarRegistro(i){
@@ -731,13 +878,25 @@ import searchCliente from '../../mixins/searchCliente';
             },
             params_donation(pzs) {
                 if (this.temporal.unidades <= pzs) {
-                    this.regalo.donaciones.push(this.temporal);
+                    this.regalo.donaciones.push(this.assign_donacion(this.temporal.id, this.temporal.ISBN, this.temporal.titulo, this.temporal.piezas, this.temporal.unidades, false, null));
                     this.acum_unidades_crear();
                     this.eliminarTemporal();
                 }
                 else {
                     this.makeToast('warning', `${pzs} unidades en existencia`);
                 }  
+            },
+            // ASIGNAR VALORES A REGISTRO DE DONACION
+            assign_donacion(libro_id, isbn, titulo, piezas, unidades, scratch, pack_id){
+                return {
+                    id: libro_id,
+                    ISBN: isbn,
+                    titulo: titulo,
+                    piezas: piezas,
+                    unidades: unidades,
+                    scratch: scratch,
+                    pack_id: pack_id
+                }
             },
             // ELIMINAR REGISTRO TEMPORAL
             eliminarTemporal(){

@@ -45,21 +45,20 @@ class DonacioneController extends Controller
             $lista_codes = collect();
             $donaciones = collect($request->donaciones);
             $hoy = Carbon::now();
-
             $donaciones->map(function($donacion) use($regalo, $hoy, &$lista_codes){
-                $unidades = $donacion['unidades'];
+                $unidades = (int) $donacion['unidades'];
                 $libro_id = $donacion['id'];
-
                 // Crear registros de donación
                 $d = Donacione::create([
                     'regalo_id' => $regalo->id,
+                    'pack_id' => $donacion['pack_id'],
                     'libro_id' => $libro_id,
                     'unidades' => $unidades,
                     'created_at' => $hoy,
                     'updated_at' => $hoy
                 ]);
 
-                if($d->libro->type == 'digital'){
+                if($d->libro->type == 'digital' && $donacion['pack_id'] == null){
                     $lista_codes->push([
                         'donacione_id'   => $d->id,
                         'libro_id'  => $d->libro_id,
@@ -75,6 +74,7 @@ class DonacioneController extends Controller
                 $this->create_report($d->id, $reporte, 'libro', 'donaciones');
             });
 
+            // OBTENER CODIGOS
             $lista_codes->map(function($lc){
                 $codes = Code::where('libro_id', $lc['libro_id'])
                                 ->where('estado', 'inventario')
@@ -91,6 +91,13 @@ class DonacioneController extends Controller
 
                 $donacione = Donacione::find($lc['donacione_id']);
                 $donacione->codes()->sync($code_donacione);
+            });
+
+            // DISMINUIR PIEZAS DE PACK
+            $packs = collect($request->packs);
+            $packs->map(function($pack){
+                \DB::table('packs')->whereId($pack['id'])
+                                    ->decrement('piezas',  (int) $pack['unidades']);
             });
             
             $reporte = 'creo la donación para '.$regalo->plantel;

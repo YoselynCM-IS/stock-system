@@ -12,6 +12,7 @@ class Donacione extends Model
     protected $fillable = [
         'id', 
         'regalo_id',
+        'pack_id',
         'libro_id',
         'unidades'
     ];
