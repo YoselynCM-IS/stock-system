@@ -14,7 +14,7 @@
                     <search-select-cliente-component :load="load" :status="'all'" :clientename="null" :tipo="null" @sendCliente="sendCliente"></search-select-cliente-component>
                 </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button v-if="role_id == 5 || role_id == 9 || role_id == 6 || role_id == 10"
+                    <b-button v-if="role_id == 1 || role_id == 5 || role_id == 6 || role_id == 9 || role_id == 10"
                         href="/pedido/create_edit/1/0" target="blank" variant="success" pill :disabled="load">
                         <i class="fa fa-plus-circle"></i> Nuevo pedido
                     </b-button>
@@ -44,7 +44,7 @@
                             target="blank" variant="info" pill size="sm">
                             <i class="fa fa-info-circle"></i>
                         </b-button>
-                        <b-button v-if="row.item.estado == 'proceso' && (((role_id == 5 || role_id == 9 || role_id == 10) && row.item.actualizado_por == null) || role_id == 6)"
+                        <b-button v-if="row.item.estado == 'proceso' && (((role_id == 5 || role_id == 9 || role_id == 10) && row.item.actualizado_por == null) || role_id == 1 || role_id == 6)"
                             :href="`/pedido/create_edit/1/${row.item.id}`"
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>

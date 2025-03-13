@@ -42,7 +42,7 @@
                             :href="`/order/show/${data.item.id}`" target="blank">
                             <i class="fa fa-exclamation-circle"></i>
                         </b-button>
-                        <b-button v-if="(((role_id == 1 || role_id == 2) && data.item.actualizado_por == null) || role_id == 6) && data.item.status == 'iniciado'"
+                        <b-button v-if="((role_id == 2 && data.item.actualizado_por == null) || role_id == 1 || role_id == 6) && data.item.status == 'iniciado'"
                             :href="`/order/create_edit/1/${data.item.id}`"
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>
