@@ -29,7 +29,7 @@
                 </b-col>
                 <b-col sm="2">
                     <div v-if="(pedido.total_bill > 0) && (pedido.status == 'espera')">
-                        <b-button v-if="(role_id == 2 && pedido.almacen == 'NO') || (role_id == 3 || role_id == 6 || role_id == 10)" variant="primary" 
+                        <b-button v-if="(role_id == 2 && pedido.almacen == 'NO') || (role_id == 1 || role_id == 3 || role_id == 6 || role_id == 10)" variant="primary" 
                             pill @click="act_status()" :disabled="load">
                             <i class="fa fa-refresh"></i> Actualizar
                         </b-button>

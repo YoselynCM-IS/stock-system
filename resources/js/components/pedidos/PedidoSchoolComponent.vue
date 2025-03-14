@@ -44,12 +44,12 @@
                             target="blank" variant="info" pill size="sm">
                             <i class="fa fa-info-circle"></i>
                         </b-button>
-                        <b-button v-if="row.item.estado == 'proceso' && (((role_id == 5 || role_id == 9 || role_id == 10) && row.item.actualizado_por == null) || role_id == 1 || role_id == 6)"
+                        <b-button v-if="row.item.estado == 'proceso' && (((role_id == 2 || role_id == 5 || role_id == 9 || role_id == 10) && row.item.actualizado_por == null) || role_id == 1 || role_id == 6)"
                             :href="`/pedido/create_edit/1/${row.item.id}`"
                             target="blank" variant="warning" pill size="sm">
                             <i class="fa fa-pencil"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 2 || role_id == 6 || role_id == 10) && row.item.cerrado_por == null && (row.item.estado == 'de inventario' || row.item.estado == 'en orden')"
+                        <b-button v-if="(role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10) && row.item.cerrado_por == null && (row.item.estado == 'de inventario' || row.item.estado == 'en orden')"
                             @click="cerrarPedido(row.item.id)" variant="dark" pill size="sm">
                             <i class="fa fa-close"></i>
                         </b-button>
