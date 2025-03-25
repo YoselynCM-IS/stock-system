@@ -243,7 +243,7 @@ import getImprentas from '../../../mixins/editoriales/getImprentas';
 import getEditoriales from '../../../mixins/getEditoriales';
 export default {
   components: { SubirFotoComponent, AddScratchsComponent },
-    props: ['entrada', 'agregar'],
+    props: ['entrada', 'agregar', 'user_id'],
     mixins: [formatNumber, toast, sweetAlert, getImprentas, getEditoriales],
     data(){
         return {
@@ -314,7 +314,13 @@ export default {
         }
     },
     created: function(){
-        this.get_editoriales();
+        if(this.user_id == 17){
+            this.options.push(
+            { value: null, text: 'Seleccionar una opción', disabled: true },    
+            { value: 'MAJESTIC EDUCATION', text: 'MAJESTIC EDUCATION' });
+        } else {
+            this.get_editoriales();
+        }
 
         if(!this.agregar){
             this.form.id = this.entrada.id;
