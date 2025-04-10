@@ -509,12 +509,10 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                     text: 'CLIENTE'
                 });
                 this.listresponsables.forEach(responsable => {
-                    if(responsable.responsable !== 'ARTURO'){
-                        this.options.push({
-                            value: responsable.responsable,
-                            text: responsable.responsable
-                        });
-                    }
+                    this.options.push({
+                        value: responsable.responsable,
+                        text: responsable.responsable
+                    });
                 });
             },
             // BUSCAR REMISIÓN POR NUMERO

@@ -19,7 +19,7 @@
             <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
             <template v-slot:cell(total_base)="row">${{ row.item.total_base | formatNumber }}</template>
             <template v-slot:cell(unidades_base)="row">
-                <b-input v-if="(row.item.libro.type == 'venta' && row.item.pack_id == null) ||
+                <b-input v-if="((row.item.libro.type == 'venta' || row.item.libro.type == 'promocion') && row.item.pack_id == null) ||
                     (row.item.libro.type == 'digital' && row.item.pack_id !== null)" :id="`inpEntDev-${row.index}`"
                     type="number" @change="obtenerSubtotal(row.item, row.index)" v-model="row.item.unidades_base">
                 </b-input>
