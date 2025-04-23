@@ -864,7 +864,7 @@ import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
                 if(check == undefined){
                     if(this.temporal.unidades > 0){
                         if (this.role_id != 6) {
-                            if (this.temporal.unidades < 31 || (this.temporal.titulo.includes('CATALOGO') == true && this.temporal.unidades < 251)) {
+                            if (this.temporal.unidades < 51 || (this.temporal.titulo.includes('CATALOGO') == true && this.temporal.unidades < 251)) {
                                 if (this.temporal.type != 'digital') {
                                     axios.get('/libro/get_scratch', { params: { id: this.temporal.id } }).then(response => {
                                         this.validar_insert(this.temporal.type != 'digital', this.temporal.piezas - response.data);
