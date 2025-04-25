@@ -14,6 +14,9 @@
 	<a class="nav-link" href="{{ route('information.promotions.lista') }}">{{ __("Promociones") }}</a>
 </li>
 <li>
+	<a class="nav-link" href="{{ route('information.donations.lista') }}">{{ __("Donaciones") }}</a>
+</li>
+<li>
 	<a class="nav-link" href="{{ route('libro.all_sistemas') }}">{{ __("Inventario") }}</a>
 </li>
 <user-notifications :user_id="{{auth()->user()->id}}" :noleidos="{{Auth::user()->unreadNotifications}}"></user-notifications>
