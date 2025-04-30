@@ -39,7 +39,7 @@
                 </b-button>
                 <b-collapse id="collapse-1" class="mt-2">
                     <b-card>
-                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10" 
+                        <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 9 || role_id == 10" 
                             :href="`/codes/download_byremision/${remision.id}`" variant="dark" pill block>
                             <i class="fa fa-download"></i> Códigos
                         </b-button>
