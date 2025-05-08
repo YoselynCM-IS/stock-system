@@ -1106,6 +1106,7 @@ class LibroController extends Controller
                     ->join('entradas', 'registros.entrada_id', '=', 'entradas.id')
                     ->join('libros', 'registros.libro_id', '=', 'libros.id')
                     ->whereBetween('entradas.created_at', [$inicio, $final])
+                    ->whereNull('registros.deleted_at')
                     ->select('registros.libro_id', 'registros.unidades')
                     ->get();
         $fechas = \DB::table('fechas')
@@ -1238,11 +1239,12 @@ class LibroController extends Controller
         $libro_id = $request->libro_id;
         $libro = Libro::find($libro_id);
         // ENTRADAS
-        $entradas = \DB::table('registros')
+        $entradas = \DB::table('registros') 
                     ->join('entradas', 'registros.entrada_id', '=', 'entradas.id')
                     ->join('libros', 'registros.libro_id', '=', 'libros.id')
                     ->where('registros.libro_id', $libro_id)
                     ->whereBetween('entradas.created_at', [$inicio, $final])
+                    ->whereNull('registros.deleted_at')
                     ->select('libros.titulo', 'entradas.folio as folio', 'registros.unidades', 'entradas.created_at')
                     ->get();
         $fechas = \DB::table('fechas')

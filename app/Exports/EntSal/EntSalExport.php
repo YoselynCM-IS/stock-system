@@ -31,6 +31,7 @@ class EntSalExport implements FromView
                     ->join('entradas', 'registros.entrada_id', '=', 'entradas.id')
                     ->join('libros', 'registros.libro_id', '=', 'libros.id')
                     ->whereBetween('entradas.created_at', [$inicio, $final])
+                    ->whereNull('registros.deleted_at')
                     ->select('registros.libro_id', 'registros.unidades')
                     ->get();
         $fechas = \DB::table('fechas')
