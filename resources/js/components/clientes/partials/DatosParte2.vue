@@ -9,6 +9,14 @@
             </div>
         </b-row>
         <b-row class="my-1">
+            <b-col align="right">Tipo de moneda</b-col>
+            <div class="col-md-9">
+                <b-form-select v-model="form.moneda_id" :options="monedas" required
+                    :disabled="load"
+                ></b-form-select>
+            </div>
+        </b-row>
+        <b-row class="my-1">
             <b-col align="right">Correo electrónico</b-col>
             <div class="col-md-9">
                 <b-form-input 
@@ -41,11 +49,13 @@ export default {
     props: ['form', 'load', 'errors'],
     data(){
         return{
-            estados: []
+            estados: [],
+            monedas: []
         }
     },
     created: function(){
         this.getEstados();
+        this.getMonedas();
     },
     methods: {
         getEstados(){
@@ -54,6 +64,15 @@ export default {
                 this.estados.push({ value: null, text: 'Selecciona una opción', disabled: true});
                 edos.forEach(e => {
                     this.estados.push({ value: e.id, text: e.estado });
+                });
+            }).catch(error => { });
+        },
+        getMonedas(){
+            axios.get('/clientes/get_monedas').then(response => {
+                let mon = response.data;
+                this.monedas.push({ value: null, text: 'Selecciona una opción', disabled: true});
+                mon.forEach(m => {
+                    this.monedas.push({ value: m.id, text: m.moneda });
                 });
             }).catch(error => { });
         },

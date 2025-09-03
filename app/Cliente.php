@@ -8,6 +8,7 @@ use App\Actividade;
 use App\Remisione;
 use App\Adeudo;
 use App\Estado;
+use App\Moneda;
 use App\Libro;
 use App\User;
 
@@ -55,4 +56,8 @@ class Cliente extends Model
         return $this->belongsToMany(Actividade::class);
     }
 
+    // Uno a muchos (inversa)
+    public function moneda(){
+        return $this->belongsTo(Moneda::class);
+    }
 }

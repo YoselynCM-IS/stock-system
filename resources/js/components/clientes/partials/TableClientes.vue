@@ -120,6 +120,10 @@
                             <div class="col-md-7">{{datosCliente.estado ? datosCliente.estado.estado:''}}</div>
                         </b-row>
                         <b-row class="my-1">
+                            <b-col align="right"><b>Tipo de moneda:</b></b-col>
+                            <div class="col-md-7">{{ datosCliente.moneda ? datosCliente.moneda.moneda:'' }}</div>
+                        </b-row>
+                        <b-row class="my-1">
                             <b-col align="right"><b>Teléfono:</b></b-col>
                             <div class="col-md-7">{{datosCliente.telefono}}</div>
                         </b-row>
@@ -246,6 +250,7 @@ export default {
             this.form.tipo = cliente.tipo;
             this.form.user_id = cliente.user_id;
             this.form.estado_id = cliente.estado_id;
+            this.form.moneda_id = cliente.moneda_id;
             this.form.tel_oficina = cliente.tel_oficina;
         },
         showDetails(cliente){

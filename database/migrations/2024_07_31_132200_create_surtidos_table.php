@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('surtidos', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('pedido_id')->nullable();
-            $table->foreign('pedido_id')->references('id')->on('pedidos');
-            $table->string('relacion_tabla');
-            $table->integer('relacion_id');
-            $table->text('comentario');
-            $table->timestamps();
-        });
+        // Schema::create('surtidos', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->unsignedBigInteger('pedido_id')->nullable();
+        //     $table->foreign('pedido_id')->references('id')->on('pedidos');
+        //     $table->string('relacion_tabla');
+        //     $table->integer('relacion_id');
+        //     $table->text('comentario');
+        //     $table->timestamps();
+        // });
     }
 
     /**

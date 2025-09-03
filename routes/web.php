@@ -600,6 +600,9 @@ Route::name('clientes.')->prefix('clientes')->group(function () {
     Route::put('/change_status', 'ClienteController@change_status')->name('change_status');
     // OBTENER CLIENTES POR COINCIDENCIA DE NOMBRE Y STATUS
     Route::get('/by_namestatus', 'ClienteController@by_namestatus')->name('by_namestatus');
+
+    // MONEDAS
+    Route::get('/get_monedas', 'ClienteController@get_monedas')->name('get_monedas');
 });
 
 // MANAGER

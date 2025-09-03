@@ -15,6 +15,7 @@ use App\Reporte;
 use App\Corte;
 use App\Destinatario;
 use App\Seguimiento;
+use App\Moneda;
 
 class ClienteController extends Controller
 {
@@ -64,7 +65,7 @@ class ClienteController extends Controller
     // OBTENER UN CLIENTE POR ID
     public function show(Request $request){
         $cliente_id = $request->cliente_id;
-        $cliente = Cliente::whereId($cliente_id)->with('user', 'estado')->first();
+        $cliente = Cliente::whereId($cliente_id)->with('user', 'estado', 'moneda')->first();
         return response()->json($cliente);
     }
     
@@ -403,5 +404,11 @@ class ClienteController extends Controller
             return response()->json($exception->getMessage());
         }
         return response()->json($cliente);
+    }
+
+    // OBTENER TIPOS DE MONEDAS
+    public function get_monedas(){
+        $monedas = Moneda::orderBy('moneda', 'asc')->get();
+        return response()->json($monedas);
     }
 }
