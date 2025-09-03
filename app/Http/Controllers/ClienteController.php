@@ -107,6 +107,7 @@ class ClienteController extends Controller
                 'tipo' => $request->tipo, 
                 'user_id' => $request->user_id, 
                 'estado_id' => $request->estado_id, 
+                'moneda_id' => $request->moneda_id, 
                 'tel_oficina' => $request->tel_oficina
             ]);
 
