@@ -16,12 +16,12 @@
                 </b-button>
             </template>
             <template #thead-top="row">
-                <tr>
-                    <th colspan="2"></th>
-                    <th>${{ total_salida | formatNumber }}</th>
-                    <th>${{ total_pagos | formatNumber }}</th>
-                    <th>${{ total_devolucion | formatNumber }}</th>
-                    <th>${{ total_pagar | formatNumber }}</th>
+                <tr v-for="(total, i) in totales">
+                    <th colspan="2" class="text-right">{{ total.codigo }}</th>
+                    <th>${{ total.totales.total_salida | formatNumber }}</th>
+                    <th>${{ total.totales.total_pagos | formatNumber }}</th>
+                    <th>${{ total.totales.total_devolucion | formatNumber }}</th>
+                    <th>${{ total.totales.total_pagar | formatNumber }}</th>
                 </tr>
             </template>
         </b-table>

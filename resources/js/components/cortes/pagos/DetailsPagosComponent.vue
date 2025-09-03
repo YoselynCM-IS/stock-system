@@ -11,7 +11,10 @@
             </b-row>
             <!-- FUNCIONES (ENCABEZADO) -->
             <b-row>
-                <b-col><h6 class="mt-3"><strong>Cuenta general</strong></h6></b-col>
+                <b-col sm="2"><h6 class="mt-3"><strong>Cuenta general</strong></h6></b-col>
+                <b-col>
+                    <h6 class="mt-3"><strong>Tipo de moneda:</strong> {{ datosCortes.moneda.codigo }} - {{ datosCortes.moneda.moneda }}</h6>
+                </b-col>
                 <b-col sm="2">
                     <b-button class="btn btn-dark" pill block
                         :href="`/pagos/download_edocuenta/${datosCortes.cliente_id}`">
@@ -131,6 +134,7 @@ export default {
             datosCortes: {
                 cliente_id: null,
                 name: null,
+                moneda: null,
                 total: null,
                 total_pagos: null,
                 total_devolucion: null,

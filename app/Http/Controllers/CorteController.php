@@ -378,6 +378,7 @@ class CorteController extends Controller
         $data = [
             'cliente_id' => $cliente_id,
             'name'  => $remcliente->cliente->name,
+            'moneda' => $remcliente->cliente->moneda,
             'total' => $remcliente->total,
             'total_pagos' => $remcliente->total_pagos,
             'total_devolucion' => $remcliente->total_devolucion,

@@ -10,6 +10,7 @@ use App\Remisione;
 use App\Cctotale;
 use App\Deposito;
 use App\Adeudo;
+use App\Moneda;
 use App\Corte;
 
 class RemclienteController extends Controller
@@ -40,6 +41,18 @@ class RemclienteController extends Controller
 
     // OBTENER TOTALES
     public function get_totales(){
+        $totales = collect();
+        $monedas = Moneda::get();
+        $monedas->map(function($moneda) use(&$totales){
+            $totales->push([
+                'codigo' => $moneda->codigo,
+                'totales' => $this->get_totales_bymoneda($moneda->id)
+            ]);
+        });
+        return response()->json($totales);
+    }
+
+    public function get_totales_bymoneda($moneda_id){
         $remclientes = \DB::table('remclientes')->select(
             \DB::raw('SUM(total) as total'),
             \DB::raw('SUM(total_devolucion) as total_devolucion'),
@@ -47,26 +60,22 @@ class RemclienteController extends Controller
             \DB::raw('SUM(total_pagar) as total_pagar')
         )->join('clientes', 'remclientes.cliente_id', '=', 'clientes.id')
         ->where('status', 'activo')
+        ->where('clientes.moneda_id', $moneda_id)
         ->get();
-        $adeudos = Adeudo::select(
-            // \DB::raw('SUM(saldo_inicial) as saldo_inicial'),
-            // \DB::raw('SUM(saldo_pagado) as saldo_pagado'),
+        $adeudos = \DB::table('adeudos')->select(
             \DB::raw('SUM(saldo_pendiente) as saldo_pendiente')
-        )->get();
+        )->join('clientes', 'adeudos.cliente_id', '=', 'clientes.id')
+        ->where('clientes.moneda_id', $moneda_id)->get();
 
         $total = $remclientes[0]->total - $adeudos[0]->saldo_pendiente;
         $total_pagos = $remclientes[0]->total_pagos - $adeudos[0]->saldo_pendiente;
         $total_pagar = $total - ($remclientes[0]->total_devolucion + $total_pagos);
-        $totales = [
-            'total' => $total,
+        return [
+            'total_salida' => $total,
             'total_devolucion' => $remclientes[0]->total_devolucion,
             'total_pagos' => $total_pagos,
-            'total_pagar' => $total_pagar, 
-            // 'saldo_inicial' => $adeudos[0]->saldo_inicial,
-            // 'saldo_pagado' => $adeudos[0]->saldo_pagado,
-            // 'saldo_pendiente' => 
+            'total_pagar' => $total_pagar
         ];
-        return response()->json($totales);
     }
 
     // OBTENER COTEJO DE LA CUENTA GENERAL CON LA DEL CLIENTE

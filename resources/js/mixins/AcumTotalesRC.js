@@ -1,10 +1,7 @@
 export default {
     data() {
         return {
-            total_salida: 0,
-            total_pagos: 0,
-            total_devolucion: 0,
-            total_pagar: 0,
+            totales: []
         }
     },
     mounted: function(){
@@ -14,14 +11,8 @@ export default {
         // OBTENER TOTALES DE TODO 
         acumular_totales(){
             axios.get('/remcliente/get_totales').then(response => {
-                this.set_totales(response.data); 
+                this.totales = response.data;
             }).catch(error => { });
-        }, 
-        set_totales(r){
-            this.total_salida       = r.total;
-            this.total_devolucion   = r.total_devolucion;
-            this.total_pagos        = r.total_pagos;
-            this.total_pagar        = r.total_pagar;
-        },
+        }
     },
 }
