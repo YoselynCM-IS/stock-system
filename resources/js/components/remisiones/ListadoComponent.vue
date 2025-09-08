@@ -168,12 +168,12 @@
                             </b-dropdown>
                         </template>
                         <template #thead-top="row">
-                            <tr v-if="total_salida > 0 && !loadTotales">
-                                <th colspan="3"></th>
-                                <th>${{ total_salida | formatNumber }}</th>
-                                <th>${{ total_pagos | formatNumber }}</th>
-                                <th>${{ total_devolucion | formatNumber }}</th>
-                                <th>${{ total_pagar | formatNumber }}</th>
+                            <tr v-if="!loadTotales" v-for="(total) in totales">
+                                <th colspan="3" class="text-right"><strong>{{ total.codigo }}</strong></th>
+                                <th>${{ total.totales.total | formatNumber }}</th>
+                                <th>${{ total.totales.total_pagos | formatNumber }}</th>
+                                <th>${{ total.totales.total_devolucion | formatNumber }}</th>
+                                <th>${{ total.totales.total_pagar | formatNumber }}</th>
                                 <th colspan="3"></th>
                             </tr>
                             <tr v-if="loadTotales">
@@ -265,9 +265,6 @@
                 remisiones: [],
                 remision: {},
                 queryCliente: '',
-                total_salida: 0,
-                total_devolucion: 0,
-                total_pagar: 0,
                 cliente_id: null,
                 options: [
                     { value: null, text: 'Selecciona una opción', disabled: true },
@@ -291,7 +288,6 @@
                 ],
                 registros: [],
                 devoluciones: [],
-                total_pagos: 0,
                 vendidos: [],
                 fieldsP: [
                     {key: 'isbn', label: 'ISBN'}, 
@@ -360,7 +356,9 @@
                 form: {
                     remisione_id: null,
                     responsable: null
-                }
+                },
+                moneda: null,
+                totales: []
             }
         },
         mounted: function(){
@@ -396,18 +394,13 @@
                     this.load = false;
                 });
             },
-            set_totales(totales){
-                this.total_salida = totales.total;
-                this.total_devolucion = totales.total_devolucion;
-                this.total_pagos = totales.total_pagos;
-                this.total_pagar = totales.total_pagar;
-            },
             // HTTP OBTENER POR CLIENTE
             http_cliente(page = 1){
                 this.load = true;
+                this.totales = [];
                 axios.get(`/buscar_por_cliente?page=${page}`, {params: {id: this.cliente_id}}).then(response => {
                     this.valores(response.data.remisiones, true, false, false);
-                    this.set_totales(response.data.totales);
+                    this.totales = response.data.totales;
                     this.load = false;
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
@@ -428,9 +421,9 @@
             },
             get_totales_fecha(){
                 this.loadTotales = true;
-                this.total_salida = 0;
+                this.totales = [];
                 axios.get('/get_totales_fecha/', { params: {cliente_id: this.cliente_id, inicio: this.inicio, final: this.final}}).then(response => {
-                    this.set_totales(response.data);
+                    this.totales = response.data;
                     this.loadTotales = false;
                 }).catch(error => {
                     // this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
@@ -444,7 +437,7 @@
                     estado: this.estadoRemision, cliente_id: this.cliente_id,}})
                 .then(response => {
                     this.valores(response.data, false, false, true);
-                    this.total_salida = 0;
+                    this.totales = [];
                     this.load = false;
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
@@ -460,7 +453,6 @@
                 this.estadoRemision = null;
                 this.num_remision = null;
                 this.clientes = [];
-                this.estadoRemision = null;
                 this.http_cliente();
             },
             // OBTENER REMISIONES POR FECHA
@@ -625,10 +617,15 @@
                             this.remisionesData = {};
                             this.remisiones = [];
                             this.remisiones.push(response.data.remision);
-                            this.total_salida = 0;
+                            this.totales = [];
                         } else {
                             this.makeToast('warning', 'El folio ingresado no existe.');
                         }
+                        this.cliente_id = null;
+                        this.queryCliente = null;
+                        this.inicio = '0000-00-00';
+                        this.final = '0000-00-00';
+                        this.estadoRemision = null;
                         this.load = false;
                         // this.acumular();
                     }).catch(error => {

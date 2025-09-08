@@ -24,6 +24,7 @@ use App\Surtido;
 use App\Vendido;
 use App\Cliente;
 use App\Reporte;
+use App\Moneda;
 use App\Pedido;
 use App\Libro;
 use App\Fecha;
@@ -77,12 +78,17 @@ class RemisionController extends Controller
 
     public function get_remcliente_totales($id){
         $remcliente = Remcliente::where('cliente_id', $id)->first();
-        return [
-            'total' => $remcliente->total,
-            'total_devolucion' => $remcliente->total_devolucion,
-            'total_pagos' => $remcliente->total_pagos,
-            'total_pagar' => $remcliente->total_pagar
-        ];
+        $totales = collect();
+        $totales->push([
+            'codigo' => $remcliente->cliente->moneda->codigo,
+            'totales' => [
+                'total' => $remcliente->total,
+                'total_devolucion' => $remcliente->total_devolucion,
+                'total_pagos' => $remcliente->total_pagos,
+                'total_pagar' => $remcliente->total_pagar
+            ]
+        ]);
+        return $totales;
     }
 
     public function f_totales($ids, $remdepositos, $depositos){
@@ -290,23 +296,16 @@ class RemisionController extends Controller
         $cliente_id = $request->cliente_id;
         $inicio = $request->inicio;
         $final = $request->final;
+        $totales = collect();
         if($cliente_id === null){
             // INICIO TOTALES
-            $remisiones_ids = Remisione::whereBetween('fecha_creacion', [$inicio, $final])
-                    ->whereNotIn('estado', ['Cancelado'])
-                    ->select('id')->get();
-            $ids = $this->f_ids($remisiones_ids);
-            $depositos = Deposito::whereIn('remisione_id', $ids)->sum('pago');
-            $clientes_ids = Remisione::whereIn('id', $ids)->select('cliente_id')->get();
-            $rc_ids = [];
-            $clientes_ids->map(function($ci) use(&$rc_ids){
-                $cliente = Cliente::find($ci->cliente_id);
-                $rc_ids[] = $cliente->remcliente->id;
+            $monedas = Moneda::get();
+            $monedas->map(function($moneda) use(&$totales, $inicio, $final){
+                $totales->push([
+                    'codigo' => $moneda->codigo,
+                    'totales' => $this->totales_fecha_moneda($inicio, $final, $moneda->id)
+                ]);
             });
-            $remdepositos = Remdeposito::whereIn('remcliente_id', $rc_ids)
-                    ->whereBetween('fecha', [$inicio, $final])
-                    ->sum('pago');
-            $totales = $this->f_totales($ids, $remdepositos, $depositos);
             // FIN TOTALES
         } else {
             // INICIO TOTALES
@@ -320,11 +319,35 @@ class RemisionController extends Controller
             $remdepositos = Remdeposito::where('remcliente_id', $cliente->remcliente->id)
                 ->whereBetween('fecha', [$inicio, $final])
                 ->sum('pago');
-            $totales = $this->f_totales($ids, $remdepositos, $depositos);
+            $totales->push([
+                'codigo' => $cliente->moneda->codigo,
+                'totales' => $this->f_totales($ids, $remdepositos, $depositos)
+            ]);
             // FIN TOTALES
         }
         return response()->json($totales);
     }
+
+    // OBTENER TOTALES POR TIPO DE MONEDA Y FECHA
+    public function totales_fecha_moneda($inicio, $final, $moneda){
+        $remisiones_ids = \DB::table('remisiones')->join('clientes', 'remisiones.cliente_id', '=', 'clientes.id')
+                ->where('clientes.moneda_id', $moneda)
+                ->whereBetween('remisiones.fecha_creacion', [$inicio, $final])
+                ->whereNotIn('remisiones.estado', ['Cancelado'])
+                ->pluck('remisiones.id');
+        $depositos = Deposito::whereIn('remisione_id', $remisiones_ids)->sum('pago');
+        $clientes_ids = Remisione::whereIn('id', $remisiones_ids)->select('cliente_id')->get();
+        $rc_ids = [];
+        $clientes_ids->map(function($ci) use(&$rc_ids){
+            $cliente = Cliente::find($ci->cliente_id);
+            $rc_ids[] = $cliente->remcliente->id;
+        });
+        $remdepositos = Remdeposito::whereIn('remcliente_id', $rc_ids)
+                ->whereBetween('fecha', [$inicio, $final])
+                ->sum('pago');
+        return $this->f_totales($remisiones_ids, $remdepositos, $depositos);
+    }
+
 
     // --- DESCARGAR ---
     // DESCARGAR REPORTE GENERAL Y DETALLADO
