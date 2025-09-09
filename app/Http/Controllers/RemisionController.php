@@ -1563,7 +1563,7 @@ class RemisionController extends Controller
     public function get_details($id){
         $remision = Remisione::whereId($id)
                     ->with([
-                        'cliente',
+                        'cliente.moneda',
                         'datos.libro',
                         'datos.codes',
                         'depositos',

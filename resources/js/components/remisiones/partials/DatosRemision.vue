@@ -4,6 +4,7 @@
         <b-row class="mb-3">
             <b-col sm="8">
                 <label><b>Cliente:</b> {{ cliente_name }}</label><br>
+                <label><b>Tipo de moneda:</b> {{ remision.cliente.moneda.codigo }} - {{ remision.cliente.moneda.moneda }}</label><br>
                 <label v-if="remision.destino != null"><b>Enviado a:</b> {{ remision.destino }}</label>
             </b-col>
             <b-col sm="4">
