@@ -37,6 +37,7 @@
         </b-row>
         <hr>
         <datos-pedido :cliente_name="pedido.cliente.name" 
+                    :moneda="pedido.cliente.moneda"
                     :user_name="pedido.user.name" 
                     :created_at="pedido.created_at">
         </datos-pedido>

@@ -29,7 +29,7 @@ class PedidoController extends Controller
 
     // DETALLES DEL PEDIDO
     public function show($pedido_id, $notification_id = null){
-        $pedido = Pedido::whereId($pedido_id)->with('user', 'cliente', 'peticiones.libro', 'orders.remisiones.cliente', 'surtidos')->first();
+        $pedido = Pedido::whereId($pedido_id)->with('user', 'cliente.moneda', 'peticiones.libro', 'orders.remisiones.cliente', 'surtidos')->first();
         $notification = auth()->user()->unreadNotifications->where('id', $notification_id);
         $notification->map(function($n){
             $n->markAsRead();

@@ -3,6 +3,7 @@
         <b-row class="mb-2">
             <b-col sm="8">
                 <h6><b>Cliente:</b> {{ cliente_name }}</h6>
+                <h6 v-if="moneda"><b>Moneda:</b> {{ moneda.codigo }} - {{ moneda.moneda }}</h6>
             </b-col>
             <b-col>
                 <b-row>
@@ -21,7 +22,7 @@
 <script>
 import moment from '../../../mixins/moment';
 export default {
-    props: ['cliente_name', 'user_name', 'created_at'],
+    props: ['cliente_name', 'moneda', 'user_name', 'created_at'],
     mixins: [moment]
 }
 </script>
