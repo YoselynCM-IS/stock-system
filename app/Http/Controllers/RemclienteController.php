@@ -42,13 +42,32 @@ class RemclienteController extends Controller
     // OBTENER TOTALES
     public function get_totales(){
         $totales = collect();
-        $monedas = Moneda::get();
-        $monedas->map(function($moneda) use(&$totales){
-            $totales->push([
+        $todo = [
+            'codigo' => '',
+            'totales' => [
+                'total_salida' => 0,
+                'total_devolucion' => 0,
+                'total_pagos' => 0,
+                'total_pagar' => 0
+            ]
+        ];
+        $monedas = Moneda::orderBy('codigo', 'desc')->get();
+        $monedas->map(function($moneda) use(&$totales, &$todo){
+            $actual = [
                 'codigo' => $moneda->codigo,
                 'totales' => $this->get_totales_bymoneda($moneda->id)
-            ]);
+            ];
+
+            $todo['totales']['total_salida'] = $todo['totales']['total_salida'] + ($actual['totales']['total_salida'] * $moneda->valor);
+            $todo['totales']['total_devolucion'] = $todo['totales']['total_devolucion'] + ($actual['totales']['total_devolucion'] * $moneda->valor);
+            $todo['totales']['total_pagos'] = $todo['totales']['total_pagos'] + ($actual['totales']['total_pagos'] * $moneda->valor);
+            $todo['totales']['total_pagar'] = $todo['totales']['total_pagar'] + ($actual['totales']['total_pagar'] * $moneda->valor);
+            
+            $totales->push($actual);
         });
+        
+        $totales->push($todo);
+        
         return response()->json($totales);
     }
 
