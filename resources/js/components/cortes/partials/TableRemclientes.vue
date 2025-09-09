@@ -22,6 +22,7 @@
                     <th>${{ total.totales.total_pagos | formatNumber }}</th>
                     <th>${{ total.totales.total_devolucion | formatNumber }}</th>
                     <th>${{ total.totales.total_pagar | formatNumber }}</th>
+                    <th></th>
                 </tr>
             </template>
         </b-table>

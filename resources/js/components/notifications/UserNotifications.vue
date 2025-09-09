@@ -58,12 +58,12 @@ import DetailsActividad from '../actividades/partials/DetailsActividad.vue';
             this.noleidos.forEach(noleido => {
                 this.notifications.push(this.get_notificaciones(noleido, noleido.data.actividad, noleido.data.mensaje));
             });
-            Echo.private('App.User.' + this.user_id)
-                .notification((notification) => {
-                    this.notifications.unshift(this.get_notificaciones(notification, notification.actividad, notification.mensaje));
-                    if (notification.type.includes('RecordarActNotification'))
-                        this.messageAlert('center', 'info', `${notification.actividad.nombre}: ${notification.mensaje}`, null, 'info');
-                });
+            // Echo.private('App.User.' + this.user_id)
+            //     .notification((notification) => {
+            //         this.notifications.unshift(this.get_notificaciones(notification, notification.actividad, notification.mensaje));
+            //         if (notification.type.includes('RecordarActNotification'))
+            //             this.messageAlert('center', 'info', `${notification.actividad.nombre}: ${notification.mensaje}`, null, 'info');
+            //     });
         },
         methods: {
             get_notificaciones(datos, actividad, mensaje){
