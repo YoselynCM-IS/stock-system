@@ -43,7 +43,7 @@ class RemclienteController extends Controller
     public function get_totales(){
         $totales = collect();
         $todo = [
-            'codigo' => '',
+            'codigo' => 'TOTAL MXN',
             'totales' => [
                 'total_salida' => 0,
                 'total_devolucion' => 0,

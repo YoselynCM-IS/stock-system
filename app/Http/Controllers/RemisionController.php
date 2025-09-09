@@ -78,17 +78,28 @@ class RemisionController extends Controller
 
     public function get_remcliente_totales($id){
         $remcliente = Remcliente::where('cliente_id', $id)->first();
+        $moneda = $remcliente->cliente->moneda;
         $totales = collect();
-        $totales->push([
-            'codigo' => $remcliente->cliente->moneda->codigo,
-            'totales' => [
-                'total' => $remcliente->total,
-                'total_devolucion' => $remcliente->total_devolucion,
-                'total_pagos' => $remcliente->total_pagos,
-                'total_pagar' => $remcliente->total_pagar
-            ]
-        ]);
+        $totales->push($this->set_totales_mxn($moneda->codigo, $remcliente->total, $remcliente->total_devolucion, $remcliente->total_pagos, $remcliente->total_pagar, 1));
+        
+        if($moneda->codigo == 'USD'){
+            $totales->push($this->set_totales_mxn('TOTAL MXN', $remcliente->total, $remcliente->total_devolucion, $remcliente->total_pagos, $remcliente->total_pagar, $moneda->valor));
+        }
+
         return $totales;
+    }
+
+    // ASIGNAR TOTALES DE TIPO DE MONEDA
+    public function set_totales_mxn($codigo, $total, $total_devolucion, $total_pagos, $total_pagar, $valor){
+        return [
+            'codigo' => $codigo,
+            'totales' => [
+                'total' => $total * $valor,
+                'total_devolucion' => $total_devolucion * $valor,
+                'total_pagos' => $total_pagos * $valor,
+                'total_pagar' => $total_pagar * $valor
+            ]
+        ];
     }
 
     public function f_totales($ids, $remdepositos, $depositos){
@@ -296,16 +307,33 @@ class RemisionController extends Controller
         $cliente_id = $request->cliente_id;
         $inicio = $request->inicio;
         $final = $request->final;
+        $todo = [
+            'codigo' => 'TOTAL MXN',
+            'totales' => [
+                'total' => 0,
+                'total_devolucion' => 0,
+                'total_pagos' => 0,
+                'total_pagar' => 0
+            ]
+        ];
         $totales = collect();
         if($cliente_id === null){
             // INICIO TOTALES
-            $monedas = Moneda::get();
-            $monedas->map(function($moneda) use(&$totales, $inicio, $final){
-                $totales->push([
+            $monedas = Moneda::orderBy('codigo', 'desc')->get();
+            $monedas->map(function($moneda) use(&$totales, $inicio, $final, &$todo){
+                $actual = [
                     'codigo' => $moneda->codigo,
                     'totales' => $this->totales_fecha_moneda($inicio, $final, $moneda->id)
-                ]);
+                ];
+
+                $todo['totales']['total'] = $todo['totales']['total'] + ($actual['totales']['total'] * $moneda->valor);
+                $todo['totales']['total_devolucion'] = $todo['totales']['total_devolucion'] + ($actual['totales']['total_devolucion'] * $moneda->valor);
+                $todo['totales']['total_pagos'] = $todo['totales']['total_pagos'] + ($actual['totales']['total_pagos'] * $moneda->valor);
+                $todo['totales']['total_pagar'] = $todo['totales']['total_pagar'] + ($actual['totales']['total_pagar'] * $moneda->valor);
+                
+                $totales->push($actual);
             });
+            $totales->push($todo);
             // FIN TOTALES
         } else {
             // INICIO TOTALES
@@ -319,10 +347,16 @@ class RemisionController extends Controller
             $remdepositos = Remdeposito::where('remcliente_id', $cliente->remcliente->id)
                 ->whereBetween('fecha', [$inicio, $final])
                 ->sum('pago');
-            $totales->push([
+
+            $actual = [
                 'codigo' => $cliente->moneda->codigo,
                 'totales' => $this->f_totales($ids, $remdepositos, $depositos)
-            ]);
+            ];
+            $totales->push($actual);
+
+            if($cliente->moneda->codigo == 'USD'){
+                $totales->push($this->set_totales_mxn('TOTAL MXN', $actual['totales']['total'], $actual['totales']['total_devolucion'], $actual['totales']['total_pagos'], $actual['totales']['total_pagar'], $cliente->moneda->valor));
+            }
             // FIN TOTALES
         }
         return response()->json($totales);
