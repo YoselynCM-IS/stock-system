@@ -15,6 +15,7 @@ class GAccountExport implements FromCollection, WithHeadings
         return [
             // 'id',
             'CLIENTE', 
+            'MONEDA',
             'TOTAL',
             'PAGOS',
             'DEVOLUCIÓN',
@@ -26,9 +27,11 @@ class GAccountExport implements FromCollection, WithHeadings
     {
         $remisiones = \DB::table('remclientes')
             ->join('clientes', 'remclientes.cliente_id', '=', 'clientes.id')
+            ->join('monedas', 'monedas.id', '=', 'clientes.moneda_id')
             ->select(
                 // 'clientes.id as id', 
                 'clientes.name as name', 
+                'monedas.codigo',
                 'total', 'total_pagos', 
                 'total_devolucion', 'total_pagar'
             )
