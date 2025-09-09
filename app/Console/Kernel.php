@@ -28,10 +28,11 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
-        $schedule->command('actividades:vencidos')->everyMinute();
-        $schedule->command('actividades:pendprox')->hourly();
-        $schedule->command('actividades:recordatorio')->everyTenMinutes();
+        // $schedule->command('actividades:vencidos')->everyMinute();
+        // $schedule->command('actividades:pendprox')->hourly();
+        // $schedule->command('actividades:recordatorio')->everyTenMinutes();
         $schedule->command('codes:baja')->everyMinute();
+        $schedule->command('tipo-cambio:actualizar')->dailyAt('13:00'); // después de que Banxico publica
         // ->twiceDaily(7, 19);
     }
 
