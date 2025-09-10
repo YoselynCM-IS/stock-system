@@ -66,7 +66,10 @@ class RemisionController extends Controller
         $cliente = Cliente::find($id);
 
         // INICIO TOTALES
-        $totales = $this->get_remcliente_totales($id);
+        $totales = null;
+        if(auth()->user()->role_id != 3){
+            $totales = $this->get_remcliente_totales($id);
+        }
         // FIN TOTALES
 
         $remisiones = Remisione::where('cliente_id', $cliente->id)

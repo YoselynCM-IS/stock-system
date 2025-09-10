@@ -135,7 +135,7 @@
                             @click="registrarDevolucion(row.item, row.index)" variant="dark" pill>Devolución
                         </b-button>
                     </template>
-                    <template #thead-top="row">
+                    <template v-if="role_id != 3" #thead-top="row">
                         <tr>
                             <th colspan="4"></th>
                             <th>{{ total_unidades | formatNumber }}</th>
@@ -819,20 +819,22 @@ import sweetAlert from '../../mixins/sweetAlert';
                 this.listadoEntradas = false;
             },
             acumular(){
-                this.total = 0;
-                this.total_pagos = 0;
-                this.total_devolucion = 0;
-                this.total_pendiente = 0;
-                this.total_unidades = 0;
-                this.entradas.forEach(entrada => {
-                    if(entrada.editorial !== 'MAJESTIC EDUCATION'){
-                        this.total += entrada.total;
-                        this.total_pagos += entrada.total_pagos;
-                        this.total_devolucion += entrada.total_devolucion;
-                        this.total_pendiente += entrada.total - entrada.total_pagos;
-                        this.total_unidades += entrada.unidades;
-                    }
-                });
+                if(this.role_id != 3){
+                    this.total = 0;
+                    this.total_pagos = 0;
+                    this.total_devolucion = 0;
+                    this.total_pendiente = 0;
+                    this.total_unidades = 0;
+                    this.entradas.forEach(entrada => {
+                        if(entrada.editorial !== 'MAJESTIC EDUCATION'){
+                            this.total += entrada.total;
+                            this.total_pagos += entrada.total_pagos;
+                            this.total_devolucion += entrada.total_devolucion;
+                            this.total_pendiente += entrada.total - entrada.total_pagos;
+                            this.total_unidades += entrada.unidades;
+                        }
+                    });
+                }
             },
             sumatoriaSubtotal(){
                 this.subtotal = 0;

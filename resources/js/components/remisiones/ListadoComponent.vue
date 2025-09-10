@@ -465,7 +465,9 @@
                             this.num_remision = null;
                             this.estadoRemision = null;
                             this.http_fecha();
-                            this.get_totales_fecha();
+                            if(this.role_id != 3){
+                                this.get_totales_fecha();
+                            }
                         // } else {
                         //     this.makeToast('warning', 'La fecha DE y la fecha A solo puede tener máximo un mes de diferencia.');
                         // }

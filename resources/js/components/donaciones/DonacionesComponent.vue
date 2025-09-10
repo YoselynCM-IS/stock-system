@@ -100,7 +100,7 @@
                             <i class="fa fa-frown-o"></i>
                         </b-button>
                     </template>
-                    <template #thead-top="row">
+                    <template #thead-top="row" v-if="role_id != 3">
                         <tr>
                             <th colspan="2"></th>
                             <th>{{ total_unidades | formatNumber }}</th>
@@ -912,10 +912,12 @@ import busqScratchComponent from '../funciones/scratch/busqScratchComponent.vue'
                 this.inputISBN = true;
             },
             acumular_unidades(){
-                this.total_unidades = 0;
-                this.regalos.forEach(regalo => {
-                    this.total_unidades += regalo.unidades;
-                });
+                if(this.role_id != 3){
+                    this.total_unidades = 0;
+                    this.regalos.forEach(regalo => {
+                        this.total_unidades += regalo.unidades;
+                    });
+                }
             },
             acum_unidades_crear(){
                 this.regalo.unidades = 0;

@@ -108,7 +108,7 @@
                             Devolución
                         </b-button>
                     </template>
-                    <template #thead-top="row">
+                    <template #thead-top="row" v-if="role_id != 3">
                         <tr>
                             <th colspan="6"></th>
                             <th>{{ total_unidades | formatNumber }}</th>
@@ -906,10 +906,12 @@ import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
                 this.inputISBN = true;
             },
             acumular_unidades(){
-                this.total_unidades = 0;
-                this.promotions.forEach(promotion => {
-                    this.total_unidades += promotion.unidades_pendientes;
-                });
+                if(this.role_id != 3){
+                    this.total_unidades = 0;
+                    this.promotions.forEach(promotion => {
+                        this.total_unidades += promotion.unidades_pendientes;
+                    });
+                }
             },
             acum_unidades_crear(){
                 this.unidades_crear = 0;
