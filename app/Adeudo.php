@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Cliente;
 use App\Corte;
 
 class Adeudo extends Model
@@ -14,6 +15,11 @@ class Adeudo extends Model
     // 1 a muchas (Inversa)
     public function corte(){
         return $this->belongsTo(Corte::class);
+    }
+
+    // 1 a muchas (Inversa)
+    public function cliente(){
+        return $this->belongsTo(Cliente::class);
     }
 
     //Uno a muchos

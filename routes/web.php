@@ -690,6 +690,9 @@ Route::name('cortes.')->prefix('cortes')->group(function () {
             Route::get('/get', 'CorteController@get_abonos')->name('get');
         });
     });
+
+    // CAMBIAR EL TIPO DE MONEDA EN LOS DETALLES DEL CORTE
+    Route::get('/chance_currency', 'CorteController@chance_currency')->name('chance_currency');
 });
 
 Route::get('/information/majestic', function () {

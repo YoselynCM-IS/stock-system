@@ -444,7 +444,6 @@ export default {
                 this.$refs['modal-confirmar-remision'].hide();
                 axios.post('/remisiones/store', this.remision).then(response => {
                     this.load = false;
-                    // console.log(response.data);
                     this.messageAlert('center', 'success', 'La remisión se creó correctamente.', '/login', 'close-opener');
                 }).catch(error => {
                     this.load = false;

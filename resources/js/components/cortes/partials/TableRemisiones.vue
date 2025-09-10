@@ -17,7 +17,7 @@
             </template>
             <template v-slot:cell(actions)="row">
                 <b-button v-if="role_id == 6 && (row.item.total_pagar == row.item.total)" 
-                    pill size="sm" variant="primary" @click="moveRemisione(row.item)">
+                    pill size="sm" variant="primary" @click="moveRemisione(row.item)" :disabled="statusCurrency">
                     <i class="fa fa-exchange"></i>
                 </b-button>
             </template>
@@ -47,7 +47,7 @@ import toast from '../../../mixins/toast';
 import sweetAlert from '../../../mixins/sweetAlert';
 export default {
     components: { AlertVComponent },
-    props: ['remisiones', 'showTitle', 'role_id'],
+    props: ['remisiones', 'showTitle', 'role_id', 'statusCurrency'],
     mixins: [formatNumber, setCortes, toast, sweetAlert],
     data(){
         return {

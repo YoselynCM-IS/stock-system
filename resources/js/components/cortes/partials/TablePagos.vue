@@ -14,7 +14,7 @@
             <template v-if="role_id == 1 || role_id == 2 || role_id == 6 || role_id == 10" 
                 v-slot:cell(fotos)="row">
                 <b-button v-if="!row.item.foto" pill size="sm" variant="info" 
-                    @click="selectImage(row.item)">
+                    @click="selectImage(row.item)" :disabled="statusCurrency">
                     <i class="fa fa-upload"></i>
                 </b-button>
                 <b-button v-else pill size="sm" variant="dark" 
@@ -26,13 +26,13 @@
                 </a> -->
             </template>
             <template v-if="role_id == 6" v-slot:cell(actions)="row">
-                <b-button pill size="sm" variant="primary" @click="movePago(row.item)">
+                <b-button pill size="sm" variant="primary" @click="movePago(row.item)" :disabled="statusCurrency">
                     <i class="fa fa-exchange"></i>
                 </b-button>
-                <b-button pill size="sm" variant="warning" @click="editPago(row.item)">
+                <b-button pill size="sm" variant="warning" @click="editPago(row.item)" :disabled="statusCurrency">
                     <i class="fa fa-pencil"></i>
                 </b-button>
-                <b-button pill size="sm" variant="danger" @click="deletePago(row.item)">
+                <b-button pill size="sm" variant="danger" @click="deletePago(row.item)" :disabled="statusCurrency">
                     <i class="fa fa-close"></i>
                 </b-button>
             </template>
@@ -87,7 +87,7 @@ import sweetAlert from '../../../mixins/sweetAlert';
 import moment from '../../../mixins/moment';
 export default {
     components: {AlertVComponent, EditPagoComponent, SubirFotoComponent},
-    props: ['remdepositos', 'cortePagar', 'showTitle', 'cliente_id','role_id'],
+    props: ['remdepositos', 'cortePagar', 'showTitle', 'cliente_id','role_id', 'statusCurrency'],
     mixins: [formatNumber, setCortes, toast, sweetAlert, moment],
     data(){
         return {

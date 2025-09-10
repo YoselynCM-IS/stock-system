@@ -91,7 +91,7 @@ import NoRegistrosComponent from '../../funciones/NoRegistrosComponent.vue';
 import LoadComponent from './LoadComponent.vue';
 export default {
     components: { FormPagoComponent, NoRegistrosComponent, LoadComponent },
-    props: ['adeudos'],
+    props: ['adeudos', 'statusCurrency'],
     mixins: [formatNumber, moment, toast, sweetAlert],
     data() {
         return {
@@ -127,7 +127,7 @@ export default {
         // MOSTRAR PAGOS DE ADUEDOS
         pagosAdeudos(adeudo) {
             this.load = true;
-            axios.get('/cortes/adeudos/abonos/get', { params: { adeudo_id: adeudo.id } }).then(response => {
+            axios.get('/cortes/adeudos/abonos/get', { params: { adeudo_id: adeudo.id,  statusCurrency: this.statusCurrency } }).then(response => {
                 this.adeudo = adeudo;
                 this.abonos = response.data;
                 this.$refs['modal-details'].show();

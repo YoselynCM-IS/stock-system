@@ -11,9 +11,13 @@
             </b-row>
             <!-- FUNCIONES (ENCABEZADO) -->
             <b-row>
-                <b-col sm="2"><h6 class="mt-3"><strong>Cuenta general</strong></h6></b-col>
                 <b-col>
                     <h6 class="mt-3"><strong>Tipo de moneda:</strong> {{ datosCortes.moneda.codigo }} - {{ datosCortes.moneda.moneda }}</h6>
+                </b-col>
+                <b-col sm="2" v-if="datosCortes.moneda.codigo == 'USD'">
+                    <b-button class="btn btn-dark" pill block @click="changeCurrency()" :disabled="statusCurrency">
+                        <i class="fa fa-exchange"></i> Moneda
+                    </b-button>
                 </b-col>
                 <b-col sm="2">
                     <b-button class="btn btn-dark" pill block
@@ -26,7 +30,7 @@
                         <i class="fa fa-money"></i> Ficticios
                     </b-button>
                 </b-col>
-                <b-col  v-if="datosCortes.adeudos.length > 0" sm="2">
+                <b-col sm="2" v-if="datosCortes.adeudos.length > 0">
                     <b-button variant="dark" pill block @click="viewAdeudos = !viewAdeudos">
                         <b-icon-eye-slash-fill v-if="viewAdeudos"></b-icon-eye-slash-fill>
                         <b-icon-eye-fill v-else></b-icon-eye-fill> 
@@ -54,13 +58,13 @@
                                 </b-col>
                                 <b-col sm="2">
                                     <b-button v-if="corte.total_pagar > 0" @click="registrarPago(corte)"
-                                        pill block size="sm" variant="dark">
+                                        pill block size="sm" variant="dark" :disabled="statusCurrency">
                                         Pago
                                     </b-button>
                                 </b-col>
                                 <b-col sm="2">
                                     <b-button v-if="corte.total_pagar > 0" @click="addAdeudo(corte)"
-                                        pill block size="sm" variant="dark">
+                                        pill block size="sm" variant="dark" :disabled="statusCurrency">
                                         Adeudo
                                     </b-button>
                                 </b-col>
@@ -71,10 +75,10 @@
                                     <b-tab title="Pagos" active>
                                         <table-pagos :cortePagar="corte.total_pagar"
                                             :remdepositos="corte.remdepositos" :role_id="role_id"
-                                            :cliente_id="corte.cliente_id" :showTitle="false"></table-pagos>
+                                            :cliente_id="corte.cliente_id" :showTitle="false" :statusCurrency="statusCurrency"></table-pagos>
                                     </b-tab>
                                     <b-tab title="Remisiones">
-                                        <table-remisiones :remisiones="corte.remisiones" :showTitle="false" :role_id="role_id"></table-remisiones>
+                                        <table-remisiones :remisiones="corte.remisiones" :showTitle="false" :role_id="role_id" :statusCurrency="statusCurrency"></table-remisiones>
                                     </b-tab>
                                 </b-tabs>
                             </b-collapse>
@@ -82,7 +86,7 @@
                     </div>
                 </b-col>
                 <b-col v-if="viewAdeudos && datosCortes.adeudos.length > 0" sm="6">
-                    <adeudos-component :adeudos="datosCortes.adeudos"></adeudos-component>
+                    <adeudos-component :adeudos="datosCortes.adeudos" :statusCurrency="statusCurrency"></adeudos-component>
                 </b-col>
             </b-row>
         </div>
@@ -163,7 +167,8 @@ export default {
                 'nota', 'pago',
             ],
             total_ficticios: 0,
-            viewAdeudos: true
+            viewAdeudos: true,
+            statusCurrency: false
         }
     },
     created: function(){
@@ -212,7 +217,7 @@ export default {
         // OBTENER PAGOS FICTICIOS
         showFicticios() {
             this.load = true;
-            axios.get('/cortes/by_ficticios', { params: { cliente_id: this.clienteid } }).then(response => {
+            axios.get('/cortes/by_ficticios', { params: { cliente_id: this.clienteid, statusCurrency: this.statusCurrency } }).then(response => {
                 this.ficticios = response.data.remdepositos;
                 if (this.ficticios.length > 0) {
                     this.total_ficticios = response.data.total;
@@ -249,6 +254,17 @@ export default {
             };
             axios.post('/cortes/adeudos/save', form).then(response => {
                 this.messageAlert('center', 'success', 'El saldo se agrego correctamente a adeudos', null, 'reload');
+                this.load = false;
+            }).catch(error => {
+                this.load = false;
+            });
+        },
+        // CAMBIAR EL TIPO DE MONEDA
+        changeCurrency(){
+            this.load = true;
+            axios.get('/cortes/chance_currency', { params: { cliente_id: this.clienteid } }).then(response => {
+                this.datosCortes = response.data;
+                this.statusCurrency = true;
                 this.load = false;
             }).catch(error => {
                 this.load = false;

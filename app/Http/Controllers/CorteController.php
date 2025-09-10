@@ -357,15 +357,9 @@ class CorteController extends Controller
         $cliente_id = $request->cliente_id;
         $remcliente = Remcliente::where('cliente_id', $cliente_id)
                             ->with('cliente')->first();
-        $cctotales = \DB::table('cctotales')
-                        ->select('cctotales.*', 'cortes.tipo', 'cortes.inicio',
-                                'cortes.final', 'clientes.name as cliente'
-                        )->where('cliente_id', $cliente_id)
-                        ->join('cortes', 'cctotales.corte_id', '=', 'cortes.id')
-                        ->join('clientes', 'cctotales.cliente_id', '=', 'clientes.id')
-                        ->orderBy('cortes.inicio', 'desc')
-                        ->get();
+        $cctotales = $this->get_cctotales_cliente($cliente_id);
         $cortes = $this->org_remisiones($cctotales);
+        // ACTUALIZAR SALDOS
         $hoy = Carbon::now();
         $saldos = Adeudo::where('cliente_id', $cliente_id)->where('saldo_pendiente', '>', 0)->get();
         $saldos->map(function($adeudo) use($hoy){
@@ -373,7 +367,7 @@ class CorteController extends Controller
             $rango = $this->get_rango($diferencia);
             $adeudo->update(['dias' => $diferencia, 'rango' => $rango]);
         });
-        
+        // FIN ACTUALIZAR SALDOS
         $adeudos = Adeudo::where('cliente_id', $cliente_id)->with('corte')->orderBy('created_at', 'desc')->get();
         $data = [
             'cliente_id' => $cliente_id,
@@ -387,6 +381,18 @@ class CorteController extends Controller
             'adeudos' => $adeudos
         ];    
         return response()->json($data);
+    }
+
+    // OBTENER LOS CORTES
+    public function get_cctotales_cliente($cliente_id){
+        return \DB::table('cctotales')
+            ->select('cctotales.*', 'cortes.tipo', 'cortes.inicio',
+                    'cortes.final', 'clientes.name as cliente'
+            )->where('cliente_id', $cliente_id)
+            ->join('cortes', 'cctotales.corte_id', '=', 'cortes.id')
+            ->join('clientes', 'cctotales.cliente_id', '=', 'clientes.id')
+            ->orderBy('cortes.inicio', 'desc')
+            ->get();
     }
 
     // OBTENER RANGO
@@ -734,6 +740,19 @@ class CorteController extends Controller
                             ->where('tipo', 'ficticio')
                             ->with('corte')
                             ->orderBy('created_at', 'desc')->get();
+
+        if($request->statusCurrency == 'true'){
+            $valor = $cliente->moneda->valor;
+            $curr_depositos = collect();
+            $remdepositos->map(function($rd) use(&$curr_depositos, $valor){
+                $curr_depositos->push($this->set_remdeposito($rd, $valor));
+            });
+            return response()->json([
+                'remdepositos' => $curr_depositos,
+                'total' => $curr_depositos->sum('pago')
+            ]);
+        }
+
         return response()->json([
             'remdepositos' => $remdepositos,
             'total' => $remdepositos->sum('pago')
@@ -824,6 +843,139 @@ class CorteController extends Controller
     // OBTENER ABONOS
     public function get_abonos(Request $request){
         $abonos = Abono::where('adeudo_id', $request->adeudo_id)->orderBy('created_at', 'desc')->get();
+        if($request->statusCurrency == 'true'){
+            $adeudo = Adeudo::find($request->adeudo_id);
+            $valor = $adeudo->cliente->moneda->valor;
+            $curr_abonos = collect();
+            $abonos->map(function($abono) use(&$curr_abonos, $valor){
+                $curr_abonos->push([
+                    'adeudo_id' => $abono->adeudo_id,
+                    'created_at' => $abono->created_at,
+                    'deleted_at' => $abono->deleted_at,
+                    'fecha' => $abono->fecha,
+                    'id' => $abono->id,
+                    'ingresado_por' => $abono->ingresado_por,
+                    'nota' => $abono->nota,
+                    'pago' => $abono->pago * $valor,
+                    'updated_at' => $abono->updated_at,
+                ]);
+            });
+
+            return response()->json($curr_abonos);
+        }
+        
         return response()->json($abonos);
+    }
+
+    // CAMBIAR EL TIPO DE MONEDA DE LOS DETALLES DEL CORTE
+    public function chance_currency(Request $request){
+        $cliente_id = $request->cliente_id;
+        $remcliente = Remcliente::where('cliente_id', $cliente_id)
+                            ->with('cliente')->first();
+        $valor = $remcliente->cliente->moneda->valor;
+        $cctotales = $this->get_cctotales_cliente($cliente_id);
+        $cortes = collect();
+        $cortes_temp = collect($this->org_remisiones($cctotales));
+        $cortes_temp->map(function($ct) use(&$cortes, $valor){
+            $remdepositos = collect();
+            collect($ct['remdepositos'])->map(function($rd) use(&$remdepositos, $valor){
+                $remdepositos->push($this->set_remdeposito($rd, $valor));
+            });
+
+            $remisiones = collect();
+            collect($ct['remisiones'])->map(function($r) use(&$remisiones, $valor){
+                $remisiones->push([
+                    'cerrado_por' => $r->cerrado_por,
+                    'cliente_id' => $r->cliente_id,
+                    'corte_id' => $r->corte_id,
+                    'created_at' => $r->created_at,
+                    'deleted_at' => $r->deleted_at,
+                    'destino' => $r->destino,
+                    'estado' => $r->estado,
+                    'fecha_creacion' => $r->fecha_creacion,
+                    'fecha_devolucion' => $r->fecha_devolucion,
+                    'fecha_entrega' => $r->fecha_entrega,
+                    'id' => $r->id,
+                    'pagos' => $r->pagos * $valor,
+                    'paqueteria_id' => $r->paqueteria_id,
+                    'responsable' => $r->responsable,
+                    'total' => $r->total * $valor,
+                    'total_devolucion' => $r->total_devolucion * $valor,
+                    'total_pagar' => $r->total_pagar * $valor,
+                    'updated_at' => $r->updated_at,
+                    'user_id' => $r->user_id,
+                ]);
+            });
+
+            $cortes->push([
+                'cliente' => $ct['cliente'],
+                'cliente_id' => $ct['cliente_id'],
+                'corte' => $ct['corte'],
+                'corte_id' => $ct['corte_id'],
+                'corte_id_favor' => $ct['corte_id_favor'], 
+                'final' => $ct['final'],
+                'inicio' => $ct['inicio'],
+                'remdepositos' => $remdepositos,
+                'remisiones' => $remisiones,
+                'total' => $ct['total'] * $valor,
+                'total_devolucion' => $ct['total_devolucion'] * $valor,
+                'total_favor' => $ct['total_favor'] * $valor,
+                'total_pagar' => $ct['total_pagar'] * $valor,
+                'total_pagos' => $ct['total_pagos'] * $valor,
+                'visible' => $ct['visible'],
+            ]);
+        });
+
+        $adeudos = collect();
+        $adeudos_temp = Adeudo::where('cliente_id', $cliente_id)->with('corte')->orderBy('created_at', 'desc')->get();
+        $adeudos_temp->map(function($at) use(&$adeudos, $valor){
+            $adeudos->push([
+                'cliente_id' => $at->cliente_id,
+                'corte' => $at->corte,
+                'corte_id' => $at->corte_id,
+                'created_at' => $at->created_at,
+                'dias' => $at->dias,
+                'id' => $at->id,
+                'ingresado_por' => $at->ingresado_por,
+                'rango' => $at->rango,
+                'remdeposito_id' => $at->remdeposito_id,
+                'saldo_inicial' => $at->saldo_inicial * $valor,
+                'saldo_pagado' => $at->saldo_pagado * $valor,
+                'saldo_pendiente' => $at->saldo_pendiente * $valor,
+                'updated_at' => $at->updated_at
+            ]);
+        });
+        $data = [
+            'cliente_id' => $cliente_id,
+            'name'  => $remcliente->cliente->name,
+            'moneda' => $remcliente->cliente->moneda,
+            'total' => $remcliente->total * $valor,
+            'total_pagos' => $remcliente->total_pagos * $valor,
+            'total_devolucion' => $remcliente->total_devolucion * $valor,
+            'total_pagar' => $remcliente->total_pagar * $valor,
+            'cortes' => $cortes,
+            'adeudos' => $adeudos
+        ]; 
+        return response()->json($data);
+    }
+
+    // ASIGNAR VALORES PARA REMDEPOSITO
+    public function set_remdeposito($remdeposito, $valor){
+        return [
+            'corte' => $remdeposito->corte,
+            'corte_id' => $remdeposito->corte_id,
+            'created_at' => $remdeposito->created_at,
+            'deleted_at' => $remdeposito->deleted_at,
+            'fecha' => $remdeposito->fecha,
+            'foto' => $remdeposito->foto,
+            'id' => $remdeposito->id,
+            'ingresado_por' => $remdeposito->ingresado_por,
+            'nota' => $remdeposito->nota,
+            'pago' => $remdeposito->pago * $valor,
+            'remcliente_id' => $remdeposito->remcliente_id,
+            'revisado' => $remdeposito->revisado,
+            'tipo' => $remdeposito->tipo,
+            'updated_at' => $remdeposito->updated_at
+        ];
     }
 }
