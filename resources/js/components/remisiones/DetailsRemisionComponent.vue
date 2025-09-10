@@ -15,7 +15,7 @@
                     variant="dark" v-b-modal.modal-cancelar pill block>
                     <i class="fa fa-close"></i> Cancelar
                 </b-button> -->
-                <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 3 || role_id == 6 || role_id == 10) && remision.total_pagar === remision.total && remision.estado != 'Cancelado'"
+                <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10) && remision.total_pagar === remision.total && remision.estado != 'Cancelado'"
                     variant="dark" v-b-modal.modal-cancelar pill block>
                     <i class="fa fa-close"></i> Cancelar
                 </b-button>
