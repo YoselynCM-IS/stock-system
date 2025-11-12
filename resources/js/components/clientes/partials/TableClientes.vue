@@ -145,6 +145,25 @@
                             <b-col align="right"><b>RFC:</b></b-col>
                             <div class="col-md-7">{{datosCliente.rfc}}</div>
                         </b-row>
+                        <div v-for="(cobranza, i) in datosCliente.cobranzas">
+                            <hr>
+                            <b-row class="my-1">
+                                <b-col align="right"><h6><b>Datos de cobranza</b></h6></b-col>
+                                <div class="col-md-7"><b>{{ i + 1 }}</b></div>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col align="right"><b>Contacto:</b></b-col>
+                                <div class="col-md-7">{{cobranza.contacto}}</div>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col align="right"><b>Teléfono:</b></b-col>
+                                <div class="col-md-7">{{cobranza.telefono}}</div>
+                            </b-row>
+                            <b-row class="my-1">
+                                <b-col align="right"><b>Correo electrónico:</b></b-col>
+                                <div class="col-md-7">{{cobranza.email}}</div>
+                            </b-row>
+                        </div>
                     </b-col>
                 </b-row>
             </div>

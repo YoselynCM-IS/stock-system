@@ -13,13 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('monedas', function (Blueprint $table) {
-            $table->id();
-            $table->string('moneda');
-            $table->string('codigo');
-            $table->decimal('valor', 8, 4);
-            $table->timestamps();
-        });
+        // Schema::create('monedas', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('moneda');
+        //     $table->string('codigo');
+        //     $table->decimal('valor', 8, 4);
+        //     $table->timestamps();
+        // });
     }
 
     /**

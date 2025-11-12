@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Remcliente;
 use App\Actividade;
 use App\Remisione;
+use App\Cobranza;
 use App\Adeudo;
 use App\Estado;
 use App\Moneda;
@@ -59,5 +60,11 @@ class Cliente extends Model
     // Uno a muchos (inversa)
     public function moneda(){
         return $this->belongsTo(Moneda::class);
+    }
+
+    //Uno a muchos
+    //Un cliente puede tener muchos datos de cobranza
+    public function cobranzas(){
+        return $this->hasMany(Cobranza::class);
     }
 }

@@ -65,7 +65,7 @@ class ClienteController extends Controller
     // OBTENER UN CLIENTE POR ID
     public function show(Request $request){
         $cliente_id = $request->cliente_id;
-        $cliente = Cliente::whereId($cliente_id)->with('user', 'estado', 'moneda')->first();
+        $cliente = Cliente::whereId($cliente_id)->with('user', 'estado', 'moneda', 'cobranzas')->first();
         return response()->json($cliente);
     }
     
