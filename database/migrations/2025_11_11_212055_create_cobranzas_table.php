@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cobranzas', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('cliente_id');
-            $table->foreign('cliente_id')->references('id')->on('clientes');
-            $table->string('contacto');
-            $table->string('email');
-            $table->string('telefono');
-            $table->timestamps();
-        });
+        // Schema::create('cobranzas', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->unsignedBigInteger('cliente_id');
+        //     $table->foreign('cliente_id')->references('id')->on('clientes');
+        //     $table->string('contacto');
+        //     $table->string('email');
+        //     $table->string('telefono');
+        //     $table->timestamps();
+        // });
     }
 
     /**

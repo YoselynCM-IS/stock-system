@@ -27,6 +27,7 @@ use App\Reporte;
 Use App\Defectuoso;
 use App\Mail\movimientos\LibrosDay;
 use Illuminate\Support\Facades\Mail;
+use App\Serie;
 use App\Pack;
 use App\Code;
 
@@ -262,19 +263,29 @@ class LibroController extends Controller
         $this->func_validar($request);
         \DB::beginTransaction();
         try {
-            $libro = Libro::create($this->params_libro($request, false));
+            $serie_id = $request->serie['id'];
+            $serie = strtoupper($request->serie['serie']);
+            if($serie_id == null){
+                $serie = Serie::create(['serie' => $serie]);
+                $serie_id = $serie->id;
+            }
+            $libro = Libro::create($this->params_libro($request, false, $serie_id));
 
             if($request->editorial == 'MAJESTIC EDUCATION'){
-                Libro::on('opuesto')->create($this->params_libro($request, true));
-                if($request->type != 'digital'){
-                    \DB::connection('majesticeducation')->table('libros')
-                        ->insert([
-                            'ISBN' => $request->ISBN,  
-                            'titulo' => $request->titulo, 
-                            'editorial' => 'MAJESTIC EDUCATION',
-                            'type' => $request->type
-                        ]);
-                }
+                $o_serie = Serie::on('opuesto')->where('serie', $serie)->first();
+                if($o_serie == null) $o_serie = Serie::on('opuesto')->create(['serie' => $serie]);
+
+                $l = Libro::on('opuesto')->create($this->params_libro($request, true, $o_serie->id));
+                // ESTO ERA PARA AGREGAR EL LIBRO A QUERETARO, YA NO SE UTILIZARA
+                // if($request->type != 'digital'){
+                //     \DB::connection('majesticeducation')->table('libros')
+                //         ->insert([
+                //             'ISBN' => $request->ISBN,  
+                //             'titulo' => $request->titulo, 
+                //             'editorial' => 'MAJESTIC EDUCATION',
+                //             'type' => $request->type
+                //         ]);
+                // }
             }
 
             $reporte = 'creo el libro '.$libro->type.' '.$libro->ISBN.' / '.$libro->titulo.' de '.$libro->editorial;
@@ -288,8 +299,9 @@ class LibroController extends Controller
         return response()->json($libro);
     }
 
-    public function params_libro($request, $externo){
+    public function params_libro($request, $externo, $serie_id){
         return [
+            'serie_id' => $serie_id,
             'type' => $request->type,
             'ISBN' => $request->ISBN,
             'titulo' => strtoupper($request->titulo),
@@ -302,6 +314,7 @@ class LibroController extends Controller
     //Función para validar los libros
     public function func_validar($request){
         $this->validate($request, [
+            'serie.serie' => 'min:5|required|string',
             'type' => 'required',
             'titulo' => 'min:5|max:100|required|string|unique:libros',
             'ISBN' => 'required|string|max:20|min:10|unique:libros',
@@ -1531,5 +1544,14 @@ class LibroController extends Controller
             return response()->json(true);
         }
         return response()->json(false);
+    }
+
+    // SERIES
+    // OBTENER CONCIDENCIA DE NOMBRES DE SERIE
+    public function get_series(Request $request){
+        $series = \DB::table('series')->select('id', 'serie')
+            ->where('serie','LIKE','%'.$request->querySerie.'%')
+            ->orderBy('serie', 'asc')->get();
+        return response()->json($series);
     }
 }

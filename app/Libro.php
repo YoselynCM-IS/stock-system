@@ -23,6 +23,7 @@ class Libro extends Model
     
     protected $fillable = [
         'id', 
+        'serie_id',
         'ISBN',  
         'titulo', 
         'autor', 

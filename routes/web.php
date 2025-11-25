@@ -188,10 +188,7 @@ Route::get('/down_remisiones_pdf/{cliente_id}/{inicio}/{final}/{estado}', 'Remis
 // DESCARGAR LA CUENTA GENERAL DEL CLIENTE
 Route::get('/descargar_gralClientes', 'RemisionController@descargar_gralClientes')->name('descargar_gralClientes');
 
-
-//LIBROS
-//Agregar libro
-Route::post('new_libro', 'LibroController@store')->name('new_libro');
+// LIBROS
 //Actualizar libro
 Route::put('actualizar_libro', 'LibroController@update')->name('actualizar_libro');
 //Eliminar libro
@@ -460,6 +457,8 @@ Route::name('remcliente.')->prefix('remcliente')->group(function () {
 
 //LIBROS
 Route::name('libro.')->prefix('libro')->group(function () {
+    //DAR DE ALTA LIBRO
+    Route::post('store', 'LibroController@store')->name('store');
     Route::get('/index', 'LibroController@index')->name('index');
     Route::get('/by_titulo', 'LibroController@by_titulo')->name('by_titulo');
     Route::get('/by_isbn', 'LibroController@by_isbn')->name('by_isbn');
@@ -514,6 +513,10 @@ Route::name('libro.')->prefix('libro')->group(function () {
     // DESCARGAR AMBOS INVENTARIOS (MAJESTIC Y OMEGA)
     Route::get('/download_both', 'LibroController@download_both')->name('download_both');
 
+    // SERIES
+    Route::name('serie.')->prefix('serie')->group(function () {
+        Route::get('/get_series', 'LibroController@get_series')->name('get_series');
+    });
 });
 
 // PAGOS

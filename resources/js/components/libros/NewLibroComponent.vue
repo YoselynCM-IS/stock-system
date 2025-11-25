@@ -2,9 +2,24 @@
     <div>
         <b-form @submit.prevent="onSubmit()">
             <b-row class="my-1">
+                <label align="right" class="col-md-3">Serie</label>
+                <div class="col-md-9">
+                    <b-form-input style="text-transform:uppercase;" @keyup="getSeries()"
+                        v-model="form.serie.serie" :disabled="loaded" required autofocus>
+                    </b-form-input>
+                    <div class="list-group" v-if="resultsSeries.length" id="listaL">
+                            <a class="list-group-item list-group-item-action" href="#"
+                                v-for="(serie, i) in resultsSeries" v-bind:key="i" @click="datosSerie(serie)">
+                                {{ serie.serie }}
+                            </a>
+                        </div>
+                    <div v-if="errors && errors.serie" class="text-danger">{{ errors.serie[0] }}</div>
+                </div>
+            </b-row>
+            <b-row class="my-1">
                 <label align="right" class="col-md-3">Tipo</label>
                 <div class="col-md-9">
-                    <b-form-select v-model="form.type" autofocus :disabled="loaded" :options="types" required></b-form-select>
+                    <b-form-select v-model="form.type" :disabled="loaded" :options="types" required></b-form-select>
                     <div v-if="errors && errors.type" class="text-danger">{{ errors.type[0] }}</div>
                 </div>
             </b-row>
@@ -65,6 +80,10 @@
         data() {
             return {
                 form: {
+                    serie: {
+                        id: null,
+                        serie: null
+                    },
                     type: null,
                     titulo: null,
                     ISBN: null,
@@ -80,17 +99,37 @@
                     { value: 'venta', text: 'Venta' },
                     { value: 'digital', text: 'Digital' },
                     { value: 'promocion', text: 'Promoción' }
-                ]
+                ],
+                //DATOS PARA AGREGAR/BUSCAR LA SERIE
+                resultsSeries: [] 
             }
         },
         methods: {
+            // BUSCAR SERIE
+            getSeries(){
+                this.form.serie.id = null;
+                if(this.form.serie.serie !==  null && this.form.serie.serie.length > 0){
+                    axios.get('/libro/serie/get_series', {params: { querySerie: this.form.serie.serie}}).then(response => {
+                        if(response.data.length == 0) this.resultsSeries = [{id: null, serie: 'NUEVA SERIE'}];
+                        else this.resultsSeries = response.data;
+                    }).catch(error => { });
+                } else {
+                    this.resultsSeries = [];
+                }
+            },
+            // SELECCIONAR LA SERIE
+            datosSerie(serie){
+                this.resultsSeries = [];
+                this.form.serie.id = serie.id;
+                if(this.form.serie.id !== null) this.form.serie.serie = serie.serie;
+            },
             // GUARDAR UN NUEVO LIBRO
             onSubmit() {
                 this.loaded = true;
                 this.success = false;
                 this.errors = {};
-                axios.post('/new_libro', this.form).then(response => {
-                    this.form = {};
+                axios.post('/libro/store', this.form).then(response => {
+                    this.inicializar_form();
                     this.loaded = false;
                     this.success = true;
                     this.$emit('actualizarLista', response.data);
@@ -109,6 +148,20 @@
                     }
                 });
             },
+            // INICIALIZAR DATOS
+            inicializar_form(){
+                this.form = {
+                    serie: {
+                        id: null,
+                        serie: null
+                    },
+                    type: null,
+                    titulo: null,
+                    ISBN: null,
+                    autor: null,
+                    editorial: null
+                };
+            }
         }
     }
 </script>
