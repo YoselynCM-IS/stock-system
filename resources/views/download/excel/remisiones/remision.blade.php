@@ -23,7 +23,7 @@
                     <td height="15"></td>
                     <td></td>
                     <td colspan="2" style="font-size:9; font-family: Book Antiqua; text-align: center;">
-                        Tel. 55-5803-6415
+                        
                     </td>
                     <td style="font-size:9; font-family: Book Antiqua;">
                         @if(env('APP_NAME') == 'MAJESTIC EDUCATION')
