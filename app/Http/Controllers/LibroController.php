@@ -66,6 +66,7 @@ class LibroController extends Controller
             $count_solo = (int) $data['count_solo'];
             $resultados->push([
                 'id' => $libro->id, 
+                'serie' => $libro->serie,
                 'ISBN' => $libro->ISBN,  
                 'titulo' => $libro->titulo, 
                 'autor' => $libro->autor, 
@@ -264,16 +265,16 @@ class LibroController extends Controller
         \DB::beginTransaction();
         try {
             $serie_id = $request->serie['id'];
-            $serie = strtoupper($request->serie['serie']);
+            $serie_name = strtoupper($request->serie['serie']);
             if($serie_id == null){
-                $serie = Serie::create(['serie' => $serie]);
+                $serie = Serie::create(['serie' => $serie_name]);
                 $serie_id = $serie->id;
             }
             $libro = Libro::create($this->params_libro($request, false, $serie_id));
 
             if($request->editorial == 'MAJESTIC EDUCATION'){
-                $o_serie = Serie::on('opuesto')->where('serie', $serie)->first();
-                if($o_serie == null) $o_serie = Serie::on('opuesto')->create(['serie' => $serie]);
+                $o_serie = Serie::on('opuesto')->where('serie', $serie_name)->first();
+                if($o_serie == null) $o_serie = Serie::on('opuesto')->create(['serie' => $serie_name]);
 
                 $l = Libro::on('opuesto')->create($this->params_libro($request, true, $o_serie->id));
                 // ESTO ERA PARA AGREGAR EL LIBRO A QUERETARO, YA NO SE UTILIZARA
@@ -314,6 +315,7 @@ class LibroController extends Controller
     //Función para validar los libros
     public function func_validar($request){
         $this->validate($request, [
+            'serie.id' => 'min:0|numeric',
             'serie.serie' => 'min:5|required|string',
             'type' => 'required',
             'titulo' => 'min:5|max:100|required|string|unique:libros',
@@ -324,22 +326,11 @@ class LibroController extends Controller
     }
 
     // ACTUALIZAR DATOS DE LIBRO
-    // Función utilizada en EditarLibroComponent
+    // Función utilizada en AddEditLibroComponent
     public function update(Request $request){
         $editorial = $request->editorial;
         $libro = Libro::whereId($request->id)->first();
         $libro_anterior = $libro->editorial.': '.$libro->type.' '.$libro->ISBN.' / '.$libro->titulo;
-            
-        if($editorial == 'MAJESTIC EDUCATION'){
-            $libro_opuesto = Libro::on('opuesto')
-                                    ->where('titulo', $libro->titulo)
-                                    ->first();
-            // if($request->type != 'digital'){
-            //     $me_libro = \DB::connection('majesticeducation')->table('libros')
-            //                 ->where('titulo', $libro->titulo)
-            //                 ->first();
-            // }
-        }
 
         $libro->ISBN = 'ISBN-'.$libro->ISBN;
         $libro->titulo = 'TITLE-'.$libro->titulo;
@@ -348,40 +339,21 @@ class LibroController extends Controller
 
         \DB::beginTransaction();
         try {
-            $fecha = Carbon::now();
             $datos = [
                 'type' => $request->type,
                 'ISBN' => strtoupper($request->ISBN),
                 'titulo' => strtoupper($request->titulo),
                 'autor' => strtoupper($request->autor),
                 'editorial' => $editorial,
-                'created_at' => $fecha,
-                'updated_at' => $fecha
+                'updated_at' => Carbon::now()
             ];
 
-            $libro->update($datos);
-
-            // $defectuosos = (int) $request->defectuosos;
-            // if($defectuosos > 0){
-            //     $libro->update([
-            //         'defectuosos' => $libro->defectuosos + $defectuosos,
-            //         'piezas' => $libro->piezas - $defectuosos
-            //     ]);
-            // }
+            $libro->update(array_merge(['serie_id' => (int)$request->serie['id']], $datos));
 
             if($editorial == 'MAJESTIC EDUCATION'){
-                if($libro_opuesto == null){
-                    // Libro::on('opuesto')->create($datos);
-                } else {
-                    $libro_opuesto->update($datos);
-                }
-
-                // if($request->type != 'digital'){
-                //     $me_libro = \DB::connection('majesticeducation')->table('libros')
-                //                 ->where('id', $me_libro->id)
-                //                 ->update($datos);
-                // }
-                
+                $o_serie = Serie::on('opuesto')->where('serie', $request->serie['serie'])->first();
+                $libro_opuesto = Libro::on('opuesto')->where('titulo', $libro->titulo)->first();
+                $libro_opuesto->update(array_merge(['serie_id' => $o_serie->id], $datos));
             }
 
             $libro_nuevo = $libro->editorial.': '.$libro->type.' '.$libro->ISBN.' / '.$libro->titulo;

@@ -76,7 +76,7 @@
             <b-col sm="2" class="text-right">
                 <!-- AGREGAR UN NUEVO LIBRO -->
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="success" pill
-                    block v-b-modal.modal-newLibro>
+                    block @click="addEditarLibro(null, null, true)">
                     <i class="fa fa-plus"></i> Nuevo libro
                 </b-button>
             </b-col>
@@ -95,8 +95,7 @@
                 </template>
                 <template v-slot:cell(accion)="data">
                     <b-button v-if="(role_id == 6 || role_id == 1) && data.item.externo == false" style="color:white;"
-                        variant="warning" pill size="sm" v-b-modal.modal-editar
-                        @click="editarLibro(data.item, data.index)">
+                        variant="warning" pill size="sm" @click="addEditarLibro(data.item, data.index, false)">
                         <i class="fa fa-pencil"></i>
                     </b-button>
                     <div>
@@ -114,16 +113,6 @@
             <b-alert v-else show variant="secondary">
                 <i class="fa fa-warning"></i> No se encontraron registros.
             </b-alert>
-            <!-- MODAL PARA EDITAR UN LIBRO -->
-            <b-modal id="modal-editar" title="Editar libro">
-                <editar-libro-component :formlibro="formlibro" :listEditoriales="listEditoriales"
-                    @actualizarLibro="libroModificado"></editar-libro-component>
-                <div slot="modal-footer"></div>
-            </b-modal>
-            <!-- MODAL PARA AGREGAR DEFECTUOSOS -->
-            <b-modal id="modal-defectuosos" :title="form.libro" hide-footer size="sm">
-                <add-defectuosos-component @saveDefectuosos="saveDefectuosos"></add-defectuosos-component>
-            </b-modal>
         </div>
         <div v-else class="text-center text-info my-2 mt-3">
             <b-spinner class="align-middle"></b-spinner>
@@ -131,42 +120,14 @@
         </div>
 
         <!-- MODAL PARA AGREGAR UN LIBRO -->
-        <b-modal id="modal-newLibro" title="Nuevo libro">
-            <new-libro-component @actualizarLista="actLista" :listEditoriales="listEditoriales"></new-libro-component>
+        <b-modal id="modal-newEditLibro" :title="`${addEditLibro ? 'Nuevo':'Editar'} libro`">
+            <new-edit-libro-component @actualizarLista="actualizarLista" 
+                :form="addEditForm" :addEdit="addEditLibro" :listEditoriales="listEditoriales"></new-edit-libro-component>
             <div slot="modal-footer"></div>
         </b-modal>
-        <!-- MODAL DE AYUDA GRAL-->
-        <b-modal id="modal-ayudaL" hide-backdrop hide-footer title="Ayuda">
-            <h5 id="titleA"><b>Búsqueda por titulo</b></h5>
-            <p>Escribir el título del libro y aparecerán las coincidencias conforme vaya escribiendo.</p>
-            <h5 id="titleA"><b>Búsqueda por ISBN</b></h5>
-            <p>Escribir el ISBN (completo) y presionar <label id="ctrlS">Enter</label>.</p>
-            <h5 id="titleA"><b>Búsqueda por editorial</b></h5>
-            <p>Elegir la editorial que desee y aparecerán todos los libros relacionados a esta.</p>
-            <h5 id="titleA"><b>Descargar lista completa</b></h5>
-            <p>
-                Si la opción de TODOS LOS LIBROS esta activa en la búsqueda por editorial, se descargará la lista
-                completa de libros en formato EXCEL.
-            </p>
-            <h5 id="titleA"><b>Descargar lista por editorial</b></h5>
-            <p>
-                Si alguna editorial esta activa en la búsqueda por editorial se descargará la lista de libros
-                relacionados a esta en formato EXCEL.
-            </p>
-            <div v-if="role_id === 3">
-                <h5 id="titleA"><b>Nuevo libro</b></h5>
-                <p>Puede agregar un libro proporcionando el Titulo, ISBN, Autor y Editorial.</p>
-                <h5 id="titleA"><b>Editar libro</b></h5>
-                <p>Puede modificar Titulo, ISBN, Autor o Editorial de cualquier libro.</p>
-                <p>
-                    <b><i class="fa fa-info-circle"></i> Nota:</b>
-                <ul>
-                    <li>Todos los campos son obligatorios, excepto el autor.</li>
-                    <li>El titulo e ISBN son únicos, es decir no se pueden agregar los mismos datos de un libro ya
-                        existente.</li>
-                </ul>
-                </p>
-            </div>
+        <!-- MODAL PARA AGREGAR DEFECTUOSOS -->
+        <b-modal id="modal-defectuosos" :title="form.libro" hide-footer size="sm">
+            <add-defectuosos-component @saveDefectuosos="saveDefectuosos"></add-defectuosos-component>
         </b-modal>
     </div>
 </template>
@@ -217,7 +178,20 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     defectuosos: 0,
                     motivo: null
                 },
-                load: true
+                load: true,
+                addEditLibro: true,
+                addEditForm: {
+                    id: null,
+                    serie: {
+                        id: null,
+                        serie: null
+                    },
+                    type: null,
+                    titulo: null,
+                    ISBN: null,
+                    autor: null,
+                    editorial: null
+                },
             }
         },
         created: function(){
@@ -318,34 +292,50 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 });
             },
             // INICIALIZAR PARA EDITAR LIBRO
-            editarLibro(libro, i){
-                this.formlibro = libro;
+            addEditarLibro(libro, i, addEdit){
+                this.addEditLibro = addEdit;
                 this.posicion = i;
+                if(this.addEditLibro){
+                    this.assign_addEditForm(null, null, null, null, null, null, null, null)
+                } else {
+                    this.assign_addEditForm(libro.id, libro.serie.id, libro.serie.serie, libro.type, libro.titulo, libro.ISBN, libro.autor, libro.editorial)
+                }
+                this.$bvModal.show('modal-newEditLibro');
+            },
+            // ASIGNAR VALORES A addEditForm
+            assign_addEditForm(id, serie_id, serie, type, titulo, isbn, autor, editorial){
+                this.addEditForm.id = id;
+                this.addEditForm.serie.id = serie_id;
+                this.addEditForm.serie.serie = serie;
+                this.addEditForm.type = type;
+                this.addEditForm.titulo = titulo;
+                this.addEditForm.ISBN = isbn;
+                this.addEditForm.autor = autor;
+                this.addEditForm.editorial = editorial;
             },
             // AGREGAR LIBRO AL LISTADO (EVENTO)
-            actLista(libro){
-                this.libros.unshift(libro);
-                this.$bvModal.hide('modal-newLibro');
-                this.makeToast('success', 'El libro de agrego correctamente.');
-            },
-            libroModificado(libro){
-                this.$bvModal.hide('modal-editar');
-                this.libros[this.posicion].type = libro.type;
-                this.libros[this.posicion].ISBN = libro.ISBN;
-                this.libros[this.posicion].titulo = libro.titulo;
-                this.libros[this.posicion].editorial = libro.editorial;
-                this.makeToast('success', 'El libro se modifico correctamente.');
+            actualizarLista(libro){
+                if(this.addEditLibro){
+                    this.libros.unshift(libro);
+                } else {
+                    this.libros[this.posicion].type = libro.type;
+                    this.libros[this.posicion].ISBN = libro.ISBN;
+                    this.libros[this.posicion].titulo = libro.titulo;
+                    this.libros[this.posicion].editorial = libro.editorial;
+                }
+                this.makeToast('success', `El libro se ${this.addEditLibro ? 'agrego':'modifico'} correctamente.`);
+                this.$bvModal.hide('modal-newEditLibro');
             },
             // ELIMINAR LIBRO (FUNCIÓN NO UTILIZADA)
-            eliminarLibro(){
-                axios.delete('/eliminar_libro', {params: {id: this.formlibro.id}}).then(response => {
-                    this.$bvModal.hide('modal-eliminar');
-                })
-                .catch(error => {
-                    this.loaded = false;
-                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
-                });
-            },
+            // eliminarLibro(){
+            //     axios.delete('/eliminar_libro', {params: {id: this.formlibro.id}}).then(response => {
+            //         this.$bvModal.hide('modal-eliminar');
+            //     })
+            //     .catch(error => {
+            //         this.loaded = false;
+            //         this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+            //     });
+            // },
             makeToast(variant = null, descripcion) {
                 this.$bvToast.toast(descripcion, {
                     title: 'Mensaje',

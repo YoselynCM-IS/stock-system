@@ -13,6 +13,7 @@ use App\Registro;
 use App\Vendido;
 use App\Salida;
 use App\Fecha;
+use App\Serie;
 use App\Dato;
 
 class Libro extends Model
@@ -94,5 +95,11 @@ class Libro extends Model
     //Un libro puede tener muchas salidas
     public function salidas(){
         return $this->hasMany(Salida::class);
+    }
+
+    //Uno a muchos (inversa)
+    //Un libro solo puede pertencer a una serie
+    public function serie(){
+        return $this->belongsTo(Serie::class);
     }
 }

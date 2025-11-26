@@ -189,8 +189,6 @@ Route::get('/down_remisiones_pdf/{cliente_id}/{inicio}/{final}/{estado}', 'Remis
 Route::get('/descargar_gralClientes', 'RemisionController@descargar_gralClientes')->name('descargar_gralClientes');
 
 // LIBROS
-//Actualizar libro
-Route::put('actualizar_libro', 'LibroController@update')->name('actualizar_libro');
 //Eliminar libro
 Route::delete('eliminar_libro', 'LibroController@delete')->name('eliminar_libro');
 //Buscar libro
@@ -459,6 +457,8 @@ Route::name('remcliente.')->prefix('remcliente')->group(function () {
 Route::name('libro.')->prefix('libro')->group(function () {
     //DAR DE ALTA LIBRO
     Route::post('store', 'LibroController@store')->name('store');
+    //ACTUALIZAR LIBRO
+    Route::put('update', 'LibroController@update')->name('update');
     Route::get('/index', 'LibroController@index')->name('index');
     Route::get('/by_titulo', 'LibroController@by_titulo')->name('by_titulo');
     Route::get('/by_isbn', 'LibroController@by_isbn')->name('by_isbn');
