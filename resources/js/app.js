@@ -39,6 +39,10 @@ Vue.http.interceptors.push((request, next) => {
     next();
 });
 
+import VueGoodTablePlugin from 'vue-good-table';
+// import the styles
+import 'vue-good-table/dist/vue-good-table.css'
+Vue.use(VueGoodTablePlugin);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

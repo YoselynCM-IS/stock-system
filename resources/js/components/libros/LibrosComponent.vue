@@ -38,35 +38,14 @@
             </div>
         </div>
         <hr>
-        <b-row class="mb-1">
-            <b-col sm="6">
-                <!-- PAGINACIÓN -->
-                <pagination size="default" :limit="1" :data="librosData" @pagination-change-page="getResults">
-                    <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
-                    <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
-                </pagination>
-            </b-col>
-            <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
-                    block href="/libro/all_sistemas" target="_blank">
-                    Sistemas
-                </b-button>
-            </b-col>
-            <b-col sm="2" class="text-right">
+        <b-row class="mb-2">
+            <b-col></b-col>
+             <b-col sm="2" class="text-right">
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
                     block href="/codes/scratch" target="_blank">
                     Scratch
                 </b-button>
             </b-col>
-            <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10" variant="dark" pill block
-                    href="/codes/licencias_demos" target="_blank">
-                    Licencias / Demos
-                </b-button>
-            </b-col>
-        </b-row>
-        <b-row class="mb-2">
-            <b-col sm="8"></b-col>
             <b-col sm="2" class="text-right">
                 <!-- DESCARGAR LIBROS downloadExcel -->
                 <b-button :href="`/downloadExcel/${queryEditorial}`" variant="dark" pill block>
@@ -83,36 +62,33 @@
         </b-row>
         <div v-if="!load">
             <!-- LISTADO DE LIBROS-->
-            <b-table v-if="libros.length > 0" responsive :fields="fields" :items="libros">
-                <template v-slot:cell(index)="data">
-                    {{ data.index + 1 }}
-                </template>
-                <template v-slot:cell(piezas)="data">
-                    {{ data.item.piezas | formatNumber }}
-                </template>
-                <template v-slot:cell(defectuosos)="data">
-                    {{ data.item.defectuosos | formatNumber }}
-                </template>
-                <template v-slot:cell(accion)="data">
-                    <b-button v-if="(role_id == 6 || role_id == 1) && data.item.externo == false" style="color:white;"
-                        variant="warning" pill size="sm" @click="addEditarLibro(data.item, data.index, false)">
-                        <i class="fa fa-pencil"></i>
-                    </b-button>
-                    <div>
-                        <b-button v-if="role_id == 6 || role_id == 1" variant="danger" pill
-                            @click="inactivarLibro(data.item)" size="sm">
-                            <i class="fa fa-close"></i>
+             <vue-good-table :columns="fields" :rows="libros" :line-numbers="true" theme="polar-bear" styleClass="vgt-table condensed"
+                :totalRows="librosData.total"
+                :pagination-options="{
+                    enabled: true,
+                    mode: 'remote',
+                    perPage: librosData.per_page,
+                    setCurrentPage: librosData.current_page,
+                    perPageDropdownEnabled: false,
+                }"
+                @on-page-change="onPageChange">
+                <template slot="table-row" slot-scope="props">
+                    <div v-if="props.column.field == 'accion'">
+                        <b-button v-if="(role_id == 6 || role_id == 1) && props.row.externo == false" style="color:white;"
+                            variant="dark" pill size="sm" @click="addEditarLibro(props.row, props.index, false)">
+                            <i class="fa fa-pencil"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (data.item.piezas > 0)"
-                            variant="secondary" pill @click="addDefectuosos(data.item)" size="sm">
+                        <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (props.row.piezas > 0)"
+                            variant="dark" pill @click="addDefectuosos(props.row)" size="sm">
                             <i class="fa fa-minus"></i>
+                        </b-button>
+                        <b-button v-if="(role_id == 6 || role_id == 1)" variant="danger" pill
+                            @click="inactivarLibro(props.row)" size="sm">
+                            <i class="fa fa-close"></i>
                         </b-button>
                     </div>
                 </template>
-            </b-table>
-            <b-alert v-else show variant="secondary">
-                <i class="fa fa-warning"></i> No se encontraron registros.
-            </b-alert>
+            </vue-good-table>
         </div>
         <div v-else class="text-center text-info my-2 mt-3">
             <b-spinner class="align-middle"></b-spinner>
@@ -146,23 +122,21 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 libros: [],
                 errors: {},
                 posicion: 0,
-                perPage: 10,
                 loaded: false,
                 success: false,
-                currentPage: 1,
                 queryTitulo: '',
                 queryEditorial: 'TODO',
                 fields: [
-                    { key: 'index', label: 'N.' },
-                    'editorial',
-                    'ISBN', 
-                    'titulo', 
-                    { key: 'type', label: 'Tipo' },
-                    'piezas',
-                    { key: 'scratch', label: 'Scratch' },
-                    { key: 'count_solo', label: 'Digital / Físico' },
-                    'defectuosos',
-                    {key:'accion', label:''}
+                    {field: 'editorial', label: 'Editorial'},
+                    {field: 'serie', label: 'Serie'},
+                    {field: 'ISBN', label: 'ISBN'},
+                    {field: 'titulo', label: 'Libro'},
+                    {field: 'type', label: 'Tipo'},
+                    {field: 'piezas', label: 'Piezas', type: 'number'},
+                    {field: 'scratch', label: 'Scratch', type: 'number'},
+                    {field: 'count_solo', label: 'Digital / Físico', type: 'number'},
+                    {field: 'defectuosos', label: 'Defectuosos', type: 'number'},
+                    {field: 'accion', label: '', sortable: false}
                 ],
                 options: [],
                 listEditoriales: [],
@@ -213,6 +187,9 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     this.http_isbn(page);
                 if(this.sTEditorial)
                     this.http_editorial(page);
+            },
+            onPageChange(params){
+                this.getResults(params.currentPage);
             },
             // HTTP REMCLIENTE
             http_libros(page = 1){
@@ -298,7 +275,7 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 if(this.addEditLibro){
                     this.assign_addEditForm(null, null, null, null, null, null, null, null)
                 } else {
-                    this.assign_addEditForm(libro.id, libro.serie.id, libro.serie.serie, libro.type, libro.titulo, libro.ISBN, libro.autor, libro.editorial)
+                    this.assign_addEditForm(libro.id, libro.serie_id, libro.serie, libro.type, libro.titulo, libro.ISBN, libro.autor, libro.editorial)
                 }
                 this.$bvModal.show('modal-newEditLibro');
             },
@@ -322,6 +299,10 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     this.libros[this.posicion].ISBN = libro.ISBN;
                     this.libros[this.posicion].titulo = libro.titulo;
                     this.libros[this.posicion].editorial = libro.editorial;
+                    this.libros[this.posicion].autor = libro.autor;
+                    this.libros[this.posicion].edicion = libro.edicion;
+                    this.libros[this.posicion].serie_id = libro.serie_id;
+                    this.libros[this.posicion].serie = libro.serie;
                 }
                 this.makeToast('success', `El libro se ${this.addEditLibro ? 'agrego':'modifico'} correctamente.`);
                 this.$bvModal.hide('modal-newEditLibro');

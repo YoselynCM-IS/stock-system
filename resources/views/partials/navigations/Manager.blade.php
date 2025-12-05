@@ -38,8 +38,10 @@
 		Libros <span class="caret"></span>
 	</a>
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('information.libros.lista') }}">{{ __("Lista") }}</a>
+		<a class="dropdown-item" href="{{ route('information.libros.lista') }}">{{ __("Sistema actual") }}</a>
+		<a class="dropdown-item" href="{{ route('libro.all_sistemas') }}">{{ __("Sistemas (ME / OB)") }}</a>
 		<a class="dropdown-item" href="{{ route('information.libros.codes') }}">{{ __("Códigos") }}</a>
+		<a class="dropdown-item" href="{{ route('codes.licencias_demos') }}">{{ __("Licencias / Demos") }}</a>
 	</div>
 </li>
 <li>

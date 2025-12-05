@@ -47,15 +47,19 @@ class LibroController extends Controller
 
     // MOSTRAR TODOS LOS LIBROS
     public function index(){
-        $libros = $this->all_libros_paginate()->paginate(20);
+        $libros = $this->all_libros_paginate()->paginate(25);
         $resultados = $this->get_all_detallado($libros);
         return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
 
     public function all_libros_paginate(){
-        return Libro::orderBy('editorial', 'asc')
-                        ->orderBy('titulo', 'asc')
-                        ->where('estado', 'activo');
+        return \DB::table('libros')->join('series', 'series.id', '=', 'libros.serie_id')
+                    ->select('libros.*', 'series.id as serie_id', 'series.serie')
+                    ->orderBy('libros.editorial', 'asc')
+                    ->orderBy('series.serie', 'asc')
+                    ->orderBy('libros.type', 'desc')
+                    ->orderBy('libros.titulo', 'asc')
+                    ->where('libros.estado', 'activo');
     }
 
     public function get_all_detallado($libros){
@@ -64,25 +68,31 @@ class LibroController extends Controller
             $data = $this->get_only_scratch('mysql', $libro->id, $libro->piezas, $libro->type);
             $sum_scratch = (int) $data['sum_scratch'];
             $count_solo = (int) $data['count_solo'];
-            $resultados->push([
-                'id' => $libro->id, 
-                'serie' => $libro->serie,
-                'ISBN' => $libro->ISBN,  
-                'titulo' => $libro->titulo, 
-                'autor' => $libro->autor, 
-                'editorial' => $libro->editorial, 
-                'edicion' => $libro->edicion,
-                'piezas' => $libro->piezas,
-                'defectuosos' => $libro->defectuosos,
-                'estado' => $libro->estado,
-                'type' => $libro->type,
-                'externo' => $libro->externo,
-                'scratch' => $sum_scratch,
-                'count_solo' => $count_solo,
-                'check' => $libro->piezas == ($sum_scratch + $count_solo)
-            ]);
+            $resultados->push($this->assign_datos_libro($libro, $libro->serie, $sum_scratch, $count_solo));
         });
         return $resultados;
+    }
+
+    // ASIGNAR VALORES DE LIBRO
+    public function assign_datos_libro($libro, $serie, $sum_scratch = 0, $count_solo = 0){
+        return [
+            'id' => $libro->id, 
+            'serie_id' => $libro->serie_id,
+            'serie' => $serie,
+            'ISBN' => $libro->ISBN,  
+            'titulo' => $libro->titulo, 
+            'autor' => $libro->autor, 
+            'editorial' => $libro->editorial, 
+            'edicion' => $libro->edicion,
+            'piezas' => $libro->piezas,
+            'defectuosos' => $libro->defectuosos,
+            'estado' => $libro->estado,
+            'type' => $libro->type,
+            'externo' => $libro->externo,
+            'scratch' => $sum_scratch,
+            'count_solo' => $count_solo,
+            'check' => $libro->piezas == ($sum_scratch + $count_solo)
+        ];
     }
 
     // OBTENER SOLOS Y SCRATCH
@@ -112,7 +122,7 @@ class LibroController extends Controller
     public function by_titulo(Request $request){
         $libros = $this->all_libros_paginate()
                     ->where('titulo','like','%'.$request->titulo.'%')
-                    ->paginate(20);
+                    ->paginate(25);
         $resultados = $this->get_all_detallado($libros);
         return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
@@ -121,7 +131,7 @@ class LibroController extends Controller
     public function by_isbn(Request $request){
         $libros = $this->all_libros_paginate()
                     ->where('ISBN','like','%'.$request->isbn.'%')
-                    ->paginate(20);
+                    ->paginate(25);
         $resultados = $this->get_all_detallado($libros);
         return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
@@ -131,7 +141,7 @@ class LibroController extends Controller
     public function by_editorial(Request $request){
         $libros = $this->all_libros_paginate()
                     ->where('editorial', $request->editorial)
-                    ->paginate(20);
+                    ->paginate(25);
         $resultados = $this->get_all_detallado($libros);
         return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
@@ -297,7 +307,7 @@ class LibroController extends Controller
             \DB::rollBack();
             return response()->json($exception->getMessage());
         }
-        return response()->json($libro);
+        return response()->json($this->assign_datos_libro($libro, $serie_name));
     }
 
     public function params_libro($request, $externo, $serie_id){
@@ -365,7 +375,7 @@ class LibroController extends Controller
             \DB::rollBack();
             return response()->json($exception->getMessage());
         }
-        return response()->json($libro);
+        return response()->json($this->assign_datos_libro($libro, $libro->serie->serie));
     }
 
     public function save_defectuosos(Request $request){
