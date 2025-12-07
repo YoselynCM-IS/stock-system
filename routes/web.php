@@ -464,6 +464,12 @@ Route::name('libro.')->prefix('libro')->group(function () {
     Route::get('/by_isbn', 'LibroController@by_isbn')->name('by_isbn');
     //Buscar libro por editorial
     Route::get('/by_editorial', 'LibroController@by_editorial')->name('by_editorial');
+    //BUSCAR LIBROS POR SERIE
+    Route::get('/by_serie', 'LibroController@by_serie')->name('by_serie');
+    //BUSCAR LIBROS POR TIPO
+    Route::get('/by_type', 'LibroController@by_type')->name('by_type');
+    //BUSCAR LIBROS POR TODOS LOS FILTROS
+    Route::get('/by_all', 'LibroController@by_all')->name('by_all');
     // OBTENER MOVIMIENTOS DEL LIBRO
     Route::get('/movimientos_libro', 'LibroController@movimientos_libro')->name('movimientos_libro');
     // MARCAR COMO INACTIVO EL LIBRO
@@ -493,7 +499,7 @@ Route::name('libro.')->prefix('libro')->group(function () {
     // Buscar por editorial, tipo e isbn
     Route::get('/by_editorial_type_isbn', 'LibroController@by_editorial_type_isbn')->name('by_editorial_type_isbn');
     // Buscar libros por tipo
-    Route::get('/by_type', 'LibroController@by_type')->name('by_type');
+    Route::get('/by_titulo_type', 'LibroController@by_titulo_type')->name('by_titulo_type');
     // Buscar por titulo, no utilizados en la lista de los clientes
     Route::get('/by_titulo_nu', 'LibroController@by_titulo_nu')->name('by_titulo_nu');
     // OBTENER TODOS LOS LIBROS DE LOS 2 SISTEMAS

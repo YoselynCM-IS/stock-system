@@ -190,7 +190,7 @@ export default {
         // MOSTRAR LISTA DE LIBROS DIGITALES
         mostrar_libros(){
             if(this.queryTitulo.length > 0){
-                axios.get('/libro/by_type', {params: {titulo: this.queryTitulo}}).then(response => {
+                axios.get('/libro/by_titulo_type', {params: {titulo: this.queryTitulo}}).then(response => {
                     this.resultsLibros = response.data;
                 }).catch(error => {
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');

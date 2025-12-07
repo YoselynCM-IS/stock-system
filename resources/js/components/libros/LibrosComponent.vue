@@ -2,43 +2,58 @@
     <div>
         <check-connection-component></check-connection-component>
         <div class="row">
-            <div class="col-md-4">
-                <!-- BUSCAR LIBRO POR TITULO -->
-                <b-row>
-                    <b-col sm="2"><label>Titulo</label></b-col>
-                    <b-col sm="10">
-                        <b-input style="text-transform:uppercase;" v-model="queryTitulo"
-                            @keyup="http_titulo()"></b-input>
-                    </b-col>
-                </b-row>
+            <!-- BUSCAR LIBROS POR EDITORIAL -->
+            <div class="col-md">
+                <b-form-group label="Editorial" label-class="font-weight-bold">
+                    <b-form-select v-model="queryEditorial" :options="options" @change="http_editorial()"></b-form-select>
+                </b-form-group>
             </div>
-            <div class="col-md-4">
+            <div class="col-md">
+                <!-- BUSCAR LIBRO POR TITULO -->
+                <b-form-group label="Libro" label-class="font-weight-bold">
+                    <b-input style="text-transform:uppercase;" v-model="queryTitulo"
+                            @keyup="http_titulo()"></b-input>
+                </b-form-group>
+            </div>
+            <div class="col-md">
                 <!-- BUSCAR LIBRO POR ISBN -->
-                <b-row>
-                    <b-col sm="2">
-                        <label>ISBN</label>
-                    </b-col>
-                    <b-col sm="10">
-                        <b-input v-model="isbn" @keyup="http_isbn()">
+                <b-form-group label="ISBN" label-class="font-weight-bold">
+                    <b-input v-model="isbn" @keyup="http_isbn()">
                         </b-input>
-                    </b-col>
-                </b-row>
+                </b-form-group>
+            </div>
+        </div>
+        <div class="row mb-3">
+             <div class="col-md-4">
+                <!-- BUSCAR LIBRO POR SERIE -->
+                <b-form-group label="Serie" label-class="font-weight-bold">
+                    <b-input v-model="querySerie" @keyup="showSeries()" style="text-transform:uppercase;"></b-input>
+                    <div class="list-group" v-if="resultsSeries.length > 0" id="listaL">
+                        <a href="#" v-bind:key="i" class="list-group-item list-group-item-action"
+                            v-for="(serie, i) in resultsSeries" @click="bySerie(serie)">
+                            {{ serie.serie }}
+                        </a>
+                    </div>
+                </b-form-group>
             </div>
             <!-- BUSCAR LIBROS POR EDITORIAL -->
             <div class="col-md-4">
-                <b-row>
-                    <b-col sm="2">
-                        <label for="input-cliente">Editorial</label>
-                    </b-col>
-                    <b-col sm="10">
-                        <b-form-select v-model="queryEditorial" :options="options" @change="http_editorial()">
-                        </b-form-select>
-                    </b-col>
-                </b-row>
+                <b-form-group label="Tipo" label-class="font-weight-bold">
+                    <b-form-select v-model="queryType" :options="optionsType" @change="http_type()"></b-form-select>
+                </b-form-group>
             </div>
-        </div>
-        <hr>
-        <b-row class="mb-2">
+            <div class="col-md-1 text-right">
+                <b-button :variant="`${!applyAll ? 'dark':'primary'}`" pill class="mt-4" @click="applyFilters()">
+                    <i class="fa fa-filter"></i>
+                </b-button>
+            </div>
+            <div class="col-md-2">
+                <b-button variant="dark" pill block class="mt-4" :disabled="!applyAll" @click="http_applyAll()">
+                    Aplicar
+                </b-button>
+            </div>
+        </div><hr>
+        <b-row class="mb-3">
             <b-col></b-col>
              <b-col sm="2" class="text-right">
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
@@ -110,11 +125,12 @@
 
 <script>
 import sweetAlert from '../../mixins/sweetAlert';
+import getSeries from '../../mixins/libros/getSeries';
 import AddDefectuososComponent from './AddDefectuososComponent.vue';
     export default {
         components: { AddDefectuososComponent },
-        props: ['role_id', 'editoriales'],
-        mixins: [sweetAlert],
+        props: ['role_id', 'editoriales', 'types'],
+        mixins: [sweetAlert, getSeries],
         data() {
             return {
                 formlibro: {},
@@ -124,8 +140,8 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                 posicion: 0,
                 loaded: false,
                 success: false,
-                queryTitulo: '',
-                queryEditorial: 'TODO',
+                queryTitulo: null,
+                queryEditorial: null,
                 fields: [
                     {field: 'editorial', label: 'Editorial'},
                     {field: 'serie', label: 'Serie'},
@@ -138,14 +154,19 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     {field: 'defectuosos', label: 'Defectuosos', type: 'number'},
                     {field: 'accion', label: '', sortable: false}
                 ],
-                options: [],
+                options: [{
+                    value: null, text: 'Seleccionar una opción', disabled: true
+                }],
                 listEditoriales: [],
                 loadRegisters: false,
-                isbn: '',
+                isbn: null,
                 libro: {},
                 sTLibro: false,
                 sTIsbn: false,
                 sEditorial: false,
+                sTSerie: false,
+                sTType: null,
+                applyAll: false,
                 form: {
                     id: null,
                     libro: null,
@@ -166,11 +187,17 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     autor: null,
                     editorial: null
                 },
+                queryType: null,
+                optionsType: [ {
+                    value: null, text: 'Seleccionar una opción', disabled: true
+                }],
+                serie_id: null
             }
         },
         created: function(){
             this.getResults();
             this.assign_editorial();
+            this.assign_types();
         },
         filters: {
             formatNumber: function (value) {
@@ -179,75 +206,160 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
         },
         methods: {
             getResults(page = 1){
-                if(!this.sTLibro && !this.sTIsbn && !this.sTEditorial)
-                    this.http_libros(page);
-                if(this.sTLibro) 
-                    this.http_titulo(page);
-                if(this.sTIsbn)
-                    this.http_isbn(page);
-                if(this.sTEditorial)
-                    this.http_editorial(page);
+                if(!this.applyAll){
+                    if(!this.sTLibro && !this.sTIsbn && !this.sTEditorial && !this.sTSerie && !this.sTType)
+                        this.http_libros(page);
+                    if(this.sTLibro) 
+                        this.http_titulo(page);
+                    if(this.sTIsbn)
+                        this.http_isbn(page);
+                    if(this.sTEditorial)
+                        this.http_editorial(page);
+                    if(this.sTSerie)
+                        this.http_serie(page);
+                    if(this.sTType)
+                        this.http_type(page);
+                } else {
+                    this.http_applyAll(page);
+                }
             },
             onPageChange(params){
                 this.getResults(params.currentPage);
             },
             // HTTP REMCLIENTE
             http_libros(page = 1){
-                this.load = true;
-                axios.get(`/libro/index?page=${page}`).then(response => {
-                    this.assign_values(response.data, false, false, false);
-                    this.load = false;   
-                }).catch(error => {
-                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
-                    this.load = false;
-                });
+                if(!this.applyAll){
+                    this.load = true;
+                    axios.get(`/libro/index?page=${page}`).then(response => {
+                        this.set_response(response.data);
+                        this.assign_values(false, false, false, false, false);
+                        this.load = false;   
+                    }).catch(error => {
+                        this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                        this.load = false;
+                    });
+                }
             },
             // HTTP LIBROS
             http_titulo(page = 1){
-                this.load = true;
-                axios.get(`/libro/by_titulo?page=${page}`, {params: {titulo: this.queryTitulo}}).then(response => {
-                    this.assign_values(response.data, true, false, false);
-                    this.load = false;
-                }).catch(error => {
-                    this.load = false;
-                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
-                });
+                if(!this.applyAll && this.queryTitulo.length > 3){
+                    this.load = true;
+                    axios.get(`/libro/by_titulo?page=${page}`, {params: {titulo: this.queryTitulo}}).then(response => {
+                        this.set_response(response.data);
+                        this.assign_values(true, false, false, false, false);
+                        this.load = false;
+                    }).catch(error => {
+                        this.load = false;
+                        this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                    });
+                }
             },
             // BUSCAR LIBRO POR ISBN
             http_isbn(page = 1) {
-                this.load = true;
-                axios.get(`/libro/by_isbn?page=${page}`, {params: {isbn: this.isbn}}).then(response => {
-                    this.assign_values(response.data, false, true, false);
-                    this.load = false;
-                }).catch(error => {
-                    this.load = false;
-                    this.makeToast('danger', 'ISBN incorrecto');
-                });
+                if(!this.applyAll && this.isbn.length > 3){
+                    this.load = true;
+                    axios.get(`/libro/by_isbn?page=${page}`, {params: {isbn: this.isbn}}).then(response => {
+                        this.set_response(response.data);
+                        this.assign_values(false, true, false, false, false);
+                        this.load = false;
+                    }).catch(error => {
+                        this.load = false;
+                        this.makeToast('danger', 'ISBN incorrecto');
+                    });
+                }
             },
             // MOSTRAR LIBROS POR EDITORIAL
             http_editorial(page = 1){
+                if(!this.applyAll){
+                    this.load = true;
+                    axios.get(`/libro/by_editorial?page=${page}`, {params: {editorial: this.queryEditorial}}).then(response => {
+                        this.set_response(response.data);
+                        this.assign_values(false, false, true, false, false);
+                        this.load = false;
+                    }).catch(error => {
+                        this.load = false;
+                        this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                    });
+                }
+            },
+            // ASIGNAR VARIABLE SERIE
+            bySerie(serie){
+                this.serie_id = serie.id;
+                this.querySerie = serie.serie;
+                this.resultsSeries = [];
+                if(!this.applyAll) this.http_serie();
+            },
+            // OBTENER LIBROS POR SERIE
+            http_serie(page = 1){
                 this.load = true;
-                axios.get(`/libro/by_editorial?page=${page}`, {params: {editorial: this.queryEditorial}}).then(response => {
-                    this.assign_values(response.data, false, false, true);
+                axios.get(`/libro/by_serie?page=${page}`, {params: {serie_id: this.serie_id}}).then(response => {
+                    this.set_response(response.data);
+                    this.assign_values(false, false, false, true, false);
                     this.load = false;
                 }).catch(error => {
                     this.load = false;
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                 });
             },
-            assign_values(response, sTLibro, sTIsbn, sTEditorial){
-                this.librosData = response.paginate;
+            // MOSTAR LIBROS POR TIPO
+            http_type(page = 1){
+                if(!this.applyAll) {
+                    this.load = true;
+                    axios.get(`/libro/by_type?page=${page}`, {params: {type: this.queryType}}).then(response => {
+                        this.set_response(response.data);
+                        this.assign_values(false, false, false, false, true);
+                        this.load = false;
+                    }).catch(error => {
+                        this.load = false;
+                        this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                    });
+                }
+            },
+            // APLICAR TODOS LOS FILTROS
+            http_applyAll(page = 1){
+                this.load = true;
+                axios.get(`/libro/by_all?page=${page}`, {params: {
+                    titulo: this.queryTitulo,
+                    isbn: this.isbn,
+                    editorial: this.queryEditorial,
+                    serie_id: this.serie_id,
+                    type: this.queryType
+                }}).then(response => {
+                    this.set_response(response.data);
+                    this.load = false;
+                }).catch(error => {
+                    this.load = false;
+                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
+                });
+            },
+            // ACTIVAR / DESACTIVAR FILTROS
+            applyFilters(){
+                this.applyAll = !this.applyAll;
+                this.assign_values(false, false, false, false, false);
+                if(!this.applyAll) {
+                    this.queryTitulo = null;
+                    this.isbn = null;
+                    this.queryEditorial = null;
+                    this.querySerie = null;
+                    this.serie_id = null;
+                    this.queryType = null;
+                }
+            },
+            // ASIGNAR RESULTADOS DE BUSQUEDA
+            set_response(response){
                 this.libros = response.libros;
+                this.librosData = response.paginate;
+            },
+            // ASIGNAR VALORES PARA CADA BUSQUEDA
+            assign_values(sTLibro, sTIsbn, sTEditorial, sTSerie, sTType){
                 this.sTLibro = sTLibro;
                 this.sTIsbn = sTIsbn;
                 this.sTEditorial = sTEditorial;
+                this.sTSerie = sTSerie;
+                this.sTType = sTType;
             },
-            // MOSTRAR LIBROS POR COINCIDENCIA DE TITULO
+            // ASIGNAR VALORES DE EDITORIALES A ARRAY
             assign_editorial(){
-                this.options.push({
-                    value: 'TODO',
-                    text: 'Seleccionar una opción', disabled: true
-                });
                 this.editoriales.forEach(editorial => {
                     this.options.push({
                         value: editorial.editorial,
@@ -267,6 +379,15 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                         disabled: d
                     });
                 });
+            },
+            // ASIGNAR VALORES DE TYPE A ARRAY
+            assign_types(){
+                this.types.forEach(type => {
+                    this.optionsType.push({
+                        value: type,
+                        text: type
+                    });
+                }); 
             },
             // INICIALIZAR PARA EDITAR LIBRO
             addEditarLibro(libro, i, addEdit){

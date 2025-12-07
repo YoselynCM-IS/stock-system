@@ -36,8 +36,9 @@ class LibroController extends Controller
 
     // MOSTRAR VISTA PRINCIPAL DE LIBROS
     public function lista(){
+        $types = \DB::table('libros')->select('type')->distinct()->get()->pluck('type');
         $editoriales = \DB::table('editoriales')->orderBy('editorial', 'asc')->get();
-        return view('information.libros.lista', compact('editoriales'));
+        return view('information.libros.lista', compact('editoriales', 'types'));
     } 
 
     // MOSTRAR VISTA PRINCIPAL DE LAS ENTRADAS-SALIDAS
@@ -142,6 +143,42 @@ class LibroController extends Controller
         $libros = $this->all_libros_paginate()
                     ->where('editorial', $request->editorial)
                     ->paginate(25);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
+    }
+
+    // OBTENER LIBROS POR SERIE
+    public function by_serie(Request $request){
+        $libros = $this->all_libros_paginate()
+                    ->where('serie_id', $request->serie_id)
+                    ->paginate(25);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
+    }
+
+    // OBTENER LIBROS POR TIPO
+    public function by_type(Request $request){
+        $libros = $this->all_libros_paginate()
+                    ->where('type', $request->type)
+                    ->paginate(25);
+        $resultados = $this->get_all_detallado($libros);
+        return response()->json(['libros' => $resultados, 'paginate' => $libros]);
+    }
+
+    // OBTENER LIBROS POR TODOS LOS FILTROS
+    public function by_all(Request $request){
+        $libros = $this->all_libros_paginate()
+                ->when($request->filled('editorial'), function ($query) use($request) {
+                    $query->where('editorial', $request->editorial);
+                })->when($request->filled('serie_id'), function ($query) use($request) {
+                    $query->where('serie_id', $request->serie_id);
+                })->when($request->filled('titulo'), function ($query) use($request) {
+                    $query->where('titulo','like','%'.$request->titulo.'%');
+                })->when($request->filled('isbn'), function ($query) use($request) {
+                    $query->where('ISBN','like','%'.$request->isbn.'%');
+                })->when($request->filled('type'), function ($query) use($request) {
+                    $query->where('type', $request->type);
+                })->paginate(25);
         $resultados = $this->get_all_detallado($libros);
         return response()->json(['libros' => $resultados, 'paginate' => $libros]);
     }
@@ -1363,7 +1400,7 @@ class LibroController extends Controller
         // return response()->json(true);
     }
 
-    public function by_type(Request $request){
+    public function by_titulo_type(Request $request){
         $libros = Libro::where('type','digital')
                     ->where('titulo','like','%'.$request->titulo.'%')
                     ->where('estado', 'activo')
