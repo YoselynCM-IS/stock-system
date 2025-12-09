@@ -241,6 +241,7 @@ class LibroController extends Controller
         $libros = \DB::table('libros')
                     ->where('titulo','like','%'.$queryTitulo.'%')
                     ->where('estado', 'activo')
+                    ->orderBy('type', 'desc')
                     ->orderBy('titulo', 'asc')->get();
         return response()->json($libros);
     }

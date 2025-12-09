@@ -7,9 +7,11 @@ export default {
     methods: {
         // OBTENER PACK POR COINCIDENCIA
         librosScratch(titulo_fisico) {
-            axios.get('/libro/all_scratch', { params: { titulo: titulo_fisico } }).then(response => {
+            if(titulo_fisico.length > 3){
+                axios.get('/libro/all_scratch', { params: { titulo: titulo_fisico } }).then(response => {
                 this.resultsScratch = response.data;
             }).catch(error => { });
+            }
         },
     },
 }

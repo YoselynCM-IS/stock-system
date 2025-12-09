@@ -1,28 +1,18 @@
 <template>
     <div>
         <check-connection-component></check-connection-component>
-        <b-row>
-            <b-col>
-                <h4 style="color: #170057"><b>{{ !editar ? 'Crear':'Editar' }} remisión</b></h4>
-            </b-col>
-            <b-col sm="2" align="right">
-                <b-button variant="secondary" @click="goBack()" pill block>
-                    <i class="fa fa-mail-reply"></i> Regresar
-                </b-button>
-            </b-col>
-        </b-row><br>
+        <h5><b>{{ !editar ? 'CREAR':'EDITAR' }} REMISIÓN</b></h5><br>
         <!-- SELECCIONAR CLIENTE PARA UNA NUEVA REMISIÓN -->
         <div v-if="(mostrarBusqueda && !editar) || second">
             <b-row>
                 <b-col>
-                    <h6><b>Seleccionar cliente</b></h6>
                     <b-input v-model="queryCliente" autofocus placeholder="Buscar cliente..."
                         style="text-transform:uppercase;" @keyup="http_bynamestatus('activo')"></b-input>
                 </b-col>
                 <b-col>
                     <!-- PAGINACIÓN -->
                     <pagination size="default" :limit="1" :data="clientesData" 
-                        @pagination-change-page="getResults" align="center">
+                        @pagination-change-page="getResults" align="right">
                         <span slot="prev-nav"><i class="fa fa-angle-left"></i></span>
                         <span slot="next-nav"><i class="fa fa-angle-right"></i></span>
                     </pagination>
@@ -34,7 +24,7 @@
                 <!-- LISTADO DE CLIENTES -->
                 <b-table :items="clientes" :fields="fieldsClientes">
                     <template v-slot:cell(seleccion)="row">
-                        <b-button variant="success" @click="seleccionCliente(row.item)" pill>
+                        <b-button variant="success" @click="seleccionCliente(row.item)" pill size="sm">
                             <i class="fa fa-check"></i>
                         </b-button>
                     </template>
@@ -85,14 +75,13 @@
                 </div>
             </b-collapse>
             <b-row class="mt-3" v-if="remision.cliente.id == 304">
-                <b-col sm="2" align="right"><b>Enviado a</b></b-col>
+                <b-col sm="2"><b>Enviado al cliente</b></b-col>
                 <b-col sm="6">
                     <b-input style="text-transform:uppercase;" v-model="remision.destino" autofocus></b-input>
                 </b-col>
             </b-row>
-            <hr>
-            <b-row>
-                <b-col sm="2" align="right"><label><b>Fecha de entrega</b></label></b-col>
+            <b-row class="mt-2">
+                <b-col sm="2"><label><b>Fecha de entrega</b></label></b-col>
                 <b-col sm="4">
                     <b-form-datepicker required :disabled="load" v-model="remision.fecha_entrega"
                     :state="state"></b-form-datepicker>
@@ -104,12 +93,12 @@
                     </b-button>
                 </b-col>
             </b-row>
-            <hr>
-            <table class="table">
+            <table class="table mt-3">
                 <thead>
                     <tr>
                         <th colspan="4"></th>
                         <th><b>${{ remision.total | formatNumber }}</b></th>
+                        <th></th>
                     </tr>
                     <tr>
                         <th scope="col" style="width: 18%;">ISBN</th>
@@ -262,7 +251,8 @@
                 </div>
                 <load-component v-else></load-component>
             </b-modal>
-            <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
+            <b-modal ref="modal-scratch" size="xl" hide-footer>
+                <template #modal-title><b>SCRATCH</b></template>
                 <table class="table mb-2">
                     <thead>
                         <tr>
@@ -533,7 +523,7 @@ export default {
             },
             // GUARDAR REGISTRO TEMPORAL
             guardarRegistro(){
-                if (this.temporal.id ) {
+                if (this.temporal.id) {
                     var pzs = this.temporal.piezas;
                     var acum = 0;
                     var check1 = this.remision.datos.find(d => d.libro.id == this.temporal.id);
@@ -567,9 +557,7 @@ export default {
                         }
 
                         if (this.temporal.unidades > 0) {
-                            axios.get('/libro/get_scratch', { params: { id: this.temporal.id } }).then(response => {
-                                this.params_registro(pzs - response.data);
-                            }).catch(error => { });
+                            this.params_registro(pzs);
                         } else {
                             this.temporal.unidades = 0
                             this.makeToast('warning', 'Las unidades deben ser mayor a 0.');
@@ -613,8 +601,7 @@ export default {
                     this.remision.nuevos.forEach(n => {
                         this.remision.total += n.total;
                     });
-                }
-                else{
+                } else{
                     this.makeToast('warning', `${pzs} piezas en existencia.`);
                 }
             },

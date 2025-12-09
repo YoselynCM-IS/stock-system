@@ -8,7 +8,7 @@ export default {
     },
     methods: {
         getLibros(titulo){
-            if(titulo != null && titulo.length > 0){
+            if(titulo != null && titulo.length > 3){
                 axios.get('/mostrarLibros', {params: {queryTitulo: titulo}}).then(response => {
                     this.resultslibros = response.data;
                 }).catch(error => { });

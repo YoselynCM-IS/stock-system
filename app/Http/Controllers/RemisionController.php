@@ -985,8 +985,10 @@ class RemisionController extends Controller
             $lista_devoluciones[] = $this->set_devoluciones($dato, $hoy);
             // LISTADO DE CODES
             $lista_codes = $this->set_codes($dato, $lista_codes);
-            // DISMINUIR PIEZAS DE LOS LIBROS
-            $this->libros_decrement($dato);
+            // DISMINUIR PIEZAS DE LOS LIBROS, SOLO SI EL LIBRO NO ES PACK
+            if($dato->pack_id == null){
+                $this->libros_decrement($dato);
+            }
         });
 
         // CREAR REGISTROS DE DEVOLUCION
