@@ -201,8 +201,6 @@ Route::get('/buscarISBN', 'LibroController@show')->name('buscarISBN');
 Route::get('/isbn_por_editorial', 'LibroController@isbn_por_editorial')->name('isbn_por_editorial'); 
 //Obtener todos los libros
 Route::get('allLibros', 'LibroController@allLibros')->name('allLibros');
-// Descargar en formato excel todos los libros
-Route::get('/downloadExcel/{editorial}', 'LibroController@downloadExcel')->name('downloadExcel');
 // Mostrar entradas por libro
 Route::get('movimientos_todos', 'LibroController@movimientos_todos')->name('movimientos_todos');
 // Mostrar entradas por libro
@@ -522,6 +520,12 @@ Route::name('libro.')->prefix('libro')->group(function () {
     // SERIES
     Route::name('serie.')->prefix('serie')->group(function () {
         Route::get('/get_series', 'LibroController@get_series')->name('get_series');
+    });
+
+    // DOWNLOAD
+    Route::name('download.')->prefix('download')->group(function () {
+        // DESCARGAR EN EXCEL EL INVENTARIO
+        Route::get('/list_libros/{editorial}/{serie_id}/{titulo}/{isbn}/{type}', 'LibroController@download_list_libros')->name('list_libros');
     });
 });
 

@@ -301,8 +301,9 @@ class LibroController extends Controller
 
     // DESCARGAR EN FORMATO EXCEL LOS LIBROS
     // Función utilizada en LibrosComponent
-    public function downloadExcel($editorial){
-        return Excel::download(new LibrosExport($editorial), 'libros.xlsx');
+    public function download_list_libros($editorial, $serie_id, $titulo, $isbn, $type){
+        $hoy 	= Carbon::now();
+        return Excel::download(new LibrosExport($editorial, $serie_id, $titulo, $isbn, $type), $hoy->format('Y-m-d').'_INVENTARIO-LIBROS.xlsx');
     }
 
     // GUARDAR NUEVO LIBRO

@@ -47,9 +47,16 @@
                     <i class="fa fa-filter"></i>
                 </b-button>
             </div>
+            <div class="col-md-1 text-left">
+                <b-button variant="dark" pill class="mt-4" :disabled="!applyAll" @click="http_applyAll()">
+                    <i class="fa fa-search"></i>
+                </b-button>
+            </div>
             <div class="col-md-2">
-                <b-button variant="dark" pill block class="mt-4" :disabled="!applyAll" @click="http_applyAll()">
-                    Aplicar
+                <!-- DESCARGAR LIBROS -->
+                <b-button :href="`/libro/download/list_libros/${this.queryEditorial}/${this.serie_id}/${this.queryTitulo}/${this.isbn}/${this.queryType}`" :disabled="!applyAll" variant="dark"
+                    pill block class="mt-4">
+                    <i class="fa fa-download"></i> Descargar
                 </b-button>
             </div>
         </div><hr>
@@ -59,12 +66,6 @@
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
                     block href="/codes/scratch" target="_blank">
                     Scratch
-                </b-button>
-            </b-col>
-            <b-col sm="2" class="text-right">
-                <!-- DESCARGAR LIBROS downloadExcel -->
-                <b-button :href="`/downloadExcel/${queryEditorial}`" variant="dark" pill block>
-                    <i class="fa fa-download"></i> Descargar
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
