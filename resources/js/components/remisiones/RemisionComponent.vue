@@ -180,7 +180,8 @@
                 </tbody>
             </table>
             <!-- MODAL -->
-            <b-modal ref="modal-confirmar-remision" size="xl" title="Resumen de la remisión" hide-footer>
+            <b-modal ref="modal-confirmar-remision" size="xl" hide-footer>
+                <template #modal-title><b>Resumen de la remisión</b></template>
                 <div v-if="!load">
                     <b-row class="mb-3">
                         <b-col>
@@ -199,17 +200,19 @@
                             </tr>
                             <tr>
                                 <th scope="col" style="width: 18%;">ISBN</th>
-                                <th scope="col" style="width: 37%;">Libro</th>
+                                <th scope="col" style="width: 43%;">Libro</th>
                                 <th scope="col" style="width: 15%;">Costo unitario</th>
                                 <th scope="col" style="width: 10%;">Unidades</th>
                                 <th scope="col" style="width: 15%;">Total</th>
-                                <th scope="col" style="width: 5%;"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(dato, i) in remision.datos" v-bind:key="i">
                                 <td>{{ dato.libro.ISBN }}</td>
-                                <td>{{ dato.libro.titulo }}</td>
+                                <td>
+                                    {{ dato.libro.titulo }}
+                                    <b-badge v-if="dato.scratch || dato.pack_id !== null" variant="info">scratch</b-badge>
+                                </td>
                                 <td>${{ dato.costo_unitario | formatNumber }}</td>
                                 <td>{{ dato.unidades | formatNumber }}</td>
                                 <td>${{ dato.total | formatNumber }}</td>
@@ -220,7 +223,7 @@
                         <tbody>
                             <tr v-for="(nuevo, j) in remision.nuevos" v-bind:key="j">
                                 <td style="width: 18%;">{{ nuevo.libro.ISBN }}</td>
-                                <td style="width: 37%;">{{ nuevo.libro.titulo }}</td>
+                                <td style="width: 43%;">{{ nuevo.libro.titulo }}</td>
                                 <td style="width: 15%;">${{ nuevo.costo_unitario | formatNumber }}</td>
                                 <td style="width: 10%;">{{ nuevo.unidades | formatNumber }}</td>
                                 <td style="width: 15%;">${{ nuevo.total | formatNumber }}</td>
@@ -524,21 +527,25 @@ export default {
             // GUARDAR REGISTRO TEMPORAL
             guardarRegistro(){
                 if (this.temporal.id) {
-                    var pzs = this.temporal.piezas;
+                    // SI ES SCRATCH SE ESTABLECE EN 0 PORQUE NO SE PUEDEN EDITAR UNIDADES
+                    var pzs = this.temporal.pack_id == null ? this.temporal.piezas:0;
                     var acum = 0;
                     var check1 = this.remision.datos.find(d => d.libro.id == this.temporal.id);
                     var check2 = this.remision.nuevos.find(d => d.libro.id == this.temporal.id);
                     if ((this.temporal.dato_id == null && check1 == undefined && check2 == undefined) || this.temporal.dato_id != null) {
                         if (this.remision.datos.length > 0 || this.remision.nuevos.length > 0) {
+                            // NUEVO
                             if (!this.editar) {
+                                // NO AFECTA A SCRATCH, PORQUE NO SE AGREGA DESDE AQUI
                                 this.remision.datos.forEach(dato => {
                                     if (this.temporal.id == dato.libro.id) {
                                         acum += parseInt(dato.unidades);
                                         pzs = this.temporal.piezas - acum;
                                     }
                                 });
-                            } else {
+                            } else { // EDITAR
                                 if (this.temporal.dato_id == null) {
+                                    // NO AFECTA A SCRATCH, PORQUE NO SE AGREGA DESDE AQUI, Y AL EDITAR AUN NO ESTA QUE SE AGREGUE SCRATCH
                                     this.remision.nuevos.forEach(nuevo => {
                                         if (this.temporal.id == nuevo.libro.id) {
                                             acum += parseInt(nuevo.unidades);
@@ -546,8 +553,9 @@ export default {
                                         }
                                     });
                                 } else {
+                                    // EN ESTE PUNTO SI AFECTA AL SCRATCH, PERO SOLO EN EL COSTO, POR ESO SE OMITE QUE SE ACUMULEN UNIDADES
                                     this.remision.datos.forEach(dato => {
-                                        if (this.temporal.id == dato.libro.id) {
+                                        if (this.temporal.id == dato.libro.id && dato.pack_id == null) {
                                             acum += parseInt(dato.unidades);
                                         }
                                     });
@@ -570,7 +578,10 @@ export default {
                 }
             },
             params_registro(pzs){
-                if(this.temporal.unidades <= pzs){
+                // COMO NO SE TOMAN EN CUENTA LAS UNIDADES PARA SCRATCH, SOLO SE VERIFICA
+                // PARA QUE AFECTE EL COSTO DE SER NECESARIO
+                // PARA LIBRO NORMAL, ACCEDE SIEMPRE Y CUANDO LAS UNIDADES SEAN MENORES A LAS PIEZAS
+                if((this.temporal.unidades <= pzs) || (this.editar && this.temporal.pack_id > 0)){
                     if(this.temporal.costo_unitario >= 0){
                         this.temporal.total = this.temporal.unidades * this.temporal.costo_unitario;
                         this.mostrarDatos = false;
@@ -586,7 +597,7 @@ export default {
                                 this.remision.datos[this.position].total = this.temporal.total;
                                 var f = this.remision.editados.find(e => e == this.temporal.dato_id);
                                 if (f == undefined) 
-                                     this.remision.editados.push(this.remision.datos[this.position].id);
+                                    this.remision.editados.push(this.remision.datos[this.position].id);
                             }
                         }
                         this.inicializar_registro();

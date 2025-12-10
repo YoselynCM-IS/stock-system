@@ -1244,9 +1244,9 @@ class RemisionController extends Controller
                     $code->update(['estado' => 'inventario']);
                 });
             });
-            // ** ELIMINADOS
+            // ** ELIMINADOS -- NO INCLUYE SCRATCH AUN
             
-            // NUEVOS
+            // NUEVOS -- NO INCLUYE SCRATCH AUN
             $lista_devoluciones = [];
             $nuevos = collect($request->nuevos);
             $hoy = Carbon::now();
@@ -1299,31 +1299,34 @@ class RemisionController extends Controller
                         $e_total = (double) $ed['total'];
                         $e_costo_unitario = (float) $ed['costo_unitario'];
                         if(($e_unidades != $d->unidades) || ($e_costo_unitario != $d->costo_unitario)){
-                            if($e_unidades < $d->unidades){
-                                // ELIMINAR DATOS Y AGREGAR LIBROS
-                                $diferencia = $d->unidades - $e_unidades;
-                                if($d->libro->type == 'digital'){
-                                    $codes_id = $d->codes()->limit($diferencia)->pluck('codes.id');
-                                    Code::whereIn('id', $codes_id)->update([
-                                        'estado' => 'inventario'
-                                    ]);
-                                    \DB::table('code_dato')->where('dato_id', $d->id)
-                                            ->whereIn('code_id', $codes_id)->delete();
+                            // SOLO SI EL DATO NO ES SCRATCH
+                            if($d->pack_id == null){
+                                if($e_unidades < $d->unidades){
+                                    // ELIMINAR DATOS Y AGREGAR LIBROS
+                                    $diferencia = $d->unidades - $e_unidades;
+                                    if($d->libro->type == 'digital'){
+                                        $codes_id = $d->codes()->limit($diferencia)->pluck('codes.id');
+                                        Code::whereIn('id', $codes_id)->update([
+                                            'estado' => 'inventario'
+                                        ]);
+                                        \DB::table('code_dato')->where('dato_id', $d->id)
+                                                ->whereIn('code_id', $codes_id)->delete();
+                                    }
+                                    // AGREGAR PIEZAS DE LOS LIBROS
+                                    \DB::table('libros')->whereId($d->libro_id)
+                                        ->increment('piezas',  $diferencia);
                                 }
-                                // AGREGAR PIEZAS DE LOS LIBROS
-                                \DB::table('libros')->whereId($d->libro_id)
-                                    ->increment('piezas',  $diferencia);
-                            }
-                            if($e_unidades > $d->unidades){
-                                // AGREGAR DATOS Y QUITAR LIBROS
-                                $diferencia = $e_unidades - $d->unidades;
-                                if($d->libro->type == 'digital'){
-                                    $this->get_codes($d->libro_id, $diferencia, $d->id);
-                                }
+                                if($e_unidades > $d->unidades){
+                                    // AGREGAR DATOS Y QUITAR LIBROS
+                                    $diferencia = $e_unidades - $d->unidades;
+                                    if($d->libro->type == 'digital'){
+                                        $this->get_codes($d->libro_id, $diferencia, $d->id);
+                                    }
 
-                                // DISMINUIR PIEZAS DE LOS LIBROS
-                                \DB::table('libros')->whereId($d->libro_id)
-                                    ->decrement('piezas',  $diferencia);
+                                    // DISMINUIR PIEZAS DE LOS LIBROS
+                                    \DB::table('libros')->whereId($d->libro_id)
+                                        ->decrement('piezas',  $diferencia);
+                                }
                             }
                             $d->update([
                                 'costo_unitario' => $e_costo_unitario,
