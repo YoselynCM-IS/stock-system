@@ -642,19 +642,13 @@ class RemisionController extends Controller
     public function cancel(Request $request){
         $remision = Remisione::whereId($request->id)->first();
         \DB::beginTransaction();
-        try{ 
-            $scratch = collect();
-            $remision->datos->map(function($dato) use(&$scratch){
+        try{
+            // DEVOLVER LIBROS NORMALES
+            $remision->datos->where('pack_id', null)->map(function($dato){
                 // REGRESAR EL NUMERO DE PIEZAS TOMADAS
-                \DB::table('libros')->whereId($dato->libro_id)
-                                    ->increment('piezas',  $dato->unidades);
+                \DB::table('libros')->whereId($dato->libro_id)->increment('piezas',  $dato->unidades);
 
-                if($dato->libro->type == 'digital' && $dato->codes()->count() == 0){
-                    $scratch->push([
-                        'libro_id' => $dato->libro_id,
-                        'unidades' => $dato->unidades
-                    ]);
-                }
+                // REGRESAR LOS CODIGOS TOMADOS
                 if($dato->libro->type == 'digital' && $dato->codes()->count() > 0){
                     // BORRAR CODIGOS
                     $dato->codes->map(function($code){
@@ -662,18 +656,14 @@ class RemisionController extends Controller
                     });
                     $dato->codes()->detach();
                 }
-
-                $reporte = 'registro la cancelación (remisión) de '.$dato->unidades.' unidades - '.$dato->libro->editorial.': '.$dato->libro->type.' '.$dato->libro->ISBN.' / '.$dato->libro->titulo.' para '.$dato->remisione_id.' / '.$dato->remisione->cliente->name;
-                $this->create_report($dato->id, $reporte, 'libro', 'datos');
             });
 
             // DEVOLVER LIBROS A SCRATCH
-            $all_libroid = $remision->datos->pluck('libro_id');
-            $scratch->map(function($s) use($all_libroid){
-                $p = Pack::where('libro_digital', $s['libro_id'])
-                            ->whereIn('libro_fisico', $all_libroid)
-                            ->first();
-                $p->update(['piezas' => $p->piezas + $s['unidades']]);
+            $remision->datos->whereNotNull('pack_id')->map(function($dato){
+                if($dato->libro->type == 'digital'){
+                    $pack = Pack::whereId($dato->pack_id)->first();
+                    $pack->update(['piezas' => $pack->piezas + $dato->unidades]);
+                }
             });
 
             // BORRAR LOS REGISTROS DE DEVOLUCION
