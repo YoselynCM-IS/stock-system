@@ -266,12 +266,14 @@ class EntradaController extends Controller
             'updated_at' => $hoy
         ]);
 
-        $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' unidades - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
-        $this->create_report($registro->id, $reporte, 'libro', 'registros');
+        // $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' unidades - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
+        // $this->create_report($registro->id, $reporte, 'libro', 'registros');
 
-        // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
-        \DB::table('libros')->whereId($libro_id)
-            ->increment('piezas', $unidades_base); 
+        if($pack_id == null){
+            // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
+            \DB::table('libros')->whereId($libro_id)
+                ->increment('piezas', $unidades_base);
+        } 
     }
     
     // ACTUALIZAR DATOS DE ENTRADA
