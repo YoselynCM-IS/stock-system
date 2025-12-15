@@ -157,7 +157,9 @@
                             <b>Folio:</b> <label style="text-transform:uppercase;">{{form.folio}}</label><br>
                             <label><b>Editorial:</b> {{form.editorial}}</label>
                         </b-col>
-                        <b-col sm="4"><label><b>Imprenta:</b> {{form.imprenta}}</label></b-col>
+                        <b-col sm="4" v-if="form.editorial == 'MAJESTIC EDUCATION'">
+                            <label><b>Imprenta:</b> {{form.imprenta}}</label>
+                        </b-col>
                         <b-col sm="3" class="text-right">
                             <b-form-group v-if="agregar">
                                 <input :disabled="load" type="file" id="archivoType" 
@@ -336,6 +338,7 @@ export default {
             this.form.folio = this.entrada.folio;
             this.form.editorial = this.entrada.editorial;
             this.form.imprenta_id = this.entrada.imprenta_id;
+            this.form.imprenta = this.entrada.imprenta.imprenta;
             this.form.total = this.entrada.total;
             this.getImprentas('all');
             this.stateN = true; // PARA ARPOBAR QUE EL FOLIO ES VALIDO

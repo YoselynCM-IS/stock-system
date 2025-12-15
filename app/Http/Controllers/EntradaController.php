@@ -305,14 +305,14 @@ class EntradaController extends Controller
                 $this->save_registros($entrada, $item['pack_id'], $libro_id, $unidades_base, $item['unidades_que'], $costo_unitario, $total, $hoy);
             });
 
-            // AUMENTAR PIEZAS EN PACK
+            // AUMENTAR PIEZAS EN PACK, SOLO NUEVOS, YA QUE POR EL MOMENTO NO SE PUEDEN EDITAR LO QUE YA ESTA AGREGADO
             $packs = collect($request->packs);
             $packs->map(function($pack){
                 \DB::table('packs')->whereId($pack['id'])
                                     ->increment('piezas',  (int) $pack['unidades']);
             });
 
-            // ELIMINAR REGISTROS DEL ARRAY
+            // ELIMINAR REGISTROS DEL ARRAY - POR AHORA SOLO ELIMINA FISICO O DIGITAL, PACK NO
             $eliminados = collect($request->eliminados);
             $eliminados->map(function($eliminado){
                 $registro_id = $eliminado['registro_id'];
@@ -1276,7 +1276,7 @@ class EntradaController extends Controller
     public function addupdate($entrada_id, $agregar){
         $entrada = 0;
         if($agregar == 'false' && auth()->user()->role->rol == 'Manager') {
-            $entrada = Entrada::whereId($entrada_id)->with('registros.libro')->first();
+            $entrada = Entrada::whereId($entrada_id)->with('registros.libro', 'imprenta')->first();
             if($entrada->total_devolucion > 0) 
                 return view('information.entradas.lista');
         }
