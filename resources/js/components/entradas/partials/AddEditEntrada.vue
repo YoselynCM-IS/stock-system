@@ -2,7 +2,7 @@
     <div>
         <b-row>
             <b-col>
-                <h4>{{ agregar ? 'Nueva' : 'Editar' }} entrada</h4>
+                <h5><b>{{ agregar ? 'NUEVA' : 'EDITAR' }} ENTRADA</b></h5>
             </b-col>
             <b-col sm="2" class="text-right">
                 <b-button :disabled="load || form.registros.length == 0 || stateN != true ||
@@ -17,7 +17,7 @@
             <b-row>
                 <b-col>
                     <b-row>
-                        <b-col sm="2"><label>Editorial</label></b-col>
+                        <b-col sm="2"><label><b>Editorial</b></label></b-col>
                         <b-col>
                             <b-form-select v-model="form.editorial" autofocus :state="stateE" 
                                 @change="editorialSelected()"
@@ -25,8 +25,8 @@
                             </b-form-select>    
                         </b-col>
                     </b-row>
-                    <b-row>
-                        <b-col sm="2"><label>Folio</label></b-col>
+                    <b-row class="mt-2">
+                        <b-col sm="2"><label><b>Folio</b></label></b-col>
                         <b-col>
                             <b-form-input style="text-transform:uppercase;"
                                 v-model="form.folio" :disabled="load" :state="stateN"
@@ -38,10 +38,11 @@
                 <b-col class="text-right">
                     <div v-if="form.editorial == 'MAJESTIC EDUCATION'">
                         <b-row>
-                            <b-col sm="2"><label>Imprenta</label></b-col>
+                            <b-col sm="2"><label><b>Imprenta</b></label></b-col>
                             <b-col>
-                                <b-form-select v-model="form.imprenta_id" autofocus :state="stateE"
-                                    :disabled="load || (form.registros.length > 0 && agregar)" :options="imprentas">
+                                <b-form-select v-model="form.imprenta_id" @change="changeImprenta()"
+                                    autofocus :state="stateE" :disabled="load || (form.registros.length > 0 && agregar)" 
+                                    :options="imprentas">
                                 </b-form-select>    
                             </b-col>
                         </b-row>
@@ -56,8 +57,7 @@
                     </div>
                 </b-col>
             </b-row>
-            <hr>
-            <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:( form.total > 0 ? fieldsREcosto:fieldsRE)">
+            <b-table class="mt-3" :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsREcosto">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
                 <template v-slot:cell(titulo)="row">
@@ -71,7 +71,7 @@
                 <template v-slot:cell(total)="row">${{ row.item.total | formatNumber }}</template>
                 <template v-slot:cell(actions)="row">
                     <b-button v-if="!row.item.scratch && row.item.type != 'digital'" pill size="sm"
-                        variant="danger" @click="eliminarRegistro(row.item, row.index)">
+                        variant="secondary" @click="eliminarRegistro(row.item, row.index)">
                         <i class="fa fa-minus-circle"></i>
                     </b-button>
                     <b-button v-if="(agregar && !row.item.scratch) || (!agregar && form.total > 0)" pill size="sm" variant="warning" 
@@ -81,18 +81,19 @@
                 </template>
                 <template #thead-top="row">
                     <tr v-if="form.editorial !== null">
-                        <th colspan="1"></th>
-                        <th>ISBN</th>
+                        <th colspan="2"></th>
                         <th>Libro</th>
                         <th>{{ form.queretaro ? 'Unidades (CDMX)':'Unidades' }}</th>
-                        <th v-if="form.queretaro">Unidades (QUE)</th>
-                        <th v-if="form.total > 0">Costo unitario</th>
-                        <th v-if="form.total > 0">Total</th>
+                        <!-- <th v-if="form.queretaro">Unidades (QUE)</th> -->
+                        <th>{{ form.total > 0 ? 'Costo unitario':'' }}</th>
+                        <th>{{ form.total > 0 ? 'Total':'' }}</th>
+                        <th></th>
                     </tr>
                     <tr v-if="form.editorial !== null">
                         <th colspan="1"></th>
                         <th>
-                            <b-input autofocus v-model="temporal.isbn" :disabled="position != null"
+                            {{ temporal.isbn }}
+                            <!-- <b-input autofocus v-model="temporal.isbn" :disabled="position != null"
                                 @keyup="buscarLibroISBN()"
                             ></b-input>
                             <div class="list-group" v-if="resultsISBNS.length" id="listaLR">
@@ -100,7 +101,7 @@
                                     v-for="(libro, i) in resultsISBNS" @click="datosLibro(libro)">
                                     {{ libro.ISBN }}
                                 </a>
-                            </div>
+                            </div> -->
                         </th>
                         <th>
                             <b-input style="text-transform:uppercase;" :disabled="position != null"
@@ -118,17 +119,17 @@
                                 type="number" required>
                             </b-form-input>
                         </th>
-                        <th v-if="form.queretaro">
+                        <!-- <th v-if="form.queretaro">
                             <b-form-input v-model="temporal.unidades_que" 
                                 type="number" required>
                             </b-form-input>
-                        </th>
-                        <th v-if="form.total > 0">
-                            <b-form-input v-model="temporal.costo_unitario" 
+                        </th> -->
+                        <th>
+                            <b-form-input v-if="form.total > 0" v-model="temporal.costo_unitario" 
                                 type="number" required>
                             </b-form-input>
                         </th>
-                        <th v-if="form.total > 0"></th>
+                        <th></th>
                         <th colspan="2">
                             <b-button :disabled="temporal.id == null" size="sm"
                                 variant="success" pill @click="saveTemporal()">
@@ -139,22 +140,25 @@
                     <tr>
                         <th colspan="3"></th>
                         <th>{{ form.unidades | formatNumber }}</th>
-                        <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th>
-                        <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th>
+                        <!-- <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th> -->
+                        <!-- <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th> -->
                         <th></th>
                         <th>${{ form.total | formatNumber }}</th>
+                        <th></th>
                     </tr>
                 </template>
             </b-table>
             <!-- MODALS -->
-            <b-modal ref="modal-confirmarEntrada" size="xl" title="Resumen de la entrada" hide-footer>
+            <b-modal ref="modal-confirmarEntrada" size="xl" hide-footer>
+                <template #modal-title><b>Resumen de la entrada</b></template>
                 <form @submit="onSubmit" enctype="multipart/form-data">
                     <b-row>
                         <b-col>
-                            <label><b>Folio:</b> {{form.folio}}</label><br>
+                            <b>Folio:</b> <label style="text-transform:uppercase;">{{form.folio}}</label><br>
                             <label><b>Editorial:</b> {{form.editorial}}</label>
                         </b-col>
-                        <b-col class="text-right">
+                        <b-col sm="4"><label><b>Imprenta:</b> {{form.imprenta}}</label></b-col>
+                        <b-col sm="3" class="text-right">
                             <b-form-group v-if="agregar">
                                 <input :disabled="load" type="file" id="archivoType" 
                                     v-on:change="fileChange" name="file" multiple>
@@ -174,7 +178,7 @@
                                 :titulo="'Subir factura'" @uploadImage="uploadImage"></subir-foto-component> -->
                         </b-col>
                     </b-row>
-                    <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:( form.total > 0 ? fieldsREcosto:fieldsRE)">
+                    <b-table :items="form.registros" :fields="form.queretaro ? fieldsQO:fieldsREcosto">
                         <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                         <template v-slot:cell(ISBN)="row">{{ row.item.isbn }}</template>
                         <template v-slot:cell(titulo)="row">
@@ -184,25 +188,27 @@
                         <template v-slot:cell(unidades)="row">{{ row.item.unidades | formatNumber }}</template>
                         <template v-slot:cell(unidades_que)="row">{{ row.item.unidades_que | formatNumber }}</template>
                         <template v-slot:cell(total_unidades)="row">{{ row.item.total_unidades | formatNumber }}</template>
+                        <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
+                        <template v-slot:cell(total)="row">${{ row.item.total | formatNumber }}</template>
                         <template #thead-top="row">
                             <tr>
                                 <th colspan="3"></th>
                                 <th>{{ form.unidades | formatNumber }}</th>
-                                <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th>
-                                <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th>
+                                <!-- <th v-if="form.queretaro">{{ total_unidades_que | formatNumber }}</th>
+                                <th v-if="form.queretaro">{{ total_unidades | formatNumber }}</th> -->
                                 <th></th>
                                 <th>${{ form.total | formatNumber }}</th>
                             </tr>
                         </template>
                     </b-table>
                     <b-row>
-                        <b-col sm="10">
+                        <b-col>
                             <b-alert show variant="info">
                                 <i class="fa fa-exclamation-circle"></i> <b>Verificar los datos de la entrada.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                            <b-button type="submit" variant="success" :disabled="load || (form.files.length == 0 && agregar)">
+                            <b-button type="submit" pill block variant="success" :disabled="load || (form.files.length == 0 && agregar)">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
@@ -210,7 +216,8 @@
                 </form>
             </b-modal>
             <!-- Agregar Scratch -->
-            <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
+            <b-modal ref="modal-scratch" size="xl" hide-footer>
+                <template #modal-title><b>Scratch</b></template>
                 <!-- BUSCAR Y AGREGAR SCRATCH -->
                 <add-scratchs-component @addedScratch="addedScratch"></add-scratchs-component>
                 <!-- LISTAR PACKS AGREGADOS -->
@@ -253,6 +260,7 @@ export default {
                 folio: null,
                 editorial: null,
                 imprenta_id: null,
+                imprenta: null,
                 queretaro: false,
                 total: 0,
                 registros: [],
@@ -429,6 +437,11 @@ export default {
                 this.makeToast('warning', 'Definir folio.');
             }
         },
+        // ASIGNAR DATOS DE IMPRENTA SELECCIONADA
+        changeImprenta(){
+            let selected = this.imprentas.find(opcion => opcion.value === this.form.imprenta_id);
+            this.form.imprenta = selected.text;
+        },
         // ELIMINAR REGISTRO DE ENTRADA
         eliminarRegistro(item, i){
             if(!this.agregar && !item.nuevo){
@@ -469,7 +482,7 @@ export default {
             this.temporal.total = t;
         },
         mostrarLibros(){
-            if(this.temporal.titulo.length > 0){ 
+            if(this.temporal.titulo.length > 3){ 
                 axios.get('/libro/by_editorial_type_titulo', {params: {titulo: this.temporal.titulo, editorial: this.form.editorial, typeNot: 'digital'}}).then(response => {
                     this.resultslibros = response.data;
                 }).catch(error => {

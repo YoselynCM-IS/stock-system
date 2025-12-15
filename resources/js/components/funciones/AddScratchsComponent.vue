@@ -17,7 +17,7 @@
                         <b-input v-model="temporalScratch.unidades" type="number" min="1" max="9999"></b-input>
                     </td>
                     <td scope="col">
-                        <b-button variant="success" pill block @click="saveScratch()">
+                        <b-button variant="success" pill size="sm" @click="saveScratch()">
                             <i class="fa fa-level-down"></i>
                         </b-button>
                     </td>
