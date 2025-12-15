@@ -376,10 +376,10 @@
         <div v-if="mostrarDevolucion">
             <b-row class="mb-2">
                 <b-col>
-                    <h4 style="color: #170057">Registrar devolución</h4>
+                    <h5><b>REGISTRAR DEVOLUCIÓN</b></h5>
                 </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button variant="secondary" pill
+                    <b-button variant="dark" pill block
                         @click="mostrarDevolucion = !mostrarDevolucion; listadoEntradas = true;">
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
@@ -861,6 +861,7 @@ import sweetAlert from '../../mixins/sweetAlert';
                     this.formDev.id = response.data.entrada.id;
                     this.formDev.folio = response.data.entrada.folio;
                     this.formDev.editorial = response.data.entrada.editorial;
+                    this.formDev.imprenta = response.data.entrada.imprenta.imprenta;
                     this.formDev.total = response.data.entrada.total;
                     this.formDev.unidades = response.data.entrada.unidades;
                     this.formDev.total_devolucion = response.data.entrada.total_devolucion;

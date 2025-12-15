@@ -1,15 +1,18 @@
 <template>
     <div>
         <b-row>
-            <b-col sm="8">
+            <b-col>
                 <label><b>Folio:</b> {{form.folio}}</label><br>
                 <label><b>Editorial:</b> {{form.editorial}}</label>
             </b-col>
-            <b-col>
-                <b-button variant="success" pill @click="confirmarDevolucion()"><i class="fa fa-check"></i> Guardar</b-button>
+            <b-col sm="4">
+                <label><b>Imprenta:</b> {{form.imprenta}}</label>
+            </b-col>
+            <b-col sm="2">
+                <b-button variant="success" pill block @click="confirmarDevolucion()"><i class="fa fa-check"></i> Guardar</b-button>
             </b-col>
         </b-row>
-        <b-table :items="form.registros" :fields="fieldsD">
+        <b-table class="mt-2" :items="form.registros" :fields="fieldsD">
             <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
             <template v-slot:cell(ISBN)="row">{{ row.item.libro.ISBN }}</template>
             <template v-slot:cell(titulo)="row">
@@ -17,6 +20,7 @@
                 <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
             </template>
             <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
+            <template v-slot:cell(unidades_pendientes)="row">{{ row.item.unidades_pendientes | formatNumber }}</template>
             <template v-slot:cell(total_base)="row">${{ row.item.total_base | formatNumber }}</template>
             <template v-slot:cell(unidades_base)="row">
                 <b-input v-if="((row.item.libro.type == 'venta' || row.item.libro.type == 'promocion') && row.item.pack_id == null) ||
@@ -36,27 +40,39 @@
             </template>
             <template #thead-top="row">
                 <tr>
-                    <th colspan="4"></th>
+                    <th colspan="5"></th>
                     <th>{{ form.todo_unidades | formatNumber }}</th>
                     <th>${{ form.todo_total | formatNumber }}</th>
                 </tr>
             </template>
         </b-table>
         <!-- MODALS -->
-        <b-modal ref="modal-confirmarDevolucion" size="xl" title="Resumen de la devolución">
-            <label><b>Folio:</b> {{form.folio}}</label><br>
-            <label><b>Editorial:</b> {{form.editorial}}</label><br>
-            <b-table :items="form.registros" :fields="fieldsD">
+        <b-modal ref="modal-confirmarDevolucion" size="xl" title="">
+            <template #modal-title><b>Resumen de la devolución</b></template>
+            <b-row>
+                <b-col>
+                    <label><b>Folio:</b> {{form.folio}}</label><br>
+                    <label><b>Editorial:</b> {{form.editorial}}</label>
+                </b-col>
+                <b-col>
+                    <label><b>Imprenta:</b> {{form.imprenta}}</label>
+                </b-col>
+            </b-row>
+            <b-table class="mt-2" :items="form.registros" :fields="fieldsD">
                 <template v-slot:cell(index)="row">{{ row.index + 1}}</template>
                 <template v-slot:cell(ISBN)="row">{{ row.item.libro.ISBN }}</template>
-                <template v-slot:cell(titulo)="row">{{ row.item.libro.titulo }}</template>
+                <template v-slot:cell(titulo)="row">
+                    {{ row.item.libro.titulo }}
+                    <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
+                </template>
                 <template v-slot:cell(costo_unitario)="row">${{ row.item.costo_unitario | formatNumber }}</template>
                 <template v-slot:cell(total_base)="row">${{ row.item.total_base | formatNumber }}</template>
                 <template v-slot:cell(unidades_base)="row">{{ row.item.unidades_base | formatNumber }}</template>
+                <template v-slot:cell(unidades_pendientes)="row">{{ row.item.unidades_pendientes | formatNumber }}</template>
                 <template v-slot:cell(codes)="row"></template>
                 <template #thead-top="row">
                     <tr>
-                        <th colspan="4"></th>
+                        <th colspan="5"></th>
                         <th>{{ form.todo_unidades | formatNumber }}</th>
                         <th>${{ form.todo_total | formatNumber }}</th>
                     </tr>
@@ -64,13 +80,13 @@
             </b-table>
             <div slot="modal-footer">
                 <b-row>
-                    <b-col sm="9">
+                    <b-col>
                         <b-alert show variant="info">
                             <i class="fa fa-exclamation-circle"></i> <b>Verificar la devolución.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
                         </b-alert>
                     </b-col>
-                    <b-col sm="3" align="right">
-                        <b-button :disabled="load" variant="success" @click="guardarDevolucion()">
+                    <b-col sm="2" align="right">
+                        <b-button :disabled="load" block pill variant="success" @click="guardarDevolucion()">
                             <i class="fa fa-check"></i> Confirmar
                         </b-button>
                     </b-col>
@@ -108,8 +124,9 @@ export default {
                 {key: 'ISBN', label: 'ISBN'}, 
                 {key: 'titulo', label: 'Libro'}, 
                 {key: 'costo_unitario', label: 'Costo unitario'}, 
-                {key: 'unidades_base', label: 'Unidades'}, 
-                {key: 'total_base', label: 'Subtotal'},
+                {key: 'unidades_pendientes', label: 'Unidades pendientes'}, 
+                {key: 'unidades_base', label: 'Unidades devolución'}, 
+                {key: 'total_base', label: 'Total'},
                 {key: 'codes', label: ''}
             ],
             load: false,
