@@ -82,32 +82,34 @@ class DevolucioneController extends Controller
                         'total_resta' => $total_resta
                     ]);
 
-                    // AUMENTAR PIEZAS DE LOS LIBROS DEVUELTOS
-                    $l = Libro::whereId($d->libro->id)->first();
-                    $l->update([
-                        'piezas' => $l->piezas + ($unidades_base - $defectuosos),
-                        'defectuosos' => $l->defectuosos + $defectuosos
-                    ]);
-                    // REGISTRAR LIBROS DEFECTUOSOS
-                    if($defectuosos > 0){
-                        Defectuoso::create([
-                            'libro_id' => $d->libro->id, 
-                            'numero' => $defectuosos, 
-                            'comentario' => auth()->user()->name.' / Devolución: '.$comentario
+                    if(!$devolucion['scratch'] && $devolucion['dato']['pack_id'] == null){
+                        // AUMENTAR PIEZAS DE LOS LIBROS DEVUELTOS
+                        $l = Libro::whereId($d->libro->id)->first();
+                        $l->update([
+                            'piezas' => $l->piezas + ($unidades_base - $defectuosos),
+                            'defectuosos' => $l->defectuosos + $defectuosos
                         ]);
+                        // REGISTRAR LIBROS DEFECTUOSOS
+                        if($defectuosos > 0){
+                            Defectuoso::create([
+                                'libro_id' => $d->libro->id, 
+                                'numero' => $defectuosos, 
+                                'comentario' => auth()->user()->name.' / Devolución: '.$comentario
+                            ]);
+                        }
+
+                        // DEVOLUCION DE CODIGOS
+                        $codes = $d->dato->codes()->whereIn('code_id', $devolucion['code_dato'])->get();
+                        $codes->map(function($code){
+                            $code->update(['estado' => 'inventario']);
+                            $code->datos()->updateExistingPivot($code->pivot->dato_id, [
+                                'devolucion' => true
+                            ]);
+                        });
                     }
 
-                    // DEVOLUCION DE CODIGOS
-                    $codes = $d->dato->codes()->whereIn('code_id', $devolucion['code_dato'])->get();
-                    $codes->map(function($code){
-                        $code->update(['estado' => 'inventario']);
-                        $code->datos()->updateExistingPivot($code->pivot->dato_id, [
-                            'devolucion' => true
-                        ]);
-                    });
-                    
-                    // DEVOLUCIÓN DE SCRATCH
-                    if($unidades_base > 0 && ($devolucion['scratch'] || ($d->libro->type == 'digital' && $d->dato->pack_id != null))){
+                    // // DEVOLUCIÓN DE SCRATCH
+                    if($d->libro->type == 'digital' && ($devolucion['scratch'] || $d->dato->pack_id > 0)){
                         $scratchs->push([
                             'fecha_id' => $fecha->id,
                             'libro_digital' => $devolucion['libro_id'],

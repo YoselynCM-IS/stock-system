@@ -225,71 +225,38 @@
         </div>
         <!-- REGISTRAR DATOS DE DEVOLUCION -->
         <div v-if="mostrarDevolucion">
-            <h4 style="color: #170057">Registro de devolución</h4>
-            <hr>
             <div class="row">
-                <div class="col-md-6"><h5><b>Remisión No. {{ remision.id }}</b></h5></div>
-                <div class="col-md-3 text-right">
+                <div class="col"><h5><b>REGISTRAR DEVOLUCIÓN</b></h5></div>
+                <div class="col-md-2 text-right">
                     <b-button 
                         :disabled="load" 
-                        variant="success" 
+                        variant="success" block pill
                         @click="confirmarDevolucion()">
                         <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="load"></b-spinner>
                     </b-button>
-                    <!-- MODAL -->
-                    <b-modal ref="modal-confirmarDevolucion" size="xl" title="Resumen de la devolución">
-                        <h5><b>Remisión No. {{ remision.id }}</b></h5>
-                        <label><b>Cliente:</b> {{ remision.cliente.name }}</label><br>
-                        <label><b>Devolución entregada por:</b> {{ entregado_por }}</label>
-                        <b-table :items="devoluciones" :fields="fieldsRP">
-                            <template v-slot:cell(costo_unitario)="row">${{ row.item.dato.costo_unitario | formatNumber }}</template>
-                            <template v-slot:cell(subtotal)="row">${{ row.item.total_base | formatNumber }}</template>
-                            <template v-slot:cell(unidades_resta)="row">{{ row.item.unidades_resta | formatNumber }}</template>
-                            <template v-slot:cell(defectuosos)="row">
-                                {{ row.item.defectuosos | formatNumber }}
-                                <b-button v-if="row.item.defectuosos > 0" v-b-tooltip.hover :title="row.item.comentario" variant="link" size="sm" pill>
-                                    <i class="fa fa-info"></i>
-                                </b-button>
-                            </template>
-                            <template #thead-top="row">
-                                <tr>
-                                    <th colspan="6"></th>
-                                    <th>${{ total_devolucion | formatNumber }}</th>
-                                </tr>
-                            </template>
-                        </b-table>
-                        <div slot="modal-footer">
-                            <b-row>
-                                <b-col sm="9">
-                                    <b-alert show variant="info">
-                                        <i class="fa fa-exclamation-circle"></i> <b>Verificar la devolución.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
-                                    </b-alert>
-                                </b-col>
-                                <b-col sm="3" align="right">
-                                    <b-button 
-                                        :disabled="load" 
-                                        variant="success"
-                                        @click="guardar()">
-                                        <i class="fa fa-check"></i> Confirmar
-                                    </b-button>
-                                </b-col>
-                            </b-row>
-                        </div>
-                    </b-modal>
                 </div>
-                <div class="col-md-3 text-right">
-                    <b-button variant="secondary" @click="mostrarDevolucion = false">
+                <div class="col-md-2 text-right">
+                    <b-button variant="dark" @click="mostrarDevolucion = false" block pill>
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
                 </div>
-            </div>
-            <label><b>Cliente:</b> {{ remision.cliente.name }}</label>
-            <hr>
-            <b-row>
-                <b-col sm="3">Devolución entregada por</b-col>
-                <b-col sm="4"><b-form-select :state="state" v-model="entregado_por" :options="options"></b-form-select></b-col>
-            </b-row><br>
+            </div><hr>
+            <b-row class="mb-3">
+                <b-col>
+                    <label><b>Remisión:</b> {{ remision.id }}</label><br>
+                    <label><b>Cliente::</b> {{ remision.cliente.name }}</label>
+                </b-col>
+                <b-col sm="4">
+                    <label><b>Devolución entregada por</b></label><br>
+                    <b-form-select :state="state" v-model="entregado_por" :options="options"></b-form-select>
+                </b-col>
+            </b-row>
             <b-table :items="devoluciones" :fields="fieldsRP">
+                <template v-slot:cell(libro.titulo)="row">
+                    {{ row.item.libro.titulo }}
+                    <b-badge v-if="row.item.dato.pack_id !== null" variant="info">scratch</b-badge>
+                    <b-badge v-if="row.item.scratch" variant="warning">para scratch</b-badge>
+                </template>
                 <template v-slot:cell(costo_unitario)="row">${{ row.item.dato.costo_unitario | formatNumber }}</template>
                 <template v-slot:cell(subtotal)="row">${{ row.item.total_base | formatNumber }}</template>
                 <template v-slot:cell(unidades_resta)="row">{{ row.item.unidades_resta | formatNumber }}</template>
@@ -303,6 +270,7 @@
                     <tr>
                         <th colspan="6"></th>
                         <th>${{ total_devolucion | formatNumber }}</th>
+                        <th></th>
                     </tr>
                 </template>
                 <template v-slot:cell(unidades_base)="row">
@@ -311,7 +279,7 @@
                     <!-- PRIMERA CONIDICON, SI EL LIBRO ES FISICO -->
                     <!-- SEGUNDA CONDICIÓN, SI EL LIBRO ES DIGITAL PERO EN SCRATCH -->
                     <div v-if="row.item.libro.type !== 'digital' ||
-                        (row.item.libro.type == 'digital' && row.item.dato.codes.length == 0)">
+                        (row.item.libro.type == 'digital' && row.item.dato.pack_id != null)">
                         <b-input v-if="row.item.status && row.item.unidades_resta > 0"
                             :id="`inpDev-${row.index}`" type="number" 
                             v-model="row.item.unidades_base" :disabled="load"
@@ -333,10 +301,10 @@
                 <template v-slot:cell(actions)="row">
                     <div v-if="row.item.libro.type == 'digital' && row.item.unidades_resta > 0 && row.item.dato.codes.length > 0">
                         <b-button v-if="row.item.referencia != null" 
-                                pill small block variant="info" @click="selectUnidades(row.item, row.index)">
+                                pill small block variant="dark" @click="selectUnidades(row.item, row.index)">
                             Scratch
                         </b-button>
-                        <b-button pill small block variant="info" @click="selectCodigos(row.item, row.index)">
+                        <b-button pill small block variant="dark" @click="selectCodigos(row.item, row.index)">
                             Códigos
                         </b-button>
                     </div>
@@ -347,6 +315,56 @@
                 </template>
             </b-table>
         </div>
+        <!-- MODAL PARA CONFIRMAR LA DEVOLUCIÓN -->
+        <b-modal v-if="remision.cliente" ref="modal-confirmarDevolucion" size="xl">
+            <template #modal-title><b>Resumen de la devolución</b></template>
+            <b-row class="mb-3">
+                <b-col>
+                    <label><b>Remisión:</b> {{ remision.id }}</label><br>
+                    <label><b>Cliente::</b> {{ remision.cliente.name }}</label>
+                </b-col>
+                <b-col><label><b>Devolución entregada por:</b> {{ entregado_por }}</label></b-col>
+            </b-row>
+            <b-table :items="devoluciones" :fields="fieldsRP">
+                <template v-slot:cell(libro.titulo)="row">
+                    {{ row.item.libro.titulo }}
+                    <b-badge v-if="row.item.dato.pack_id !== null" variant="info">scratch</b-badge>
+                    <b-badge v-if="row.item.scratch" variant="warning">para scratch</b-badge>
+                </template>
+                <template v-slot:cell(costo_unitario)="row">${{ row.item.dato.costo_unitario | formatNumber }}</template>
+                <template v-slot:cell(subtotal)="row">${{ row.item.total_base | formatNumber }}</template>
+                <template v-slot:cell(unidades_resta)="row">{{ row.item.unidades_resta | formatNumber }}</template>
+                <template v-slot:cell(defectuosos)="row">
+                    {{ row.item.defectuosos | formatNumber }}
+                    <b-button v-if="row.item.defectuosos > 0" v-b-tooltip.hover :title="row.item.comentario" variant="link" size="sm" pill>
+                        <i class="fa fa-info"></i>
+                    </b-button>
+                </template>
+                <template #thead-top="row">
+                    <tr>
+                        <th colspan="6"></th>
+                        <th>${{ total_devolucion | formatNumber }}</th>
+                    </tr>
+                </template>
+            </b-table>
+            <div slot="modal-footer">
+                <b-row>
+                    <b-col>
+                        <b-alert show variant="info">
+                            <i class="fa fa-exclamation-circle"></i> <b>Verificar la devolución.</b> En caso de algún error, modificar antes de presionar <b>Confirmar</b> ya que después no se podrán realizar cambios.
+                        </b-alert>
+                    </b-col>
+                    <b-col sm="2" align="right">
+                        <b-button block pill
+                            :disabled="load" 
+                            variant="success"
+                            @click="guardar()">
+                            <i class="fa fa-check"></i> Confirmar
+                        </b-button>
+                    </b-col>
+                </b-row>
+            </div>
+        </b-modal>
         <!-- MODAL PARA SELECCIONAR CODIGOS -->
         <b-modal id="modal-select-codes" title="Seleccionar códigos" hide-footer>
             <b-table :items="codes" :fields="fieldsCodes" responsive
@@ -386,7 +404,6 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                     {key: 'pagos', label: 'Pagado'},
                     {key: 'total_devolucion', label: 'Devolución'},
                     {key: 'total_pagar', label: 'Pagar'},
-                    // {key: 'registrar_pago', label: ''},
                     {key: 'registrar_devolucion', label: ''},
                     {key: 'cerrar_remision', label: ''}
                 ], // Columnas de la tabla principal donde se muestran las remisiones
@@ -628,6 +645,7 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
             },
             // REGISTRAR DEVOLUCIÓN DE LA REMISIÓN
             registrarDevolucion(remision, i){
+                this.load = true;
                 this.devoluciones = [];
                 this.pos_remision = i;
                 this.total_devolucion = 0;
@@ -636,8 +654,10 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                     this.devoluciones = response.data;
                     this.remision = remision;
                     this.acumularFinal();
+                    this.load = false;
                     this.mostrarDevolucion = true;
                 }).catch(error => {
+                    this.load = false;
                     this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
                 });
             },
@@ -752,7 +772,7 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                         this.item = devolucion.id;
                         this.makeToast('warning', 'Unidades mayores a unidades pendientes.');
                         this.set_posDev(i);
-                        if (devolucion.libro.type == 'digital' && devolucion.referencia != null) {
+                        if (devolucion.referencia != null || devolucion.dato.pack_id !== null) {
                             let d = this.get_posRef(devolucion);
                             d.unidades_base = 0;
                             d.total_base = 0;
@@ -806,29 +826,34 @@ import AddDefectuososComponent from '../libros/AddDefectuososComponent.vue';
                 });
             },
             selectCodigos(devolucion, i) {
-                this.set_search(devolucion.referencia, true);
+                this.set_search(devolucion.referencia, true, false);
                 this.assignfor_devolucion(i, false, false);
                 this.codes = devolucion.codes;
                 this.$bvModal.show('modal-select-codes');
             },
             selectUnidades(devolucion, i) {
-                this.set_search(devolucion.referencia, false);
+                this.set_search(devolucion.referencia, false, true);
                 this.assignfor_devolucion(i, true, true);
             },
-            set_search(referencia, st) {
+            set_search(referencia, st, scratch) {
                 if (referencia != null) {
                     let pos = this.devoluciones.findIndex(d => d.libro_id == referencia);
                     this.devoluciones[pos].status = st;
+                    this.set_byposition(pos, scratch);
                 }
             },
             assignfor_devolucion(i, ssu, scratch){
                 this.position = i;
-                this.devoluciones[this.position].unidades_base = 0;
-                this.devoluciones[this.position].total_base = 0;
-                this.devoluciones[this.position].scratch = scratch;
+                this.set_byposition(this.position, scratch);
                 this.devoluciones[this.position].code_dato = [];
                 this.acumularFinal();
                 this.showSelectUnit = ssu;
+            },
+            // ASIGNAR DATOS POR LA POSICION DADA DEL REGISTRO DE DEVOLUCIÓN
+            set_byposition(position, scratch){
+                this.devoluciones[position].unidades_base = 0;
+                this.devoluciones[position].total_base = 0;
+                this.devoluciones[position].scratch = scratch;
             },
             onRowSelected(items) {
                 this.selected = items

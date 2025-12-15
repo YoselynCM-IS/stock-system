@@ -568,15 +568,12 @@ class RemisionController extends Controller
     // MOSTRAR DEVOLUCIONES DE REMISION
     // Función utilizada en ListadoComponent, DevoluciónComponent, RemisionesComponent
     public function obtener_devoluciones(Request $request){
-        $devoluciones = Devolucione::where('remisione_id', $request->remisione_id)
-                    ->with([
-                        'libro',
-                        'dato.codes'
-                    ])->get();
-        
         $digitales = collect();
         $fisicos = collect();
-        $devoluciones->map(function($devolucion) use (&$digitales, &$fisicos){
+        // ESTO ES PARA ESTABLECER LA REFERENCIA ENTRE FISICOS Y DIGITALES
+        // EN CASO DE QUE SE INGRESE UNA DEVOLUCIÓN POR SCRATCH PARA LIBROS QUE NO SALIERON ASI
+        $devoluciones = Dato::where('remisione_id', $request->remisione_id)->with(['libro', 'codes', 'devolucione'])->get();
+        $devoluciones->where('pack_id', null)->map(function($devolucion) use (&$digitales, &$fisicos){
             if($devolucion->libro->type == 'digital')
                 $digitales->push($devolucion->libro);
             if($devolucion->libro->type == 'venta')
@@ -584,47 +581,58 @@ class RemisionController extends Controller
         });
 
         $packs = collect();
+        // PARA LOS LIBROS QUE NO SON SCRATCH, PERO QUE PUEDEN CONVERTIRSE EN
         if($fisicos->count() > 0 && $digitales->count() > 0){
             $fisicos->map(function($fisico) use(&$packs, &$digitales){
                 $p = Pack::where('libro_fisico', $fisico['id'])
                             ->whereIn('libro_digital', $digitales->pluck('id'))->first();
-                $packs->push($p);
+                if($p) $packs->push($p);
             });
         }
 
+        // PARA LOS LIBROS QUE SON SCRATCH
+        $devoluciones->whereNotNull('pack_id')->where('libro.type', 'digital')->map(function($devolucion) use (&$packs){
+            $packs->push(Pack::find($devolucion->pack_id));
+        });
+
         $datos = collect();
-        $devoluciones->map(function($devolucion) use (&$datos, $packs){
+        $devoluciones->map(function($dato) use (&$datos, $packs){
             $codes = null;
             $referencia = null;
-            if($devolucion->libro->type == 'digital'){
-                $codes = \DB::table('code_dato')
+            if($dato->libro->type == 'digital'){
+                if($dato->pack_id == null){
+                    $codes = \DB::table('code_dato')
                         ->join('codes', 'code_dato.code_id', '=', 'codes.id')
                         ->select('codes.*')
-                        ->where('code_dato.dato_id', $devolucion->dato_id)
+                        ->where('code_dato.dato_id', $dato->id)
                         ->where('code_dato.devolucion', false)->get();
-                $lf = $packs->where('libro_digital', $devolucion->libro_id)->first();
+                }
+
+                $lf = $packs->where('libro_digital', $dato->libro_id)->first();
                 $referencia = $lf ? $lf->libro_fisico:null;
             }
-            if($devolucion->libro->type == 'venta'){
-                $ld = $packs->where('libro_fisico', $devolucion->libro_id)->first();
+            if($dato->libro->type == 'venta'){
+                $ld = $packs->where('libro_fisico', $dato->libro_id)->first();
                 $referencia = $ld ? $ld->libro_digital:null;
             }
 
             $datos->push([
-                'created_at' => $devolucion->created_at,
-                'dato' => $devolucion->dato,
-                'dato_id' => $devolucion->dato_id,
-                'id' => $devolucion->id,
-                'libro' => $devolucion->libro,
-                'libro_id' => $devolucion->libro_id,
-                'remisione_id' => $devolucion->remisione_id,
-                'total' => $devolucion->total,
-                'total_base' => $devolucion->total_base,
-                'total_resta' => $devolucion->total_resta,
-                'unidades' => $devolucion->unidades,
-                'unidades_base' => $devolucion->unidades_base,
-                'unidades_resta' => $devolucion->unidades_resta,
-                'updated_at' => $devolucion->updated_at,
+                'remisione_id' => $dato->remisione_id,
+                'dato' => $dato,
+                'dato_id' => $dato->id,
+                'libro' => $dato->libro,
+                'libro_id' => $dato->libro_id,
+                // INICIO ATRIBUTOS DE TABLA DEVOLUCIONES
+                'id' => $dato->devolucione->id,
+                'total' => $dato->devolucione->total,
+                'total_base' => $dato->devolucione->total_base,
+                'total_resta' => $dato->devolucione->total_resta,
+                'unidades' => $dato->devolucione->unidades,
+                'unidades_base' => $dato->devolucione->unidades_base,
+                'unidades_resta' => $dato->devolucione->unidades_resta,
+                'created_at' => $dato->devolucione->created_at,
+                'updated_at' => $dato->devolucione->updated_at,
+                // FIN ATRIBUTOS DE TABLA DEVOLUCIONES
                 'codes' => $codes,
                 'code_dato' => [],
                 'scratch' => false,
