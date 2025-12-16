@@ -162,8 +162,8 @@ class EntradaController extends Controller
                     'unidades_pendientes'  => $unidades_base
                 ]);
 
-                $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' códigos - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
-                $this->create_report($registro->id, $reporte, 'libro', 'registros');
+                // $reporte = 'registro la entrada (entrada) de '.$registro->unidades.' códigos - '.$registro->libro->editorial.': '.$registro->libro->type.' '.$registro->libro->ISBN.' / '.$registro->libro->titulo.' para '.$entrada->folio.' / '.$entrada->editorial;
+                // $this->create_report($registro->id, $reporte, 'libro', 'registros');
 
                 $codes = collect($item->codes);
                 $code_registro = [];
