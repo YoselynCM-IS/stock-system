@@ -151,23 +151,7 @@ export default {
             }
         },
         obtenerSubtotal(registro, i) {
-            if (registro.pack_id == null) {
-                if (registro.libro.editorial == 'MAJESTIC EDUCATION') {
-                    axios.get('/libro/get_scratch', { params: { id: registro.libro_id } }).then(response => {
-                        this.check_add(registro, i, registro.libro.piezas - response.data);
-                    }).catch(error => { });
-                } else {
-                    this.check_add(registro, i, registro.libro.piezas);
-                }
-            } else {
-                if (registro.unidades_base <= registro.pack.piezas) {
-                    this.check_add(registro, i, registro.libro.piezas);
-                } else {
-                    this.makeToast('warning', `Hay ${registro.pack.piezas} en existencia de scratch`);
-                    this.to_zero(i);
-                    this.set_search(registro);
-                }
-            }
+            this.check_add(registro, i, registro.pack_id == null ? registro.libro.piezas:registro.pack.piezas);
         },
         check_add(registro, i, total_piezas) {
             if (registro.unidades_base <= total_piezas) {

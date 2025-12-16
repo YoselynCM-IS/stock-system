@@ -639,9 +639,11 @@ class EntradaController extends Controller
                     // \DB::table('registros')->whereId($registro_id)
                     //     ->decrement('unidades_pendientes',  $unidades_base);
 
-                    // DISMINUIR PIEZAS DE LOS LIBROS
-                    \DB::table('libros')->whereId($item['libro']['id'])
-                        ->decrement('piezas', $unidades_base);
+                    if($item['pack_id'] == null){
+                        // DISMINUIR PIEZAS DE LOS LIBROS
+                        \DB::table('libros')->whereId($item['libro']['id'])
+                            ->decrement('piezas', $unidades_base);
+                    }
 
                     if($item['pack_id'] != null && $item['libro']['type'] == 'digital'){
                         $pack = Pack::whereId($item['pack_id'])->first();
