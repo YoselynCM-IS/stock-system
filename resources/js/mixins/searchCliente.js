@@ -8,7 +8,7 @@ export default {
     methods: {
         // MOSTRAR CLIENTES
         mostrarClientes(status = 'all'){
-            if(this.queryCliente.length > 0){
+            if(this.queryCliente.length > 3){
                 axios.get('/mostrarClientes', {params: {queryCliente: this.queryCliente, status: status}}).then(response => {
                     this.clientes = response.data;
                 }); 
@@ -17,7 +17,7 @@ export default {
             }
         },
         mostrarClientesByTipo(tipo){
-            if(this.queryCliente.length > 0){
+            if(this.queryCliente.length > 3){
                 axios.get('/clientes/by_tipo', {params: {queryCliente: this.queryCliente, tipo: tipo}}).then(response => {
                     this.clientes = response.data;
                 }); 

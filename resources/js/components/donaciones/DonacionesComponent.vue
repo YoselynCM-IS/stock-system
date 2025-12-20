@@ -192,45 +192,58 @@
         <!-- CREAR UNA DONACION -->
         <div v-if="mostrarRegistrar">
             <b-row>
-                <b-col><h4>Crear donación</h4></b-col>
-                <b-col sm="3" align="right">
-                    <b-button variant="success" @click="confirmarDonacion()" :disabled="load" pill>
+                <b-col><h5><b>CREAR DONACIÓN</b></h5></b-col>
+                <b-col sm="2" align="right">
+                    <b-button variant="success" @click="confirmarDonacion()" :disabled="load" pill block>
                         <i class="fa fa-check"></i> {{ !load ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="load"></b-spinner>
                     </b-button>
                 </b-col>
                 <b-col sm="2" align="right">
-                    <b-button variant="secondary" @click="listadoDonaciones = true; mostrarRegistrar = false;" pill>
+                    <b-button variant="dark" @click="listadoDonaciones = true; mostrarRegistrar = false;" pill block>
                         <i class="fa fa-mail-reply"></i> Regresar
                     </b-button>
                 </b-col>
             </b-row>
             <hr>
             <b-row class="mb-2">
-                <b-col sm="2" class="text-right"><label><b>Cliente</b>: <b id="txtObligatorio">*</b></label></b-col>
                 <b-col>
-                    <b-input v-model="queryCliente" @keyup="mostrarClientes('activo')" autofocus
-                        style="text-transform:uppercase;" :disabled="load" required :state="state">
-                    </b-input>
-                    <div class="list-group" v-if="clientes.length" id="listP">
-                        <a href="#" v-bind:key="i" class="list-group-item list-group-item-action" 
-                            v-for="(cliente, i) in clientes" @click="selectCliente(cliente)">
-                            {{ cliente.name }}
-                        </a>
-                    </div>
+                    <b-row>
+                        <b-col sm="2"><label><b>Cliente</b></label></b-col>
+                        <b-col>
+                            <b-input v-model="queryCliente" @keyup="mostrarClientes('activo')" autofocus
+                                style="text-transform:uppercase;" :disabled="load" required :state="state">
+                            </b-input>
+                            <div class="list-group" v-if="clientes.length" id="listP">
+                                <a href="#" v-bind:key="i" class="list-group-item list-group-item-action" 
+                                    v-for="(cliente, i) in clientes" @click="selectCliente(cliente)">
+                                    {{ cliente.name }}
+                                </a>
+                            </div>
+                        </b-col>
+                    </b-row>
                 </b-col>
-                <b-col sm="2" class="text-right"><label><b>Enviado a</b>:</label></b-col>
                 <b-col>
-                    <b-input v-model="regalo.destino" style="text-transform:uppercase;" :disabled="load"></b-input>
+                    <b-row>
+                        <b-col sm="3" class="text-right"><label><b>Enviado a</b></label></b-col>
+                        <b-col>
+                            <b-input v-model="regalo.destino" style="text-transform:uppercase;" :disabled="load"></b-input>
+                        </b-col>
+                    </b-row>
                 </b-col>
             </b-row>
             <b-row class="mb-3">
-                <b-col sm="2" class="text-right"><label><b>Descripción</b>: <b id="txtObligatorio">*</b></label></b-col>
-                <b-col>
-                    <b-form-textarea v-model="regalo.descripcion" required
-                        rows="2" max-rows="2" style="text-transform:uppercase;"></b-form-textarea>
+                <b-col sm="6">
+                    <b-row>
+                        <b-col sm="2"><label><b>Descripción</b></label></b-col>
+                        <b-col>
+                            <b-form-textarea v-model="regalo.descripcion" required
+                                rows="2" max-rows="2" style="text-transform:uppercase;"></b-form-textarea>
+                        </b-col>
+                    </b-row>
                 </b-col>
-                <b-col v-if="role_id === 6" sm="2" class="mt-3">
-                    <b-button variant="dark" pill block @click="showScratch()">
+                <b-col sm="4"></b-col>
+                <b-col v-if="role_id === 6" sm="2">
+                    <b-button  class="mt-3" variant="dark" pill block @click="showScratch()">
                         Scratch
                     </b-button>
                 </b-col>
@@ -244,7 +257,7 @@
                 </template>
                 <template v-slot:cell(actions)="row">
                     <b-button v-if="!row.item.scratch && row.item.pack_id == null"
-                        variant="danger" pill size="sm" @click="eliminarRegistro(row.index)">
+                        variant="secondary" pill size="sm" @click="eliminarRegistro(row.index)">
                         <i class="fa fa-minus-circle"></i>
                     </b-button>
                 </template>
@@ -258,14 +271,14 @@
                         <tr>
                             <th colspan="1"></th>
                             <th>
-                                <b-input
+                                <!-- <b-input
                                     id="input-isbn"
                                     v-model="temporal.ISBN"
                                     @keyup.enter="buscarLibroISBN()"
                                     v-if="inputISBN"
                                     :disabled="load"
-                                ></b-input>
-                                <label v-if="!inputISBN">{{ temporal.ISBN }}</label>
+                                ></b-input> -->
+                                {{ temporal.ISBN }}
                             </th>
                             <th>
                                 <b-input
@@ -317,13 +330,23 @@
                 </template>
             </b-table>
             <!-- RESUMEN DE LA DONACION -->
-            <b-modal ref="modal-confirmar-regalo" size="xl" title="Resumen de la donación">
-                <label>
-                    <b>Plantel: </b><label style="text-transform:uppercase;">{{ regalo.plantel }}</label>
-                </label><br>
-                <label v-if="regalo.descripcion != ''">
-                    <b>Descripción: </b><label style="text-transform:uppercase;">{{ regalo.descripcion }}</label>
-                </label>
+            <b-modal ref="modal-confirmar-regalo" size="xl">
+                <template #modal-title><b>Resumen de la donación</b></template>
+                <b-row>
+                    <b-col>
+                        <label>
+                            <b>Plantel: </b><label style="text-transform:uppercase;">{{ regalo.plantel }}</label>
+                        </label><br>
+                        <label v-if="regalo.descripcion != ''">
+                            <b>Descripción: </b><label style="text-transform:uppercase;">{{ regalo.descripcion }}</label>
+                        </label>
+                    </b-col>
+                    <b-col>
+                        <label v-if="regalo.destino != null && regalo.destino.length > 1">
+                            <b>Enviado a: </b><label style="text-transform:uppercase;">{{ regalo.destino }}</label>
+                        </label>
+                    </b-col>
+                </b-row>
                 <b-table :items="regalo.donaciones" :fields="fieldsD">
                     <template v-slot:cell(index)="row">{{ row.index + 1 }}</template>
                     <template v-slot:cell(ISBN)="row">{{ row.item.ISBN }}</template>
@@ -347,7 +370,7 @@
                             </b-alert>
                         </b-col>
                         <b-col sm="2" align="right">
-                             <b-button variant="success" pill @click="guardarDonacion()" :disabled="load">
+                             <b-button variant="success" pill block @click="guardarDonacion()" :disabled="load">
                                 <i class="fa fa-check"></i> Confirmar
                             </b-button>
                         </b-col>
@@ -355,7 +378,8 @@
                 </div>
             </b-modal>
             <!-- Agregar Scratch -->
-            <b-modal ref="modal-scratch" size="xl" title="Scratch" hide-footer>
+            <b-modal ref="modal-scratch" size="xl" hide-footer>
+                <template #modal-title><b>Scratch</b></template>
                 <table class="table mb-2">
                     <thead>
                         <tr>
@@ -373,7 +397,7 @@
                                 <b-input v-model="temporalScratch.unidades" type="number" min="1" max="9999"></b-input>
                             </td>
                             <td scope="col">
-                                <b-button variant="success" pill block @click="saveScratch()">
+                                <b-button variant="success" pill @click="saveScratch()" size="sm">
                                     <i class="fa fa-level-down"></i>
                                 </b-button>
                             </td>
