@@ -58,20 +58,21 @@ class DonacioneController extends Controller
                     'updated_at' => $hoy
                 ]);
 
-                if($d->libro->type == 'digital' && $donacion['pack_id'] == null){
-                    $lista_codes->push([
-                        'donacione_id'   => $d->id,
-                        'libro_id'  => $d->libro_id,
-                        'unidades'  => $d->unidades
-                    ]);
+                if($donacion['pack_id'] == null){
+                    if($d->libro->type == 'digital'){
+                        $lista_codes->push([
+                            'donacione_id'   => $d->id,
+                            'libro_id'  => $d->libro_id,
+                            'unidades'  => $d->unidades
+                        ]);
+                    }
+
+                    // DISMINUIR PIEZAS DE LOS LIBROS
+                    \DB::table('libros')->whereId($libro_id)->decrement('piezas', $unidades);
                 }
 
-                // DISMINUIR PIEZAS DE LOS LIBROS
-                \DB::table('libros')->whereId($libro_id)
-                    ->decrement('piezas', $unidades);
-
-                $reporte = 'registro la salida (donación) de '.$d->unidades.' unidades - '.$d->libro->editorial.': '.$d->libro->type.' '.$d->libro->ISBN.' / '.$d->libro->titulo.' para '.$regalo->plantel;
-                $this->create_report($d->id, $reporte, 'libro', 'donaciones');
+                // $reporte = 'registro la salida (donación) de '.$d->unidades.' unidades - '.$d->libro->editorial.': '.$d->libro->type.' '.$d->libro->ISBN.' / '.$d->libro->titulo.' para '.$regalo->plantel;
+                // $this->create_report($d->id, $reporte, 'libro', 'donaciones');
             });
 
             // OBTENER CODIGOS

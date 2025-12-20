@@ -889,11 +889,8 @@ import busqScratchComponent from '../funciones/scratch/busqScratchComponent.vue'
                 var check = this.regalo.donaciones.find(d => d.id == this.temporal.id);
                 if(check == undefined){
                     if (this.temporal.unidades > 0) {
-                        axios.get('/libro/get_scratch', { params: { id: this.temporal.id } }).then(response => {
-                            this.params_donation(this.temporal.piezas - response.data);
-                        }).catch(error => { });
-                    }
-                    else{
+                        this.params_donation(this.temporal.piezas);
+                    } else{
                         this.makeToast('warning', 'Unidades invalidas');
                     }
                 } else{
