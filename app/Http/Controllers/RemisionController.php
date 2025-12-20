@@ -778,12 +778,12 @@ class RemisionController extends Controller
                     if($peticion->tipo == null || $peticion->tipo == 'alumno'){
                         // ** OBTENER CUANTO HAY EN EXISTENCIA
                         if($peticion->pack_id == null){
-                            // SI LA PETICION NO ES PACK SE RESTA DEL GENERAL LO DE PACKS
-                            $packs = Pack::where('libro_fisico', $peticion->libro_id)
-                                ->OrWhere('libro_digital', $peticion->libro_id)
-                                ->sum('piezas');
+                            // // SI LA PETICION NO ES PACK SE RESTA DEL GENERAL LO DE PACKS
+                            // $packs = Pack::where('libro_fisico', $peticion->libro_id)
+                            //     ->OrWhere('libro_digital', $peticion->libro_id)
+                            //     ->sum('piezas');
                             // UNIDADES REALES AL MOMENTO PARA TOMAR
-                            $existencia = $peticion->libro->piezas - $packs;
+                            $existencia = $peticion->libro->piezas;
                         } else {
                             // SI LA PETICION ES PACK SOLO SE TOMA COMO EXISTENCIA LO QUE HAY EN SCRATCH
                             $pack = Pack::find($peticion->pack_id);
@@ -821,8 +821,12 @@ class RemisionController extends Controller
                         $lista_devoluciones[] = $this->set_devoluciones($dato, $hoy);
                         // LISTADO DE CODES
                         $lista_codes = $this->set_codes($dato, $lista_codes);
-                        // DISMINUIR PIEZAS DE LOS LIBROS
-                        $this->libros_decrement($dato);
+                        
+                        // SOLO SI NO ES PACK
+                        if($dato->pack_id === null){
+                            // DISMINUIR PIEZAS DE LOS LIBROS
+                            $this->libros_decrement($dato);
+                        }
                     
                         // GUARDAR EN COLLECT PARA PACKS
                         if($dato->libro->type == 'digital' && $dato->pack_id !== null){
