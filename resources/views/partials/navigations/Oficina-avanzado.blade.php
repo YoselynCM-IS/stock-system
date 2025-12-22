@@ -11,9 +11,7 @@
 		</a>
 	</div>
 </li>
-<li>
-	<a class="nav-link" href="{{ route('information.clientes.pagos') }}">{{ __("Pagos") }}</a>
-</li>
+<li><a class="nav-link" href="{{ route('information.clientes.pagos') }}">{{ __("Pagos") }}</a></li>
 <li class="nav-item dropdown">
 	<a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
 		Pedidos <span class="caret"></span>
@@ -47,16 +45,7 @@
 		<a class="dropdown-item" href="{{ route('codes.licencias_demos') }}">{{ __("Licencias / Demos") }}</a>
 	</div>
 </li>
-<li class="nav-item dropdown">
-	<a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-		Clientes <span class="caret"></span>
-	</a>
-	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
-		<a class="dropdown-item" href="{{ route('information.clientes.lista') }}">{{ __("Lista") }}</a>
-		<a class="dropdown-item" href="{{ route('information.actividades.lista') }}">{{ __("Actividades") }}</a>
-	</div>
-</li>
-
+<li><a class="nav-link" href="{{ route('information.clientes.lista') }}">{{ __("Clientes") }}</a></li>
 <li class="nav-item dropdown">
 	<a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
 		Otros <span class="caret"></span>
