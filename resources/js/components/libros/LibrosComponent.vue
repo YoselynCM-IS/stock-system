@@ -36,19 +36,19 @@
                     </div>
                 </b-form-group>
             </div>
-            <!-- BUSCAR LIBROS POR EDITORIAL -->
-            <div class="col-md-4">
+            <!-- BUSCAR LIBROS POR TIPO -->
+            <div class="col-md-2">
                 <b-form-group label="Tipo" label-class="font-weight-bold">
                     <b-form-select v-model="queryType" :options="optionsType" @change="http_type()"></b-form-select>
                 </b-form-group>
             </div>
             <div class="col-md-1 text-right">
-                <b-button :variant="`${!applyAll ? 'dark':'primary'}`" pill class="mt-4" @click="applyFilters()">
+                <b-button :variant="`${!applyAll ? 'dark':'primary'}`" pill block class="mt-4" @click="applyFilters()">
                     <i class="fa fa-filter"></i>
                 </b-button>
             </div>
             <div class="col-md-1 text-left">
-                <b-button variant="dark" pill class="mt-4" :disabled="!applyAll" @click="http_applyAll()">
+                <b-button variant="dark" pill block class="mt-4" :disabled="!applyAll" @click="http_applyAll()">
                     <i class="fa fa-search"></i>
                 </b-button>
             </div>
@@ -59,17 +59,14 @@
                     <i class="fa fa-download"></i> Descargar
                 </b-button>
             </div>
-        </div><hr>
-        <b-row class="mb-3">
-            <b-col></b-col>
-            <b-col sm="2" class="text-right">
+            <div class="col-md-2">
                 <!-- AGREGAR UN NUEVO LIBRO -->
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="success" pill
-                    block @click="addEditarLibro(null, null, true)">
+                    block @click="addEditarLibro(null, null, true)" class="mt-4">
                     <i class="fa fa-plus"></i> Nuevo libro
                 </b-button>
-            </b-col>
-        </b-row>
+            </div>
+        </div>
         <div v-if="!load">
             <!-- LISTADO DE LIBROS-->
              <vue-good-table :columns="fields" :rows="libros" :line-numbers="true" theme="polar-bear" styleClass="vgt-table condensed"
