@@ -76,11 +76,5 @@
 		</a>
 	</div>
 </li>
-
-@if(env('APP_NAME') == 'MAJESTIC EDUCATION')
-	<li>
-		<a class="nav-link" href="https://mestockexterno.com/login" target="_blank">{{ __("Querétaro") }}</a>
-	</li>
-@endif
 <user-notifications :user_id="{{auth()->user()->id}}" :noleidos="{{Auth::user()->unreadNotifications}}"></user-notifications>
 @include('partials.navigations.logged')
