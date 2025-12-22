@@ -62,12 +62,6 @@
         </div><hr>
         <b-row class="mb-3">
             <b-col></b-col>
-             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="dark" pill
-                    block href="/codes/scratch" target="_blank">
-                    Scratch
-                </b-button>
-            </b-col>
             <b-col sm="2" class="text-right">
                 <!-- AGREGAR UN NUEVO LIBRO -->
                 <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="success" pill
