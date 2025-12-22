@@ -66,16 +66,13 @@ class LibroController extends Controller
     public function get_all_detallado($libros){
         $resultados = collect();
         $libros->map(function($libro) use(&$resultados){
-            $data = $this->get_only_scratch('mysql', $libro->id, $libro->piezas, $libro->type);
-            $sum_scratch = (int) $data['sum_scratch'];
-            $count_solo = (int) $data['count_solo'];
-            $resultados->push($this->assign_datos_libro($libro, $libro->serie, $sum_scratch, $count_solo));
+            $resultados->push($this->assign_datos_libro($libro, $libro->serie));
         });
         return $resultados;
     }
 
     // ASIGNAR VALORES DE LIBRO
-    public function assign_datos_libro($libro, $serie, $sum_scratch = 0, $count_solo = 0){
+    public function assign_datos_libro($libro, $serie){
         return [
             'id' => $libro->id, 
             'serie_id' => $libro->serie_id,
@@ -89,10 +86,7 @@ class LibroController extends Controller
             'defectuosos' => $libro->defectuosos,
             'estado' => $libro->estado,
             'type' => $libro->type,
-            'externo' => $libro->externo,
-            'scratch' => $sum_scratch,
-            'count_solo' => $count_solo,
-            'check' => $libro->piezas == ($sum_scratch + $count_solo)
+            'externo' => $libro->externo
         ];
     }
 
@@ -303,7 +297,7 @@ class LibroController extends Controller
     // DESCARGAR EN FORMATO EXCEL LOS LIBROS
     // Función utilizada en LibrosComponent
     public function download_list_libros($editorial, $serie_id, $titulo, $isbn, $type){
-        $hoy 	= Carbon::now();
+        $hoy = Carbon::now();
         return Excel::download(new LibrosExport($editorial, $serie_id, $titulo, $isbn, $type), $hoy->format('Y-m-d').'_INVENTARIO-LIBROS.xlsx');
     }
 

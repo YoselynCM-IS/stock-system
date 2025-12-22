@@ -150,8 +150,6 @@ import AddDefectuososComponent from './AddDefectuososComponent.vue';
                     {field: 'titulo', label: 'Libro'},
                     {field: 'type', label: 'Tipo'},
                     {field: 'piezas', label: 'Piezas', type: 'number'},
-                    {field: 'scratch', label: 'Scratch', type: 'number'},
-                    {field: 'count_solo', label: 'Digital / Físico', type: 'number'},
                     {field: 'defectuosos', label: 'Defectuosos', type: 'number'},
                     {field: 'accion', label: '', sortable: false}
                 ],
