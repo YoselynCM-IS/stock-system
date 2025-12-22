@@ -17,8 +17,11 @@
                 {{ row.item.libro.titulo }}
                 <b-badge v-if="row.item.pack_id != null" variant="info">scratch</b-badge>
             </template>
+            <template v-slot:cell(existencia)="row">
+                {{ row.item.pack_id == null ? row.item.libro.piezas:'' }}
+            </template>
             <template v-slot:cell(actions)="row">
-                <b-button v-if="(row.item.libro.type == 'venta' && row.item.pack_id == null) || (row.item.libro.type == 'digital' && row.item.pack_id !== null)" 
+                <b-button v-if="row.item.libro.type == 'venta' && (row.item.pack_id == null || row.item.pack_id !== null)" 
                     variant="danger" pill size="sm" @click="deleteFecha(row.item, row.index)" :disabled="load">
                     <i class=" fa fa-minus"></i>
                 </b-button>
@@ -43,7 +46,7 @@ export default {
             fields: [
                 { key: 'index', label: 'N.' }, 
                 { key: 'titulo', label: 'Titulo' },
-                { key: 'libro.piezas', label: 'Existencia' },
+                { key: 'existencia', label: 'Existencia' },
                 { key: 'unidades', label: 'Unidades' },
                 { key: 'defectuosos', label: 'Defectuosos' },
                 { key: 'total', label: 'Total' },
