@@ -41,9 +41,9 @@
 		</a>
 	</div>
 </li>
-<li>
-	<a class="nav-link" href="{{ route('information.salidas.lista') }}">{{ __("Salidas") }}</a>
-</li>
+@if(env('APP_NAME') == 'MAJESTIC EDUCATION')
+	<li><a class="nav-link" href="{{ route('information.salidas.lista') }}">{{ __("Salidas") }}</a></li>
+@endif
 <li>
 	<a class="nav-link" href="{{ route('information.clientes.lista') }}">{{ __("Clientes") }}</a>
 </li>

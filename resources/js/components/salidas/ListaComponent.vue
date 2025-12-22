@@ -12,10 +12,11 @@
                     </pagination>
                 </b-col>
                 <b-col sm="2" class="text-right">
-                    <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6)"
+                    <!-- SE DESHABILITO PORQUE YA NO SE USARA -->
+                    <!-- <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6)"
                         variant="success" pill @click="addSalida()">
                         <i class="fa fa-plus"></i> Nueva salida
-                    </b-button>
+                    </b-button> -->
                 </b-col>
             </b-row>
             <b-table v-if="!load" :items="salidas.data" :fields="fields"

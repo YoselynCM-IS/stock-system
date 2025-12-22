@@ -76,7 +76,9 @@
 	<div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
 		<a class="dropdown-item" href="{{ route('information.promotions.lista') }}">{{ __("Promociones") }}</a>
 		<a class="dropdown-item" href="{{ route('information.donations.lista') }}">{{ __("Donaciones") }}</a>
-		<a class="dropdown-item" href="{{ route('information.salidas.lista') }}">{{ __("Salidas") }}</a>
+		@if(env('APP_NAME') == 'MAJESTIC EDUCATION')
+			<a class="dropdown-item" href="{{ route('information.salidas.lista') }}">{{ __("Salidas") }}</a>
+		@endif
 		<a class="dropdown-item" href="{{ route('manager.otros.notas') }}">{{ __("Notas") }}</a>
 	</div>
 </li>

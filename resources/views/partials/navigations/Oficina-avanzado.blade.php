@@ -68,9 +68,9 @@
 		<a class="dropdown-item" href="{{ route('information.donations.lista') }}">
 			{{ __('Donaciones') }}
 		</a>
-		<a class="dropdown-item" href="{{ route('information.salidas.lista') }}">
-			{{ __('Salidas') }}
-		</a>
+		@if(env('APP_NAME') == 'MAJESTIC EDUCATION')
+			<a class="dropdown-item" href="{{ route('information.salidas.lista') }}">{{ __('Salidas') }}</a>
+		@endif
 		<a class="dropdown-item" href="{{ route('information.movimientos.entradas-salidas') }}">
 			{{ __("Entradas / Salidas") }}
 		</a>
