@@ -108,11 +108,12 @@ class DevolucioneController extends Controller
                         });
                     }
 
-                    // // DEVOLUCIÓN DE SCRATCH
-                    if($d->libro->type == 'digital' && ($devolucion['scratch'] || $d->dato->pack_id > 0)){
+                    // DEVOLUCIÓN DE SCRATCH
+                    if($devolucion['scratch'] || $d->dato->pack_id > 0){
                         $scratchs->push([
+                            'book_type' => $d->libro->type,
                             'fecha_id' => $fecha->id,
-                            'libro_digital' => $devolucion['libro_id'],
+                            'libro_id' => $devolucion['libro_id'],
                             'unidades' => $unidades_base,
                             'referencia' => $devolucion['referencia'],
                             'pack_id' => $devolucion['dato']['pack_id']
@@ -128,13 +129,24 @@ class DevolucioneController extends Controller
             // AFECTAR INVENTARIO DE SCRATCH
             $scratchs->map(function($scratch){
                 if($scratch['pack_id'] == null){
-                    $p = Pack::where('libro_digital', $scratch['libro_digital'])
-                            ->where('libro_fisico', $scratch['referencia'])->first();
+                    if($scratch['book_type'] === 'digital'){
+                        $p = Pack::where('libro_digital', $scratch['libro_id'])
+                                ->where('libro_fisico', $scratch['referencia'])->first();
+                    } else {
+                        $p = Pack::where('libro_fisico', $scratch['libro_id'])
+                                ->where('libro_digital', $scratch['referencia'])->first();
+                    }
                 } else {
                     $p = Pack::whereId($scratch['pack_id'])->first();
                 }
+
+                // ESTO SOLO PARA LIBRO DIGITAL
                 Fecha::whereId($scratch['fecha_id'])->update(['pack_id' => $p->id]);
-                $p->update(['piezas' => $p->piezas + $scratch['unidades']]);
+                // SOLO SE AUMENTA A INVENTARIO SI ES DIGITAL, YA QUE SI SE TOMA IGUAL EL FISICO SE DUPLICARA LA DEVOLUCIÓN
+                if($scratch['book_type'] === 'digital'){
+                    // INCREMENTAR UNIDADES EN SCRATCH
+                    $p->update(['piezas' => $p->piezas + $scratch['unidades']]);
+                }
             });
 
             $total_pagar = $remision->total_pagar - $total_devolucion;
