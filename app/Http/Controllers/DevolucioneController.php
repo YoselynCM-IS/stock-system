@@ -309,56 +309,30 @@ class DevolucioneController extends Controller
     // BORRAR DEVOLUCIÓN
     // **** NO ESTA PERMITIDO ELIMINAR DEVOLUCIÓN DE CÓDIGOS
     public function delete(Request $request){
-        $fecha = Fecha::find($request->fecha_id);
-        $libro = Libro::find($fecha->libro_id);
-        $pack = Pack::find($fecha->pack_id);
-        $devolucion = Devolucione::where(
-                        ['remisione_id' => $request->remisione_id,
-                        'libro_id' => $libro->id])
-                    ->first();
-        // $status = false;
         try {
             \DB::beginTransaction();
-            // VERIFICAR QUE LO EXISTENTE EN INVENTARIO SEA IGUAL O MAYOR A LA DEVOLUCIÓN QUE SE ELIMINARA
-            // if(($libro->type != 'digital' && $libro->piezas >= $fecha->unidades) || 
-            //     ($libro->type == 'digital' && $libro->piezas >= $fecha->unidades && $pack->piezas >= $fecha->unidades)){
-                
-                $remision = Remisione::find($request->remisione_id);
-                $cctotale = Cctotale::where([
-                    'cliente_id' => $remision->cliente_id,
-                    'corte_id' => $remision->corte_id
-                ])->first();
-                $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
-                
-                // AFECTAR TOTALES DEVOLUCION Y PENDIENTE PAGAR - REMISIÓN, CCTOTALE, REMCLIENTE
-                $this->update_devpend($remision, $fecha->total);
-                $this->update_devpend($cctotale, $fecha->total);
-                $this->update_devpend($remcliente, $fecha->total);
+            $fecha = Fecha::find($request->fecha_id);
+            $pack = Pack::find($fecha->pack_id);
+            $remision = Remisione::find($request->remisione_id);
+            $cctotale = Cctotale::where([
+                'cliente_id' => $remision->cliente_id,
+                'corte_id' => $remision->corte_id
+            ])->first();
+            $remcliente = Remcliente::where('cliente_id', $remision->cliente_id)->first();
 
-                // MODIFICAR UNIDADES, TOTAL DEVOLUCIÓN Y PENDIENTES
-                $devolucion->update([
-                    'total' => $devolucion->total - $fecha->total,
-                    'total_resta' => $devolucion->total_resta + $fecha->total,
-                    'unidades' => $devolucion->unidades - $fecha->unidades,
-                    'unidades_resta' => $devolucion->unidades_resta + $fecha->unidades
-                ]);
+            $this->delete_datos_dev($fecha, $remision, $cctotale, $remcliente, $pack);
+            if($fecha->pack_id !== null ){
+                // BUSCAR LA REFERENCIA DIGITAL DEL PACK
+                $ref_fecha = Fecha::where('remisione_id', $request->remisione_id)
+                    ->where('pack_id', $fecha->pack_id)
+                    ->where('libro_id', $pack->libro_digital)
+                    ->where('unidades', $fecha->unidades)
+                    ->where('created_at', $fecha->created_at)->first();
+                $this->delete_datos_dev($ref_fecha, $remision, $cctotale, $remcliente, null);
+            }
 
-                // AFECTAR INVENTARIO GRAL Y PACKS (EN CASO NECESARIO) DISMINUIR PIEZAS DE LOS LIBROS
-                $libro->update([
-                    'piezas' => $libro->piezas - $fecha->unidades,
-                    'defectuosos' => $libro->defectuosos - $fecha->defectuosos
-                ]);
-                if($fecha->pack_id != null){
-                    $pack->update([ 'piezas' => $pack->piezas - $fecha->unidades ]);
-                }
-                
-                // ACTUALIZAR ESTADO DE LA REMISIÓN
-                $remision->update(['estado' => 'Proceso']);
-
-                // ELIMINAR
-                $fecha->delete();
-                // $status = true;
-            // }
+            // ACTUALIZAR ESTADO DE LA REMISIÓN
+            $remision->update(['estado' => 'Proceso']);
             \DB::commit();
         } catch (Exception $e) {
             \DB::rollBack();
@@ -366,6 +340,42 @@ class DevolucioneController extends Controller
         }
         
         return response()->json(true);
+    }
+
+    // ELIMINAR DATOS DE DEVOLUCIÓN
+    public function delete_datos_dev($fecha, $remision, $cctotale, $remcliente, $pack){
+        $libro = Libro::find($fecha->libro_id);
+        $devolucion = Devolucione::where(
+                        ['remisione_id' => $remision->id,
+                        'libro_id' => $libro->id])
+                    ->first();
+        
+        // AFECTAR TOTALES DEVOLUCION Y PENDIENTE PAGAR - REMISIÓN, CCTOTALE, REMCLIENTE
+        $this->update_devpend($remision, $fecha->total);
+        $this->update_devpend($cctotale, $fecha->total);
+        $this->update_devpend($remcliente, $fecha->total);
+
+        // MODIFICAR UNIDADES, TOTAL DEVOLUCIÓN Y PENDIENTES
+        $devolucion->update([
+            'total' => $devolucion->total - $fecha->total,
+            'total_resta' => $devolucion->total_resta + $fecha->total,
+            'unidades' => $devolucion->unidades - $fecha->unidades,
+            'unidades_resta' => $devolucion->unidades_resta + $fecha->unidades
+        ]);
+
+        // AFECTAR INVENTARIO GRAL Y PACKS (EN CASO NECESARIO) DISMINUIR PIEZAS DE LOS LIBROS
+        if($fecha->pack_id == null){
+            $libro->update([
+                'piezas' => $libro->piezas - $fecha->unidades,
+                'defectuosos' => $libro->defectuosos - $fecha->defectuosos
+            ]);
+        } 
+        if($fecha->pack_id !== null && $libro->type == 'venta'){
+            $pack->update([ 'piezas' => $pack->piezas - $fecha->unidades ]);
+        }
+        
+        // ELIMINAR
+        $fecha->delete();
     }
 
     // ARRAY PARA ACTUALIZAR TOTALES (DEVOLUCIÓN, PENDIENTE PAGAR)
