@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="row mb-3">
-             <div class="col-md-4">
+             <div class="col-md">
                 <!-- BUSCAR LIBRO POR SERIE -->
                 <b-form-group label="Serie" label-class="font-weight-bold">
                     <b-input v-model="querySerie" @keyup="showSeries()" style="text-transform:uppercase;"></b-input>
@@ -37,7 +37,7 @@
                 </b-form-group>
             </div>
             <!-- BUSCAR LIBROS POR TIPO -->
-            <div class="col-md-2">
+            <div class="col-md">
                 <b-form-group label="Tipo" label-class="font-weight-bold">
                     <b-form-select v-model="queryType" :options="optionsType" @change="http_type()"></b-form-select>
                 </b-form-group>
@@ -59,10 +59,9 @@
                     <i class="fa fa-download"></i> Descargar
                 </b-button>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2" v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10">
                 <!-- AGREGAR UN NUEVO LIBRO -->
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id === 3 || role_id == 6 || role_id == 10" variant="success" pill
-                    block @click="addEditarLibro(null, null, true)" class="mt-4">
+                <b-button variant="success" pill block @click="addEditarLibro(null, null, true)" class="mt-4">
                     <i class="fa fa-plus"></i> Nuevo libro
                 </b-button>
             </div>
