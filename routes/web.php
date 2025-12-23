@@ -506,8 +506,6 @@ Route::name('libro.')->prefix('libro')->group(function () {
     Route::get('/all_libro', 'LibroController@all_libro')->name('all_libro');
     // OBTENER VISTA DEL LISTADO DE LIBROS DE AMBOS SISTEMAS
     Route::get('/all_sistemas', 'LibroController@all_sistemas')->name('all_sistemas');
-    // OBTENER LOS LIBROS QUE ESTAN EN SCRTACH
-    Route::get('/all_scratch', 'LibroController@all_scratch')->name('all_scratch');
     // OBTENER LOS LIBROS QUE ESTAN EN PACK
     Route::get('/scratch_libros', 'LibroController@scratch_libros')->name('scratch_libros');
     // OBTENER LIBRO, PARA VERIFICAR SCRATCH
@@ -518,14 +516,28 @@ Route::name('libro.')->prefix('libro')->group(function () {
     Route::get('/download_both', 'LibroController@download_both')->name('download_both');
 
     // SERIES
+    Route::name('scratch.')->prefix('scratch')->group(function () {
+        // OBTENER TODA LA LISTA DE SCRATCH
+        Route::get('/all', 'LibroController@scratch_all')->name('all');
+        // OBTENER PACKS POR EL LIBRO SELECCIONADO (FISICO O DIGITAL) Y CON PAGINACIÓN
+        Route::get('/by_book', 'LibroController@scratch_by_book')->name('by_book');
+        // OBTENER PACKS POR LA SERIE SELECCIONADA
+        Route::get('/by_serie', 'LibroController@scratch_by_serie')->name('by_serie');
+        // OBTENER LOS LIBROS QUE ESTAN EN SCRTACH POR TITULO (FISICO), ESTO PARA AGREGAR A NOTAS **REVISAR ESTE
+        Route::get('/by_titulo', 'LibroController@scratch_by_titulo')->name('by_titulo');
+    });
+
+    // SERIES
     Route::name('serie.')->prefix('serie')->group(function () {
         Route::get('/get_series', 'LibroController@get_series')->name('get_series');
     });
 
     // DOWNLOAD
     Route::name('download.')->prefix('download')->group(function () {
-        // DESCARGAR EN EXCEL EL INVENTARIO
+        // DESCARGAR EN EXCEL EL INVENTARIO INDIVIDUAL
         Route::get('/list_libros/{editorial}/{serie_id}/{titulo}/{isbn}/{type}', 'LibroController@download_list_libros')->name('list_libros');
+        // DESCARGAR EN EXCEL EL INVENTARIO EN SCRATCH
+        Route::get('/list_scratch', 'LibroController@download_list_scratch')->name('list_scratch');
     });
 });
 

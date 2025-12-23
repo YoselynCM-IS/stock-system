@@ -143,21 +143,7 @@ class CodeController extends Controller
     }
 
     public function scratch(){
-        $scratch = collect();
-        $packs = \DB::table('packs')->join('libros', 'packs.libro_fisico', '=', 'libros.id')
-                    ->select('libros.titulo as titulo', 'packs.*')
-                    ->orderBy('libros.titulo', 'asc')
-                    ->get();
-        $packs->map(function($pack) use(&$scratch){
-            $libro_digital = Libro::find($pack->libro_digital);
-            $scratch->push([
-                'titulo' => 'PACK: '.$pack->titulo,
-                'fisico' => $pack->titulo,
-                'digital' => $libro_digital->titulo,
-                'piezas' => $pack->piezas
-            ]);
-        }); 
-        return view('information.codes.scratch', compact('scratch'));
+        return view('information.codes.scratch'); 
     }
 
     public function group_count_codes($tipo) {

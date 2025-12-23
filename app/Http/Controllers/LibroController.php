@@ -14,6 +14,7 @@ use App\Exports\MovLibrosExport;
 use App\Exports\MovFechasExport;
 use App\Exports\MovMontoExport;
 use App\Exports\libros\BothExport;
+use App\Exports\libros\ScratchExport;
 use App\Exports\EntSal\EntSalExport;
 use App\Exports\movimientos\MovDayLibrosExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -298,7 +299,7 @@ class LibroController extends Controller
     // Función utilizada en LibrosComponent
     public function download_list_libros($editorial, $serie_id, $titulo, $isbn, $type){
         $hoy = Carbon::now();
-        return Excel::download(new LibrosExport($editorial, $serie_id, $titulo, $isbn, $type), $hoy->format('Y-m-d').'_INVENTARIO-LIBROS.xlsx');
+        return Excel::download(new LibrosExport($editorial, $serie_id, $titulo, $isbn, $type), $hoy->format('Y-m-d').'_INVENTARIO-INDIVIDUAL.xlsx');
     }
 
     // GUARDAR NUEVO LIBRO
@@ -1508,8 +1509,50 @@ class LibroController extends Controller
         return view('information.libros.lista-sistemas');
     }
 
+    // *** SCRATCH
+    // SELECT QUE SE OCUPA PARA OBTENER LOS PACKS
+    public function get_select_scratch(){
+        return \DB::table('packs')
+            ->join('libros as lf', 'packs.libro_fisico', '=', 'lf.id')
+            ->join('libros as ld', 'packs.libro_digital', '=', 'ld.id')
+            ->join('series', 'lf.serie_id', '=', 'series.id')
+            ->select([
+                'series.serie',
+                'lf.titulo as fisico',
+                'ld.titulo as digital',
+                'packs.piezas'
+            ])->where('lf.estado', 'activo')
+            ->orderBy('series.serie', 'asc')
+            ->orderBy('lf.titulo', 'asc');
+    }
+
+    // OBTENER LA LISTA DE TODOS LOS SCRATCH
+    public function scratch_all(){
+        $packs = $this->get_select_scratch()->paginate(25);
+        return response()->json($packs);
+    }
+
+    // OBTENER LIBROS EN SCRATCH POR SERIE SELECCIONADA
+    public function scratch_by_serie(Request $request){
+        $packs = $this->get_select_scratch()->where('series.id', $request->serie_id)->paginate(25);
+        return response()->json($packs);
+    }
+
+    // OBTENER LIBROS EN SCRATCH POR LIBRO SELECCIONADO (FISICO/DIGITAL)
+    public function scratch_by_book(Request $request){
+        $packs = $this->get_select_scratch()->where('lf.id', $request->libro_id)->orWhere('ld.id', $request->libro_id)->paginate(25);
+        return response()->json($packs);
+    }
+
+    // DESCARGAR LISTA DE SCRATCH
+    public function download_list_scratch(){
+        $hoy = Carbon::now();
+        return Excel::download(new ScratchExport, $hoy->format('Y-m-d').'_INVENTARIO-SCRATCH.xlsx');
+    }
+
+    // *** REVISAR DE AQUI PARA ABAJO CONSULTAS DE SCRATCH, PORQUE CREO QUE ALGUNAS SE ESTAN REPITIENDO
     // BUSQUEDA DE SCRATCH, EN BASE AL LIBRO FISICO
-    public function all_scratch(Request $request){
+    public function scratch_by_titulo(Request $request){
         $query = \DB::table('libros')->join('packs', 'libros.id', '=', 'packs.libro_fisico')
                     ->select('libros.titulo as lf_titulo', 'packs.*')
                     ->where('titulo','like','%'.$request->titulo.'%')

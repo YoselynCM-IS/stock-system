@@ -8,7 +8,7 @@ export default {
         // OBTENER PACK POR COINCIDENCIA
         librosScratch(titulo_fisico) {
             if(titulo_fisico.length > 3){
-                axios.get('/libro/all_scratch', { params: { titulo: titulo_fisico } }).then(response => {
+                axios.get('/libro/scratch/by_titulo', { params: { titulo: titulo_fisico } }).then(response => {
                 this.resultsScratch = response.data;
             }).catch(error => { });
             }
