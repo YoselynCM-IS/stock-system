@@ -161,10 +161,11 @@
                                     target="blank">
                                     Editar remisión
                                 </b-dropdown-item>
-                                <b-dropdown-item v-if="(role_id == 6) && row.item.fechas_count > 0"
+                                <!-- DESHABILITAR TEMPORALMENTE, PORQUE NECESITO SEGUIR HACIENDO PRUEBAS -->
+                                <!-- <b-dropdown-item v-if="(role_id == 6) && row.item.fechas_count > 0"
                                     :href="`/remisiones/delete_dev/${row.item.id}`" target="blank">
                                     Borrar devolución
-                                </b-dropdown-item>
+                                </b-dropdown-item> -->
                             </b-dropdown>
                         </template>
                         <template #thead-top="row">
