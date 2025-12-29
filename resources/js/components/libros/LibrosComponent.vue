@@ -84,10 +84,11 @@
                             variant="dark" pill size="sm" @click="addEditarLibro(props.row, props.index, false)">
                             <i class="fa fa-pencil"></i>
                         </b-button>
-                        <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (props.row.piezas > 0)"
+                        <!-- DESHABILITAR TEMPORALMENTE, PARA REVISION DE SEPARACIÓN DE SCRATCH -->
+                        <!-- <b-button v-if="(role_id == 6 || role_id == 1 || role_id == 10) && (props.row.piezas > 0)"
                             variant="dark" pill @click="addDefectuosos(props.row)" size="sm">
                             <i class="fa fa-minus"></i>
-                        </b-button>
+                        </b-button> -->
                         <b-button v-if="(role_id == 6 || role_id == 1)" variant="danger" pill
                             @click="inactivarLibro(props.row)" size="sm">
                             <i class="fa fa-close"></i>
