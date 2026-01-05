@@ -13,6 +13,7 @@ class Departure extends Model
         'id', 
         'promotion_id', 
         'libro_id', 
+        'tipo',
         'unidades', 
         'unidades_pendientes'
     ];

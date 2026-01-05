@@ -94,6 +94,7 @@ class PromotionController extends Controller
                     'promotion_id' => $promotion->id,
                     'libro_id' => $libro_id,
                     'unidades' => $u,
+                    'tipo' => $departure['tipo'],
                     'unidades_pendientes' => $u
                 ]);
                 
@@ -108,11 +109,13 @@ class PromotionController extends Controller
                         'tipo' => $departure['tipo'],
                         'unidades'  => $u
                     ]);
+                    \DB::table('claves')->where('libro_id', $libro->id)->where('tipo', $departure['tipo'])
+                        ->decrement('piezas', $u);
                 }
                 
                 $unidades += $u;
-                $reporte = 'registro la salida (promoción) de '.$d->unidades.' unidades - '.$libro->editorial.': '.$libro->type.' '.$libro->ISBN.' / '.$libro->titulo.' para '.$d->promotion->folio.' / '.$d->promotion->plantel;
-                $this->create_report($d->id, $reporte, 'libro', 'departures');
+                // $reporte = 'registro la salida (promoción) de '.$d->unidades.' unidades - '.$libro->editorial.': '.$libro->type.' '.$libro->ISBN.' / '.$libro->titulo.' para '.$d->promotion->folio.' / '.$d->promotion->plantel;
+                // $this->create_report($d->id, $reporte, 'libro', 'departures');
             });
 
             $lista_codes->map(function($lc) {
@@ -206,14 +209,22 @@ class PromotionController extends Controller
                 } 
                 if($departure->libro->type == 'digital'){
                     // BORRAR CODIGOS
-                    $departure->codes->map(function($code){
+                    $tipo = null;
+                    $departure->codes->map(function($code) use(&$tipo){
                         $code->update(['estado' => 'inventario']);
+                        $tipo = $code->tipo;
                     });
+
+                    $tipo_digital = $departure->tipo == null ? $tipo:$departure->tipo;
+                    // DISMINUIR DE INVENTARIO DE DOCENTES
+                    \DB::table('claves')->where('libro_id', $departure->libro_id)->where('tipo', $tipo_digital)
+                        ->increment('piezas', $departure->unidades);
+                    // ELIMINAR RELACION DE CODIGOS QUE SE UTILIZARON
                     $departure->codes()->detach();
                 }
                 
-                $reporte = 'registro la cancelación (promoción) de '.$departure->unidades.' unidades - '.$departure->libro->editorial.': '.$departure->libro->type.' '.$departure->libro->ISBN.' / '.$departure->libro->titulo.' para '.$departure->promotion->folio.' / '.$departure->promotion->plantel;
-                $this->create_report($departure->id, $reporte, 'libro', 'departures');
+                // $reporte = 'registro la cancelación (promoción) de '.$departure->unidades.' unidades - '.$departure->libro->editorial.': '.$departure->libro->type.' '.$departure->libro->ISBN.' / '.$departure->libro->titulo.' para '.$departure->promotion->folio.' / '.$departure->promotion->plantel;
+                // $this->create_report($departure->id, $reporte, 'libro', 'departures');
             });
 
             $promotion->update([

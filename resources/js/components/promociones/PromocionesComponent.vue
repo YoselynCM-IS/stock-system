@@ -1011,7 +1011,7 @@ import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
             },
             checkDisponible(){
                 this.load = true;
-                axios.get('/codes/by_libro_count', {params: {libro_id: this.temporal.id, tipo: this.temporal.tipo, estado: 'inventario'}}).then(response => {
+                axios.get('/codes/check_byclave', {params: {libro_id: this.temporal.id, tipo: this.temporal.tipo, estado: 'inventario'}}).then(response => {
                     this.temporal.codigos = response.data;
                     this.temporal.unidades = 0;
                     this.load = false;

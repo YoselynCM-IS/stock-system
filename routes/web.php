@@ -864,8 +864,8 @@ Route::name('codes.')->prefix('codes')->group(function () {
     Route::get('/download_byremision/{remisione_id}', 'CodeController@download_byremision')->name('download_byremision');
     // Obtener codigos por cliente
     Route::get('/show_remisiones', 'CodeController@show_remisiones')->name('show_remisiones');
-    // Obtener codigos disponibles por libro
-    Route::get('/by_libro_count', 'CodeController@by_libro_count')->name('by_libro_count');
+    // Obtener disponible de claves docente / demo
+    Route::get('/check_byclave', 'CodeController@check_byclave')->name('check_byclave');
     // Obtener inventario de licencias y demos
     Route::get('/licencias_demos', 'CodeController@licencias_demos')->name('licencias_demos');
     // Obtener los libros en scratch

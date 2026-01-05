@@ -178,6 +178,9 @@ class EntradaController extends Controller
                     // AUMENTAR PIEZAS DE LOS LIBROS AGREGADOS
                     \DB::table('libros')->whereId($libro_id)
                         ->increment('piezas', $unidades_base);
+                } else {
+                    \DB::table('claves')->where('libro_id', $libro_id)->where('tipo', $item->tipo)
+                        ->increment('piezas', $unidades_base);
                 }
             });
 

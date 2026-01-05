@@ -129,11 +129,9 @@ class CodeController extends Controller
         return Excel::download(new ByRemisionExport($remisione_id), 'rem-'.$remisione_id.'-codigos.xlsx');
     }
 
-    public function by_libro_count(Request $request){
-        $count = Code::where('libro_id', $request->libro_id)
-                    ->where('estado', $request->estado)
-                    ->where('tipo', $request->tipo)->count();
-        return response()->json($count);
+    public function check_byclave(Request $request){
+        $clave = \DB::table('claves')->where('libro_id', $request->libro_id)->where('tipo', $request->tipo)->first();
+        return response()->json($clave->piezas);
     }
 
     public function licencias_demos(){
