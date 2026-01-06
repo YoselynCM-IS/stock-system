@@ -861,7 +861,7 @@ import sweetAlert from '../../mixins/sweetAlert';
                     this.formDev.id = response.data.entrada.id;
                     this.formDev.folio = response.data.entrada.folio;
                     this.formDev.editorial = response.data.entrada.editorial;
-                    this.formDev.imprenta = response.data.entrada.imprenta.imprenta;
+                    this.formDev.imprenta = response.data.entrada.imprenta ? response.data.entrada.imprenta.imprenta:null;
                     this.formDev.total = response.data.entrada.total;
                     this.formDev.unidades = response.data.entrada.unidades;
                     this.formDev.total_devolucion = response.data.entrada.total_devolucion;

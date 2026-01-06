@@ -6,7 +6,7 @@
                 <label><b>Editorial:</b> {{form.editorial}}</label>
             </b-col>
             <b-col sm="4">
-                <label><b>Imprenta:</b> {{form.imprenta}}</label>
+                <label v-if="form.imprenta"><b>Imprenta:</b> {{form.imprenta}}</label>
             </b-col>
             <b-col sm="2">
                 <b-button variant="success" pill block @click="confirmarDevolucion()"><i class="fa fa-check"></i> Guardar</b-button>
