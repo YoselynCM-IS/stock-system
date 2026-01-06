@@ -874,7 +874,7 @@ import sweetAlert from '../../mixins/sweetAlert';
                     response.data.entrada.registros.forEach(rd => {
                         let cs = [];
                         rd.codes.forEach(c => {
-                            if (c.pivot.devolucion == 0 && c.estado == 'inventario') {
+                            if (c.pivot.devolucion == 0 && c.estado == 'inventario' && c.tipo == 'alumno') {
                                 cs.push(c);
                             }
                         });
