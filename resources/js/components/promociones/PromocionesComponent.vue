@@ -1012,7 +1012,11 @@ import DetailsPaqueteria from '../funciones/paqueteria/DetailsPaqueteria.vue';
             checkDisponible(){
                 this.load = true;
                 axios.get('/codes/check_byclave', {params: {libro_id: this.temporal.id, tipo: this.temporal.tipo, estado: 'inventario'}}).then(response => {
-                    this.temporal.codigos = response.data;
+                    if(response.data.piezas >= 0) this.temporal.codigos = response.data.piezas;
+                    else {
+                        this.makeToast('warning', 'Licencia / Demo no existe.');
+                        this.temporal.tipo = null;
+                    }
                     this.temporal.unidades = 0;
                     this.load = false;
                 }).catch(error => {

@@ -131,8 +131,8 @@ class CodeController extends Controller
     }
 
     public function check_byclave(Request $request){
-        $clave = \DB::table('claves')->where('libro_id', $request->libro_id)->where('tipo', $request->tipo)->first();
-        return response()->json($clave->piezas);
+        $clave = $this->checkifexist_claves($request);
+        return response()->json($clave);
     }
 
     public function licencias_demos(){
@@ -140,12 +140,16 @@ class CodeController extends Controller
     }
 
     // *** AQUI EMPIEZAN FUNCIONES DE CLAVES (LICENCIAS/DEMOS)
+    // REVISAR SI EXISTE LA CLAVE
+    public function checkifexist_claves($request){
+        return \DB::table('claves')->where('libro_id', $request->libro_id)->where('tipo', $request->tipo)->first();
+    }
+
     // GUARDAR CLAVE NUEVA
     public function claves_store(Request $request){
-        $search = [ 'libro_id' => $request->libro_id,  'tipo' => $request->tipo ];
-        $clave = Clave::where($search)->first();
+        $clave = $this->checkifexist_claves($request);
         if(!$clave){
-            Clave::create($search);
+            Clave::create([ 'libro_id' => $request->libro_id,  'tipo' => $request->tipo ]);
             return response()->json(true);
         }
         return response()->json(false);
