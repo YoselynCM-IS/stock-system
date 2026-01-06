@@ -18,7 +18,7 @@
                 </div>
             </b-form-group>
             <b-form-group label="Tipo">
-                <b-form-select v-model="form.tipo" :options="options" required :disabled="load"></b-form-select>
+                <b-form-select v-model="form.tipo" :options="options" required :disabled="load" @change="checkDisponible()"></b-form-select>
             </b-form-group>
             <input :disabled="load" type="file" required id="archivoType"
                 class="custom-file" v-on:change="fileChange">
@@ -112,8 +112,24 @@ export default {
         datosLibro(libro){
             this.form.libro_id = libro.id;
             this.form.libro = libro.titulo;
+            this.form.tipo = null;
             this.resultslibros = [];
-        }
+        },
+        // SI ES LIENCIA/DEMO, REVISAR SI ESTA EN EL INVENTARIO DE CLAVES
+        checkDisponible(){
+            if(this.form.tipo != 'alumno'){
+                this.load = true;
+                axios.get('/codes/check_byclave', {params: {libro_id: this.form.libro_id, tipo: this.form.tipo}}).then(response => {
+                    if(response.data.piezas == undefined) {
+                        this.makeToast('warning', 'Licencia / Demo no existe.');
+                        this.form.tipo = null;
+                    }
+                    this.load = false;
+                }).catch(error => {
+                    this.load = false;
+                });
+            }
+        },
     }
 }
 </script>
