@@ -538,6 +538,8 @@ Route::name('libro.')->prefix('libro')->group(function () {
         Route::get('/list_libros/{editorial}/{serie_id}/{titulo}/{isbn}/{type}', 'LibroController@download_list_libros')->name('list_libros');
         // DESCARGAR EN EXCEL EL INVENTARIO EN SCRATCH
         Route::get('/list_scratch', 'LibroController@download_list_scratch')->name('list_scratch');
+        // DESCARGAR EN EXCEL EL INVENTARIO DE CLAVES
+        Route::get('/list_claves/{tipo}', 'LibroController@download_list_claves')->name('list_claves');
     });
 });
 
@@ -870,6 +872,17 @@ Route::name('codes.')->prefix('codes')->group(function () {
     Route::get('/licencias_demos', 'CodeController@licencias_demos')->name('licencias_demos');
     // Obtener los libros en scratch
     Route::get('/scratch', 'CodeController@scratch')->name('scratch');
+
+    Route::name('claves.')->prefix('claves')->group(function () {
+        // GUARDAR CLAVE
+        Route::post('/store', 'CodeController@claves_store')->name('store');
+        // OBTENER TODAS LAS LICENCIAS Y DEMOS
+        Route::get('/all', 'CodeController@claves_all')->name('all');
+        // OBTENER LIBROS POR LIBRO SELECCIONADO
+        Route::get('/by_book', 'CodeController@claves_by_book')->name('by_book');
+        // OBTENER LIBROS POR TIPO SELECCIONADO
+        Route::get('/by_tipo', 'CodeController@claves_by_tipo')->name('by_tipo');
+    });
 });
 
 // ********** NO UTILIZADO **********

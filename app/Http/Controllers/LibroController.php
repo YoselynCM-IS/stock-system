@@ -14,6 +14,7 @@ use App\Exports\MovLibrosExport;
 use App\Exports\MovFechasExport;
 use App\Exports\MovMontoExport;
 use App\Exports\libros\BothExport;
+use App\Exports\libros\ClavesExport;
 use App\Exports\libros\ScratchExport;
 use App\Exports\EntSal\EntSalExport;
 use App\Exports\movimientos\MovDayLibrosExport;
@@ -1398,7 +1399,7 @@ class LibroController extends Controller
     }
 
     public function by_titulo_type(Request $request){
-        $libros = Libro::where('type','digital')
+        $libros = Libro::where('type',$request->type)
                     ->where('titulo','like','%'.$request->titulo.'%')
                     ->where('estado', 'activo')
                     ->orderBy('titulo', 'asc')->get();
@@ -1611,5 +1612,12 @@ class LibroController extends Controller
             ->where('serie','LIKE','%'.$request->querySerie.'%')
             ->orderBy('serie', 'asc')->get();
         return response()->json($series);
+    }
+
+    // CLAVES
+    // DESCARGAR LISTA DE CLAVES
+    public function download_list_claves($tipo){
+        $hoy = Carbon::now();
+        return Excel::download(new ClavesExport($tipo), $hoy->format('Y-m-d').'_INVENTARIO-LICENCIAS-DEMOS.xlsx');
     }
 }

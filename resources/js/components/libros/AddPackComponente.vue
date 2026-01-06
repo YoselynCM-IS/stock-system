@@ -31,13 +31,12 @@
                     <i class="fa fa-download"></i> Descargar
                 </b-button>
             </b-col>
-            <b-col sm="2" v-if="role_id == 6">
+            <b-col sm="2" v-if="role_id == 6 || role_id == 1">
                 <b-button class="mt-4" variant="success" pill block @click="addPack()" :disabled="load">
                     <i class="fa fa-plus-circle"></i> Nuevo pack
                 </b-button>
             </b-col>
         </b-row>
-        <!-- {{ dataPacks }} -->
         <vue-good-table v-if="!load" :columns="fields" :rows="dataPacks.data" :line-numbers="true" theme="polar-bear" styleClass="vgt-table condensed"
             :totalRows="dataPacks.total"
             :pagination-options="{

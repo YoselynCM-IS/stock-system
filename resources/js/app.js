@@ -74,6 +74,8 @@ Vue.component('add-pack-component', require('./components/libros/AddPackComponen
 Vue.component('entrada-codes-component', require('./components/libros/codigos/EntradaCodesComponent.vue').default);
 Vue.component('upload-codes-component', require('./components/libros/codigos/UploadCodesComponent.vue').default);
 Vue.component('codes-component', require('./components/libros/codigos/CodesComponent.vue').default);
+// **** CODIGOS LICENCIAS / DOCENTES LicenciasDemosComponent
+Vue.component('codes-licencias-demos-component', require('./components/libros/codigos/LicenciasDemosComponent.vue').default);
 
 // PEDIDOS
 Vue.component('pedido-school-component', require('./components/pedidos/PedidoSchoolComponent.vue').default);

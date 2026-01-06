@@ -8,6 +8,7 @@ use App\Imports\libros\CodesImport;
 use Illuminate\Http\Request;
 use App\Remisione;
 use App\Libro;
+use App\Clave;
 use App\Code;
 use App\Dato;
 use App\Pack;
@@ -135,15 +136,54 @@ class CodeController extends Controller
     }
 
     public function licencias_demos(){
-        $profesor = $this->group_count_codes('profesor');
-        $demo = $this->group_count_codes('demo');
-        return view('information.codes.lista', compact('profesor', 'demo'));
+        return view('information.codes.lista'); 
     }
+
+    // *** AQUI EMPIEZAN FUNCIONES DE CLAVES (LICENCIAS/DEMOS)
+    // GUARDAR CLAVE NUEVA
+    public function claves_store(Request $request){
+        $search = [ 'libro_id' => $request->libro_id,  'tipo' => $request->tipo ];
+        $clave = Clave::where($search)->first();
+        if(!$clave){
+            Clave::create($search);
+            return response()->json(true);
+        }
+        return response()->json(false);
+    }
+
+    // FUNCION GENERAL PARA OBTENER LAS CLAVES
+    public function get_select_claves(){
+        return \DB::table('claves')
+            ->select('claves.*', 'libros.titulo')
+            ->join('libros', 'claves.libro_id', '=', 'libros.id')
+            ->join('series', 'libros.serie_id', '=', 'series.id')
+            ->orderBy('series.serie', 'asc')->orderBy('libros.titulo', 'asc')->orderBy('claves.tipo', 'asc');
+    }
+
+    // OBTENER TODAS LAS CLAVES
+    public function claves_all(){
+        $claves = $this->get_select_claves()->paginate(25);
+        return response()->json($claves);
+    }
+
+    // OBTENER CLAVES POR LIBRO SELECCIONADO
+    public function claves_by_book(Request $request){
+        $claves = $this->get_select_claves()->where('claves.libro_id', $request->libro_id)->paginate(25);
+        return response()->json($claves);
+    }
+
+    // OBTENER CLAVES POR TIPO SELECCIONADO
+    public function claves_by_tipo(Request $request){
+        $claves = $this->get_select_claves()->where('claves.tipo', $request->tipo)->paginate(25);
+        return response()->json($claves);
+    }
+    // *** AQUI TERMINAN FUNCIONES DE CLAVES (LICENCIAS/DEMOS)
 
     public function scratch(){
         return view('information.codes.scratch'); 
     }
 
+    // *** YA NO SE UTILIZA POR AHORA, PERO PUEDE SERVIR PARA LA COMPROBACIÓN DE INVENTARIO CON DISPONIBLE DE CODIGOS
     public function group_count_codes($tipo) {
         return Code::select('libro_id', \DB::raw('COUNT(id) as inventario'))
                     ->with('libro')

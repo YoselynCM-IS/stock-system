@@ -13,7 +13,7 @@
                     <!-- BUSQUEDA POR LIBRO -->
                     <b-form-group label="Libro:">
                         <b-form-input style="text-transform:uppercase;" 
-                            @keyup="mostrar_libros()" v-model="queryTitulo"
+                            @keyup="mostrar_libros('digital')" v-model="queryTitulo"
                             :disabled="load"
                         ></b-form-input>
                         <div class="list-group" v-if="resultsLibros.length" id="listaL">
@@ -126,10 +126,11 @@
 import getEditoriales from '../../../mixins/getEditoriales';
 import searchCliente from '../../../mixins/searchCliente';
 import LoadComponent from '../../cortes/partials/LoadComponent.vue';
+import getLibrosType from '../../../mixins/libros/getLibrosType';
 export default {
     props: ['role_id'],
-  components: { LoadComponent },
-    mixins: [getEditoriales, searchCliente],
+    components: { LoadComponent },
+    mixins: [getEditoriales, searchCliente, getLibrosType],
     data(){
         return {
             load: false,
@@ -144,8 +145,6 @@ export default {
                 'estado', 'clientes'
             ],
             showAddEntrada: false,
-            queryTitulo: null,
-            resultsLibros: [],
             libro_id: null,
             queryEditorial: null,
             cliente_id: null,
@@ -186,18 +185,6 @@ export default {
             }).catch(error => {
                 this.load = false;
             });
-        },
-        // MOSTRAR LISTA DE LIBROS DIGITALES
-        mostrar_libros(){
-            if(this.queryTitulo.length > 0){
-                axios.get('/libro/by_titulo_type', {params: {titulo: this.queryTitulo}}).then(response => {
-                    this.resultsLibros = response.data;
-                }).catch(error => {
-                    this.makeToast('danger', 'Ocurrió un problema. Verifica tu conexión a internet y/o vuelve a intentar.');
-                });
-            } else{
-                this.resultsLibros = [];
-            }
         },
         // OBTENER CODIGOS POR LIBRO
         get_bylibro(libro){
