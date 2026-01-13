@@ -28,7 +28,7 @@
                 </b-button>
             </b-col>
             <b-col sm="2" class="text-right">
-                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 3 || role_id == 6 || role_id == 10" 
+                <b-button v-if="role_id === 1 || role_id === 2 || role_id == 3 || role_id == 6 || role_id == 8 || role_id == 10" 
                     :href="`/download_remision/${remision.id}`" variant="dark" pill block>
                     <i class="fa fa-download"></i> Remisión
                 </b-button>
