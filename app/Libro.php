@@ -34,7 +34,8 @@ class Libro extends Model
         'defectuosos',
         'estado',
         'type',
-        'externo'
+        'externo',
+        'op_libroid'
     ];
 
     //Uno a muchos

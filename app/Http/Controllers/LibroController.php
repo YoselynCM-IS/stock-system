@@ -315,13 +315,14 @@ class LibroController extends Controller
                 $serie = Serie::create(['serie' => $serie_name]);
                 $serie_id = $serie->id;
             }
-            $libro = Libro::create($this->params_libro($request, false, $serie_id));
+            $libro = Libro::create($this->params_libro($request, false, $serie_id, null));
 
             if($request->editorial == 'MAJESTIC EDUCATION'){
                 $o_serie = Serie::on('opuesto')->where('serie', $serie_name)->first();
                 if($o_serie == null) $o_serie = Serie::on('opuesto')->create(['serie' => $serie_name]);
 
-                $l = Libro::on('opuesto')->create($this->params_libro($request, true, $o_serie->id));
+                $l = Libro::on('opuesto')->create($this->params_libro($request, true, $o_serie->id, $libro->id));
+                Libro::whereId($libro->id)->update(['op_libroid' => $l->id]);
                 // ESTO ERA PARA AGREGAR EL LIBRO A QUERETARO, YA NO SE UTILIZARA
                 // if($request->type != 'digital'){
                 //     \DB::connection('majesticeducation')->table('libros')
@@ -345,7 +346,7 @@ class LibroController extends Controller
         return response()->json($this->assign_datos_libro($libro, $serie_name));
     }
 
-    public function params_libro($request, $externo, $serie_id){
+    public function params_libro($request, $externo, $serie_id, $op_libroid){
         return [
             'serie_id' => $serie_id,
             'type' => $request->type,
@@ -353,7 +354,8 @@ class LibroController extends Controller
             'titulo' => strtoupper($request->titulo),
             'autor' => strtoupper($request->autor),
             'editorial' => $request->editorial,
-            'externo' => $externo
+            'externo' => $externo,
+            'op_libroid' => $op_libroid
         ];
     }
 
