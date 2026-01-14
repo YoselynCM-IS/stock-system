@@ -67,7 +67,7 @@
             </b-row>
             <hr>
             <div class="text-right">
-                <b-button type="submit" :disabled="loaded" variant="success">
+                <b-button type="submit" :disabled="loaded" variant="success" pill>
                     <i class="fa fa-check"></i> {{ !loaded ? 'Guardar' : 'Guardando' }} <b-spinner small v-if="loaded"></b-spinner>
                 </b-button>
             </div>
