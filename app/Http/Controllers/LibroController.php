@@ -399,7 +399,7 @@ class LibroController extends Controller
 
             if($editorial == 'MAJESTIC EDUCATION'){
                 $o_serie = Serie::on('opuesto')->where('serie', $request->serie['serie'])->first();
-                $libro_opuesto = Libro::on('opuesto')->where('titulo', $libro->titulo)->first();
+                $libro_opuesto = Libro::on('opuesto')->whereId($libro->op_libroid)->first();
                 $libro_opuesto->update(array_merge(['serie_id' => $o_serie->id], $datos));
             }
 
