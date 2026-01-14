@@ -72,7 +72,7 @@
                     </b-button>
                 </b-col>
                 <b-col sm="3" class="text-right">
-                    <b-button v-if="role_id === 1 || role_id == 3 || role_id == 6 || user_id == 17" variant="success"
+                    <b-button v-if="role_id === 1 || role_id == 3 || role_id == 6" variant="success"
                         href="/entradas/addupdate/0/true" target="blank">
                         <i class="fa fa-plus"></i> Nueva entrada
                     </b-button>

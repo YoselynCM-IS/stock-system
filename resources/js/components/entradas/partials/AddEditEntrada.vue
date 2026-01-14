@@ -324,13 +324,7 @@ export default {
         }
     },
     created: function(){
-        // if(this.user_id == 17){
-        //     this.options.push(
-        //     { value: null, text: 'Seleccionar una opción', disabled: true },    
-        //     { value: 'MAJESTIC EDUCATION', text: 'MAJESTIC EDUCATION' });
-        // } else {
-            this.get_editoriales();
-        // }
+        this.get_editoriales();
 
         if(!this.agregar){
             this.form.id = this.entrada.id;
