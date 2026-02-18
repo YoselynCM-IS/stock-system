@@ -65,7 +65,7 @@
                 </b-col> -->
                 <b-col sm="2" class="text-right">
                     <!-- CARGAR CODIGOS -->
-                    <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10"
+                    <b-button v-if="role_id === 1 || role_id === 2 || role_id == 6 || role_id == 10 || role_id == 12"
                         variant="success" pill 
                         block @click="showAddEntrada = !showAddEntrada">
                         <i class="fa fa-plus-circle"></i> Crear entrada
@@ -81,7 +81,7 @@
                     <b-badge v-if="data.item.estado == 'ocupado'" variant="danger">Ocupado</b-badge>
                 </template>
                 <template v-slot:cell(clientes)="row">
-                    <b-button variant="info" pill block size="sm" 
+                    <b-button v-if="role_id != 12" variant="info" pill block size="sm" 
                         @click="show_remisiones(row.item)">
                         Mostrar
                     </b-button>
@@ -140,9 +140,10 @@ export default {
                 {key:'index', label:'N.'},
                 {key:'libro.titulo', label:'Libro'},
                 {key:'codigo', label:'Código'},
-                'tipo',
+                {key:'tipo', label:'Tipo'},
                 {key:'created_at', label:'Se subio el'},
-                'estado', 'clientes'
+                {key:'estado', label:'Estado'},
+                {key:'clientes', label:''}
             ],
             showAddEntrada: false,
             libro_id: null,

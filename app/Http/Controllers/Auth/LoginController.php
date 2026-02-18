@@ -48,6 +48,9 @@ class LoginController extends Controller
         if(auth()->user()->role_id == 11){
             return '/libro/all_sistemas';
         }
+        if(auth()->user()->role_id == 12){
+            return '/information/libros/lista';
+        }
         return '/information/remisiones/lista';
         // if(auth()->user()->role_id == 1){
         //     return '/administrador/remisiones';
