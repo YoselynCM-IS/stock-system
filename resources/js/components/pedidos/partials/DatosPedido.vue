@@ -17,7 +17,7 @@
                 </b-row>
                 <div v-if="informacion && informacion.length > 5" class="text-right">
                     <b-button v-b-toggle.collapse-1 variant="secondary" size="sm" pill>
-                        Información de envió
+                        Información de pedido
                     </b-button>
                 </div>
             </b-col>

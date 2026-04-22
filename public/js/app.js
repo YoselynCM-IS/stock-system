@@ -20773,7 +20773,20 @@ var render = function render() {
     }
   }, [_c("b", [_vm._v("Dirección:")])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-7"
-  }, [_vm._v(_vm._s(_vm.datosCliente.direccion))])], 1), _vm._v(" "), _c("b-row", {
+  }, [_vm._v(_vm._s(_vm.datosCliente.direccion))])], 1), _vm._v(" "), _vm.datosCliente.latitud !== null ? _c("b-row", {
+    staticClass: "my-1"
+  }, [_c("b-col", {
+    attrs: {
+      align: "right"
+    }
+  }, [_c("b", [_vm._v("Google Maps:")])]), _vm._v(" "), _c("div", {
+    staticClass: "col-md-7"
+  }, [_c("a", {
+    attrs: {
+      href: "https://www.google.com/maps?q=".concat(_vm.datosCliente.latitud, ",").concat(_vm.datosCliente.longitud),
+      target: "_blank"
+    }
+  }, [_vm._v("Ver")])])], 1) : _vm._e(), _vm._v(" "), _c("b-row", {
     staticClass: "my-1"
   }, [_c("b-col", {
     attrs: {
@@ -37575,7 +37588,7 @@ var render = function render() {
       size: "sm",
       pill: ""
     }
-  }, [_vm._v("\n                    Información de envió\n                ")])], 1) : _vm._e()], 1)], 1), _vm._v(" "), _c("b-collapse", {
+  }, [_vm._v("\n                    Información de pedido\n                ")])], 1) : _vm._e()], 1)], 1), _vm._v(" "), _c("b-collapse", {
     staticClass: "mt-2",
     attrs: {
       id: "collapse-1"

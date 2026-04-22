@@ -115,6 +115,12 @@
                             <b-col align="right"><b>Dirección:</b></b-col>
                             <div class="col-md-7">{{datosCliente.direccion}}</div>
                         </b-row>
+                        <b-row class="my-1" v-if="datosCliente.latitud !== null">
+                            <b-col align="right"><b>Google Maps:</b></b-col>
+                            <div class="col-md-7">
+                                <a :href="`https://www.google.com/maps?q=${datosCliente.latitud},${datosCliente.longitud}`" target="_blank" >Ver</a>
+                            </div>
+                        </b-row>
                         <b-row class="my-1">
                             <b-col align="right"><b>Estado:</b></b-col>
                             <div class="col-md-7">{{datosCliente.estado ? datosCliente.estado.estado:''}}</div>
