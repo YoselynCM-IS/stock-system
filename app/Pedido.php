@@ -12,6 +12,7 @@ Use App\User;
 class Pedido extends Model
 {
     protected $fillable = [
+        'numero_referencia',
         'user_id',
         'cliente_id', 
         'total_quantity',
@@ -20,7 +21,8 @@ class Pedido extends Model
         'estado',
         'comentarios',
         'actualizado_por', 
-        'cerrado_por'
+        'cerrado_por',
+        'informacion'
     ];
 
     public function user(){

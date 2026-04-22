@@ -71,11 +71,16 @@ class PedidoController extends Controller
         \DB::beginTransaction();
         try {
             $pedido = Pedido::create([
+                'numero_referencia' => 'TEMPORAL',
                 'user_id' => auth()->user()->id,
                 'cliente_id' => $request->cliente_id, 
                 'total_quantity' => (int) $request->total_quantity,
                 'total' => (double) $request->total
             ]);
+
+            $sitio = env('APP_NAME') == 'MAJESTIC EDUCATION' ? 'ME':'OB';
+            $numero_referencia = $sitio . '-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT);
+            $pedido->update(['numero_referencia' => $numero_referencia]);
             
             $peticiones = collect($request->libros);
             $peticiones->map(function($peticione) use ($pedido){

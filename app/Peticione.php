@@ -22,7 +22,8 @@ class Peticione extends Model
         'total',
         'existencia',
         'faltante',
-        'solicitar'
+        'solicitar',
+        'informacion'
     ];
 
     public function libro(){
