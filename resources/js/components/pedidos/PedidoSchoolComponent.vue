@@ -39,6 +39,9 @@
                     <template v-slot:cell(created_at)="row">
                         {{ row.item.created_at | momentDet }}
                     </template>
+                    <template v-slot:cell(user)="row">
+                        {{ row.item.user  ? row.item.user.name:'representante' }}
+                    </template>
                     <template v-slot:cell(actions)="row">
                         <b-button :href="`/pedido/show/${row.item.id}`" 
                             target="blank" variant="info" pill size="sm">
@@ -78,10 +81,11 @@ export default {
             pedidos: {},
             fields: [
                 {key: 'index', label: 'N.'},
+                {key: 'numero_referencia', label: 'Folio'},
                 {key: 'cliente.name', label: 'Cliente'},
                 {key: 'total_quantity', label: 'Unidades'},
                 {key: 'total', label: 'Total'},
-                {key: 'user.name', label: 'Creado por'},
+                {key: 'user', label: 'Creado por'},
                 {key: 'created_at', label: 'Creado el'},
                 {key: 'estado', label: 'Estado'},
                 {key: 'actions', label: ''},

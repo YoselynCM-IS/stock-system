@@ -36,10 +36,12 @@
             </b-col>
         </b-row>
         <hr>
-        <datos-pedido :cliente_name="pedido.cliente.name" 
+        <datos-pedido :folio="pedido.numero_referencia"
+                    :cliente_name="pedido.cliente.name" 
                     :moneda="pedido.cliente.moneda"
-                    :user_name="pedido.user.name" 
-                    :created_at="pedido.created_at">
+                    :user_name="pedido.user ? pedido.user.name : null" 
+                    :created_at="pedido.created_at"
+                    :informacion="pedido.informacion">
         </datos-pedido>
         <b-table :items="pedido.peticiones" :fields="fields">
             <template v-slot:cell(index)="row">

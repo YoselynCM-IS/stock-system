@@ -14897,6 +14897,9 @@ __webpack_require__.r(__webpack_exports__);
         key: 'index',
         label: 'N.'
       }, {
+        key: 'numero_referencia',
+        label: 'Folio'
+      }, {
         key: 'cliente.name',
         label: 'Cliente'
       }, {
@@ -14906,7 +14909,7 @@ __webpack_require__.r(__webpack_exports__);
         key: 'total',
         label: 'Total'
       }, {
-        key: 'user.name',
+        key: 'user',
         label: 'Creado por'
       }, {
         key: 'created_at',
@@ -15116,7 +15119,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mixins_moment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../mixins/moment */ "./resources/js/mixins/moment.js");
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  props: ['cliente_name', 'moneda', 'user_name', 'created_at'],
+  props: ['folio', 'cliente_name', 'moneda', 'user_name', 'created_at', 'informacion'],
   mixins: [_mixins_moment__WEBPACK_IMPORTED_MODULE_0__["default"]]
 });
 
@@ -37017,10 +37020,12 @@ var render = function render() {
     }
   }, [_vm._v("\n                Seguimiento\n            ")]) : _vm._e()], 1)], 1), _vm._v(" "), _c("hr"), _vm._v(" "), _c("datos-pedido", {
     attrs: {
+      folio: _vm.pedido.numero_referencia,
       cliente_name: _vm.pedido.cliente.name,
       moneda: _vm.pedido.cliente.moneda,
-      user_name: _vm.pedido.user.name,
-      created_at: _vm.pedido.created_at
+      user_name: _vm.pedido.user ? _vm.pedido.user.name : null,
+      created_at: _vm.pedido.created_at,
+      informacion: _vm.pedido.informacion
     }
   }), _vm._v(" "), _c("b-table", {
     attrs: {
@@ -37328,6 +37333,11 @@ var render = function render() {
         return [_vm._v("\n                    " + _vm._s(_vm._f("momentDet")(row.item.created_at)) + "\n                ")];
       }
     }, {
+      key: "cell(user)",
+      fn: function fn(row) {
+        return [_vm._v("\n                    " + _vm._s(row.item.user ? row.item.user.name : "representante") + "\n                ")];
+      }
+    }, {
       key: "cell(actions)",
       fn: function fn(row) {
         return [_c("b-button", {
@@ -37365,7 +37375,7 @@ var render = function render() {
           staticClass: "fa fa-close"
         })]) : _vm._e()];
       }
-    }], null, false, 495050879)
+    }], null, false, 3980938712)
   }) : _c("no-registros-component")], 1) : _c("load-component")], 1)]);
 };
 var staticRenderFns = [];
@@ -37426,6 +37436,7 @@ var render = function render() {
     staticClass: "fa fa-check"
   }), _vm._v(" Guardar\n            ")])], 1)], 1), _vm._v(" "), _c("hr"), _vm._v(" "), _c("datos-pedido", {
     attrs: {
+      folio: _vm.pedido.numero_referencia,
       cliente_name: _vm.pedido.cliente_name,
       user_name: _vm.pedido.user_name,
       created_at: _vm.pedido.created_at
@@ -37530,17 +37541,45 @@ var render = function render() {
     attrs: {
       sm: "8"
     }
-  }, [_c("h6", [_c("b", [_vm._v("Cliente:")]), _vm._v(" " + _vm._s(_vm.cliente_name))]), _vm._v(" "), _vm.moneda ? _c("h6", [_c("b", [_vm._v("Moneda:")]), _vm._v(" " + _vm._s(_vm.moneda.codigo) + " - " + _vm._s(_vm.moneda.moneda))]) : _vm._e()]), _vm._v(" "), _c("b-col", [_c("b-row", [_c("b-col", {
+  }, [_c("h6", [_c("b", [_vm._v("Folio:")]), _vm._v(" " + _vm._s(_vm.folio))]), _vm._v(" "), _c("h6", [_c("b", [_vm._v("Cliente:")]), _vm._v(" " + _vm._s(_vm.cliente_name))]), _vm._v(" "), _vm.moneda ? _c("h6", [_c("b", [_vm._v("Moneda:")]), _vm._v(" " + _vm._s(_vm.moneda.codigo) + " - " + _vm._s(_vm.moneda.moneda))]) : _vm._e()]), _vm._v(" "), _c("b-col", [_vm.user_name !== null ? _c("b-row", [_c("b-col", {
     staticClass: "text-right",
     attrs: {
       sm: "4"
     }
-  }, [_c("h6", [_c("b", [_vm._v("Creado por:")])])]), _vm._v(" "), _c("b-col", [_vm._v(_vm._s(_vm.user_name))])], 1), _vm._v(" "), _c("b-row", [_c("b-col", {
+  }, [_c("h6", [_c("b", [_vm._v("Creado por:")])])]), _vm._v(" "), _c("b-col", [_vm._v(_vm._s(_vm.user_name))])], 1) : _vm._e(), _vm._v(" "), _c("b-row", [_c("b-col", {
     staticClass: "text-right",
     attrs: {
       sm: "4"
     }
-  }, [_c("h6", [_c("b", [_vm._v("Creado el:")])])]), _vm._v(" "), _c("b-col", [_vm._v(_vm._s(_vm._f("moment")(_vm.created_at)))])], 1)], 1)], 1)], 1);
+  }, [_c("h6", [_c("b", [_vm._v("Creado el:")])])]), _vm._v(" "), _c("b-col", [_vm._v(_vm._s(_vm._f("moment")(_vm.created_at)))])], 1), _vm._v(" "), _vm.informacion && _vm.informacion.length > 5 ? _c("div", {
+    staticClass: "text-right"
+  }, [_c("b-button", {
+    directives: [{
+      name: "b-toggle",
+      rawName: "v-b-toggle.collapse-1",
+      modifiers: {
+        "collapse-1": true
+      }
+    }],
+    attrs: {
+      variant: "secondary",
+      size: "sm",
+      pill: ""
+    }
+  }, [_vm._v("\n                    Información de envió\n                ")])], 1) : _vm._e()], 1)], 1), _vm._v(" "), _c("b-collapse", {
+    staticClass: "mt-2",
+    attrs: {
+      id: "collapse-1"
+    }
+  }, [_c("b-card", {
+    attrs: {
+      "bg-variant": "light"
+    }
+  }, [_c("p", {
+    domProps: {
+      innerHTML: _vm._s(_vm.informacion)
+    }
+  })])], 1)], 1);
 };
 var staticRenderFns = [];
 render._withStripped = true;

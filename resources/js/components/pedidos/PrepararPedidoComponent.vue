@@ -19,7 +19,8 @@
             </b-col>
         </b-row>
         <hr>
-        <datos-pedido :cliente_name="pedido.cliente_name" 
+        <datos-pedido :folio="pedido.numero_referencia"
+                    :cliente_name="pedido.cliente_name" 
                     :user_name="pedido.user_name" 
                     :created_at="pedido.created_at">
         </datos-pedido>

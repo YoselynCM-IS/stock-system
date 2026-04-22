@@ -179,8 +179,9 @@ class PedidoController extends Controller
         
         $pedido = collect([
             'id' => $p->id,
+            'numero_referencia' => $p->numero_referencia,
             'tipo' => $tipo,
-            'user_name' => $p->user->name,
+            'user_name' => $p->user ? $p->user->name : null,
             'cliente_name' => $p->cliente->name, 
             'total_quantity' => $p->total_quantity,
             'total_solicitar' => 0,
