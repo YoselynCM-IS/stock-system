@@ -57,6 +57,12 @@
             <template v-slot:cell(price)="row">
                 ${{ row.item.price | formatNumber }}
             </template>
+            <template v-slot:cell(tipo)="row">
+                <p v-if="row.item.informacion == null && row.item.tipo !== null">
+                    {{ row.item.tipo }}
+                </p>
+                <p v-if="row.item.informacion != null && row.item.tipo == null" v-html="row.item.informacion"></p>
+            </template>
             <template v-slot:cell(total)="row">
                 ${{ row.item.total | formatNumber }}
             </template>

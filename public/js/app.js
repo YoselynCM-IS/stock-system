@@ -37057,6 +37057,15 @@ var render = function render() {
         return [_vm._v("\n            $" + _vm._s(_vm._f("formatNumber")(row.item.price)) + "\n        ")];
       }
     }, {
+      key: "cell(tipo)",
+      fn: function fn(row) {
+        return [row.item.informacion == null && row.item.tipo !== null ? _c("p", [_vm._v("\n                " + _vm._s(row.item.tipo) + "\n            ")]) : _vm._e(), _vm._v(" "), row.item.informacion != null && row.item.tipo == null ? _c("p", {
+          domProps: {
+            innerHTML: _vm._s(row.item.informacion)
+          }
+        }) : _vm._e()];
+      }
+    }, {
       key: "cell(total)",
       fn: function fn(row) {
         return [_vm._v("\n            $" + _vm._s(_vm._f("formatNumber")(row.item.total)) + "\n        ")];
