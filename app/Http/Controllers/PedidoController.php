@@ -260,10 +260,10 @@ class PedidoController extends Controller
                 }
             });
 
-            if(env('APP_NAME') == 'MAJESTIC EDUCATION'){
-                \DB::connection('representantes')->table('pedidos')
-                        ->where('numero_referencia', $pedido->numero_referencia)->update(['status' => 'EN PROCESO']);
-            }
+            // if(env('APP_NAME') == 'MAJESTIC EDUCATION'){
+            //     \DB::connection('representantes')->table('pedidos')
+            //             ->where('numero_referencia', $pedido->numero_referencia)->update(['status' => 'EN PROCESO']);
+            // }
 
             \DB::commit();
         } catch (Exception $e) {
@@ -319,10 +319,10 @@ class PedidoController extends Controller
                 'estado' => 'cancelado',
             ]);
 
-            if(env('APP_NAME') == 'MAJESTIC EDUCATION'){
-                \DB::connection('representantes')->table('pedidos')
-                        ->where('numero_referencia', $pedido->numero_referencia)->update(['status' => 'CANCELADO']);
-            }
+            // if(env('APP_NAME') == 'MAJESTIC EDUCATION'){
+            //     \DB::connection('representantes')->table('pedidos')
+            //             ->where('numero_referencia', $pedido->numero_referencia)->update(['status' => 'CANCELADO']);
+            // }
 
             $reporte = 'cancelo un pedido del cliente '.$pedido->cliente->name;
             $this->create_report($pedido->id, $reporte);
