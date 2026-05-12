@@ -41,6 +41,7 @@ Route::name('administrador.')->prefix('administrador')->middleware(['auth', 'rol
     Route::get('/getULibros', 'AdministradorController@getULibros')->name('getULibros');
     Route::get('/detallesULibro', 'AdministradorController@detallesULibro')->name('detallesULibro');
     Route::get('/download_ulibros', 'AdministradorController@download_ulibros')->name('download_ulibros');
+    Route::get('/byFechaULibros', 'AdministradorController@byFechaULibros')->name('byFechaULibros');
 
     Route::get('/comparativa', 'AdministradorController@comparativa')->name('comparativa');
 

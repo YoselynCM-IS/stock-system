@@ -11928,7 +11928,7 @@ __webpack_require__.r(__webpack_exports__);
   mixins: [_mixins_getLibros__WEBPACK_IMPORTED_MODULE_0__["default"]],
   data: function data() {
     return {
-      libros: [],
+      libros: {},
       fieldsLibros: ['libro', {
         key: 'unidades_vendidas',
         label: 'Unidades (Vendidas)',
@@ -11966,55 +11966,90 @@ __webpack_require__.r(__webpack_exports__);
         registros: []
       },
       viewDetails: false,
-      queryTitulo: ''
+      queryTitulo: '',
+      fechas: {
+        de: null,
+        a: null
+      }
     };
   },
   created: function created() {
-    var _this = this;
-    axios.get('/administrador/getULibros').then(function (response) {
-      _this.libros = response.data;
-    });
+    this.getResults();
   },
   methods: {
-    showDetails: function showDetails(libro) {
+    // OBTENER RESULTADOS
+    getResults: function getResults() {
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+      if (this.fechas.a == null) this.http_all(page);else this.http_fechas(page);
+    },
+    // OBTENER TODOS LOS REGISTROS
+    http_all: function http_all() {
+      var _this = this;
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+      axios.get("/administrador/getULibros?page=".concat(page)).then(function (response) {
+        _this.libros = response.data;
+      });
+    },
+    // OBTENER MOVIMIENTOS POR FECHA
+    http_fechas: function http_fechas() {
       var _this2 = this;
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+      if (this.fechas.de !== null) {
+        axios.get("/administrador/byFechaULibros?page=".concat(page), {
+          params: {
+            inicio: this.fechas.de,
+            "final": this.fechas.a
+          }
+        }).then(function (response) {
+          _this2.libros = response.data;
+        });
+      }
+    },
+    showDetails: function showDetails(libro) {
+      var _this3 = this;
       axios.get('/administrador/detallesULibro', {
         params: {
-          libro_id: libro.libro_id
+          libro_id: libro.libro_id,
+          inicio: this.fechas.de,
+          "final": this.fechas.a
         }
       }).then(function (response) {
-        _this2.libro.titulo = libro.libro;
-        _this2.libro.unidades_vendidas = libro.unidades_vendidas;
-        _this2.libro.unidades_remisiones = libro.unidades_remisiones;
-        _this2.libro.unidades_devoluciones = libro.unidades_devoluciones;
-        _this2.libro.registros = response.data;
-        _this2.viewDetails = true;
+        _this3.libro.titulo = libro.libro;
+        _this3.set_information(response);
       });
     },
     mostrarLibros: function mostrarLibros() {
       this.getLibros(this.queryTitulo);
     },
     obtenerLibro: function obtenerLibro(libro) {
-      var _this3 = this;
+      var _this4 = this;
       axios.get('/administrador/detallesULibro', {
         params: {
-          libro_id: libro.id
+          libro_id: libro.id,
+          inicio: this.fechas.de,
+          "final": this.fechas.a
         }
       }).then(function (response) {
-        if (response.data.length > 0) {
-          _this3.libro.titulo = libro.titulo;
-          _this3.libro.registros = response.data;
-          _this3.viewDetails = true;
+        if (response.data.detalles.length > 0) {
+          _this4.libro.titulo = libro.titulo;
+          _this4.set_information(response);
         } else {
-          _this3.$bvToast.toast("".concat(libro.titulo, " no cuenta con registro de remisiones"), {
+          _this4.$bvToast.toast("".concat(libro.titulo, " no cuenta con registro de remisiones"), {
             title: 'Mensaje',
             variant: 'warning',
             solid: true
           });
         }
-        _this3.queryTitulo = '';
-        _this3.resultslibros = [];
+        _this4.queryTitulo = '';
+        _this4.resultslibros = [];
       });
+    },
+    set_information: function set_information(response) {
+      this.libro.unidades_vendidas = response.data.totales.total_vendidas;
+      this.libro.unidades_remisiones = response.data.totales.total_remisiones;
+      this.libro.unidades_devoluciones = response.data.totales.total_devoluciones;
+      this.libro.registros = response.data.detalles;
+      this.viewDetails = true;
     }
   }
 });
@@ -33055,20 +33090,17 @@ __webpack_require__.r(__webpack_exports__);
 var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("div", [_c("b-row", [_c("b-col", [_c("b-row", [_c("b-col", {
+  return _c("div", [!_vm.viewDetails ? _c("div", [_c("b-row", [_c("b-col", {
     attrs: {
-      sm: "1"
-    }
-  }, [_c("label", [_vm._v("Buscar")])]), _vm._v(" "), _c("b-col", {
-    attrs: {
-      sm: "7"
+      sm: "3"
     }
   }, [_c("b-input", {
     staticStyle: {
       "text-transform": "uppercase"
     },
     attrs: {
-      autofocus: ""
+      autofocus: "",
+      placeholder: "Buscar libro..."
     },
     on: {
       keyup: function keyup($event) {
@@ -33099,10 +33131,65 @@ var render = function render() {
           return _vm.obtenerLibro(libro);
         }
       }
-    }, [_vm._v("\n                            " + _vm._s(libro.titulo) + "\n                        ")]);
-  }), 0) : _vm._e()], 1)], 1)], 1), _vm._v(" "), _c("b-col", {
+    }, [_vm._v("\n                        " + _vm._s(libro.titulo) + "\n                    ")]);
+  }), 0) : _vm._e()], 1), _vm._v(" "), _c("b-col", {
     attrs: {
       sm: "3"
+    }
+  }, [_c("b-row", [_c("b-col", {
+    attrs: {
+      sm: "1"
+    }
+  }, [_vm._v("De:")]), _vm._v(" "), _c("b-col", [_c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.fechas.de,
+      expression: "fechas.de"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "date"
+    },
+    domProps: {
+      value: _vm.fechas.de
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.fechas, "de", $event.target.value);
+      }
+    }
+  })])], 1), _vm._v(" "), _c("b-row", [_c("b-col", {
+    attrs: {
+      sm: "1"
+    }
+  }, [_vm._v("A:")]), _vm._v(" "), _c("b-col", [_c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.fechas.a,
+      expression: "fechas.a"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "date"
+    },
+    domProps: {
+      value: _vm.fechas.a
+    },
+    on: {
+      change: function change($event) {
+        return _vm.http_fechas();
+      },
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.fechas, "a", $event.target.value);
+      }
+    }
+  })])], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      sm: "2"
     }
   }, [_c("b-button", {
     attrs: {
@@ -33111,29 +33198,37 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fa fa-download"
-  }), _vm._v(" Descargar "), _c("br"), _vm._v(" "), _c("i", {
-    staticStyle: {
-      "font-size": "12px"
-    }
-  }, [_vm._v("Todo")])])], 1), _vm._v(" "), _c("b-col", {
+  }), _vm._v(" Descargar\n                ")])], 1), _vm._v(" "), _c("b-col", {
     staticClass: "text-right",
     attrs: {
-      sm: "2"
+      sm: "4"
     }
-  }, [_vm.viewDetails ? _c("b-button", {
+  }, [_c("pagination", {
     attrs: {
-      variant: "dark"
+      size: "default",
+      limit: 1,
+      data: _vm.libros
     },
     on: {
-      click: function click($event) {
-        _vm.viewDetails = !_vm.viewDetails;
-      }
+      "pagination-change-page": _vm.getResults
     }
-  }, [_c("i", {
-    staticClass: "fa fa-arrow-left"
-  }), _vm._v(" Volver\n            ")]) : _vm._e()], 1)], 1), _c("br"), _vm._v(" "), !_vm.viewDetails ? _c("div", [_c("b-table", {
+  }, [_c("span", {
     attrs: {
-      items: _vm.libros,
+      slot: "prev-nav"
+    },
+    slot: "prev-nav"
+  }, [_c("i", {
+    staticClass: "fa fa-angle-left"
+  })]), _vm._v(" "), _c("span", {
+    attrs: {
+      slot: "next-nav"
+    },
+    slot: "next-nav"
+  }, [_c("i", {
+    staticClass: "fa fa-angle-right"
+  })])])], 1)], 1), _c("br"), _vm._v(" "), _c("b-table", {
+    attrs: {
+      items: _vm.libros.data,
       fields: _vm.fieldsLibros
     },
     scopedSlots: _vm._u([{
@@ -33151,7 +33246,22 @@ var render = function render() {
         }, [_vm._v("Mostrar")])];
       }
     }], null, false, 860650226)
-  })], 1) : _c("div", [_c("h6", [_c("b", [_vm._v("Libro: ")]), _vm._v(" " + _vm._s(_vm.libro.titulo))]), _c("br"), _vm._v(" "), _c("b-table", {
+  })], 1) : _c("div", [_c("b-row", [_c("b-col", [_c("h6", [_c("b", [_vm._v("Libro: ")]), _vm._v(" " + _vm._s(_vm.libro.titulo))])]), _vm._v(" "), _c("b-col", {
+    attrs: {
+      sm: "2"
+    }
+  }, [_vm.viewDetails ? _c("b-button", {
+    attrs: {
+      variant: "dark"
+    },
+    on: {
+      click: function click($event) {
+        _vm.viewDetails = !_vm.viewDetails;
+      }
+    }
+  }, [_c("i", {
+    staticClass: "fa fa-arrow-left"
+  }), _vm._v(" Volver\n                ")]) : _vm._e()], 1)], 1), _vm._v(" "), _c("b-table", {
     attrs: {
       items: _vm.libro.registros,
       fields: _vm.fieldsDetails
@@ -33171,7 +33281,7 @@ var render = function render() {
         }), _vm._v(" "), _c("th", [_vm._v(_vm._s(_vm.libro.unidades_vendidas))]), _vm._v(" "), _c("th", [_vm._v(_vm._s(_vm.libro.unidades_remisiones))]), _vm._v(" "), _c("th", [_vm._v(_vm._s(_vm.libro.unidades_devoluciones))])])];
       }
     }])
-  })], 1)], 1);
+  })], 1)]);
 };
 var staticRenderFns = [];
 render._withStripped = true;
