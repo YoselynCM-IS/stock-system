@@ -35,7 +35,7 @@
                     </b-row>
                 </b-col>
                 <b-col sm="2">
-                    <b-button variant="dark" href="/administrador/download_ulibros">
+                    <b-button variant="dark" :href="'/administrador/download_ulibros' + (fechas.de && fechas.a ? '?inicio=' + fechas.de + '&final=' + fechas.a : '')">
                         <i class="fa fa-download"></i> Descargar
                     </b-button>
                 </b-col>

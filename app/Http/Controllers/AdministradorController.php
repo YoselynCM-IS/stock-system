@@ -62,7 +62,7 @@ class AdministradorController extends Controller
                     ->orWhereRaw('COALESCE(dev.unidades_devoluciones, 0) > 0');
             })
             ->orderBy('l.titulo', 'asc')
-            ->paginate(15); 
+            ->paginate(20); 
 
         return response()->json($registros);
     }
@@ -339,8 +339,55 @@ class AdministradorController extends Controller
         ]);
     }
 
-    public function download_ulibros(){
-        return Excel::download(new ULibrosExport, 'unidades.xlsx');
+    public function download_ulibros(Request $request){
+        // 1. Subconsulta base para Unidades de Remisiones
+        $subDatos = \DB::table('datos')
+            ->join('remisiones', 'datos.remisione_id', '=', 'remisiones.id')
+            ->select('libro_id', \DB::raw('SUM(unidades) as unidades_remisiones'))
+            ->whereNotIn('remisiones.estado', ['Cancelado'])
+            ->whereNull('datos.deleted_at');
+
+        // 2. Subconsulta base para Unidades de Devoluciones (Con consistencia de cancelados)
+        $subDevoluciones = \DB::table('fechas')
+            ->join('remisiones', 'fechas.remisione_id', '=', 'remisiones.id')
+            ->select('fechas.libro_id', \DB::raw('SUM(fechas.unidades) as unidades_devoluciones'))
+            ->whereNotIn('remisiones.estado', ['Cancelado'])
+            ->where('fechas.unidades', '<>', 0)
+            ->whereNull('fechas.deleted_at');
+
+        // 3. Evaluamos de forma opcional si el b-button envió parámetros de fecha en la URL
+        if ($request->filled('inicio') && $request->filled('final')) {
+            $inicio = Carbon::parse($request->inicio)->startOfDay();
+            $final = Carbon::parse($request->final)->endOfDay();
+
+            $subDatos->whereBetween('datos.created_at', [$inicio, $final]);
+            $subDevoluciones->whereBetween('fechas.created_at', [$inicio, $final]);
+        }
+
+        // Agrupamos después de aplicar las fechas opcionales
+        $subDatos->groupBy('libro_id');
+        $subDevoluciones->groupBy('fechas.libro_id');
+
+        // 4. Consulta unificada (Lógica idéntica a tus funciones de listado)
+        $queryPrincipal = \DB::table('libros as l')
+            ->leftJoinSub($subDatos, 'd', 'l.id', '=', 'd.libro_id')
+            ->leftJoinSub($subDevoluciones, 'dev', 'l.id', '=', 'dev.libro_id')
+            ->select(
+                'l.id as libro_id',
+                'l.ISBN as isbn',
+                'l.titulo as libro',
+                \DB::raw('COALESCE(d.unidades_remisiones, 0) as unidades_remisiones'),
+                \DB::raw('COALESCE(dev.unidades_devoluciones, 0) as unidades_devoluciones'),
+                \DB::raw('(COALESCE(d.unidades_remisiones, 0) - COALESCE(dev.unidades_devoluciones, 0)) as unidades_vendidas')
+            )
+            ->where(function($query) {
+                $query->whereRaw('COALESCE(d.unidades_remisiones, 0) > 0')
+                    ->orWhereRaw('COALESCE(dev.unidades_devoluciones, 0) > 0');
+            })
+            ->orderBy('l.titulo', 'asc');
+
+        // 5. Retorna la descarga directa del Excel conservando el objetivo unificado
+        return Excel::download(new ULibrosExport($queryPrincipal), 'unidades_libros.xlsx');
     }
 
     public function comparativa(){

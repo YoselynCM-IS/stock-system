@@ -33194,7 +33194,7 @@ var render = function render() {
   }, [_c("b-button", {
     attrs: {
       variant: "dark",
-      href: "/administrador/download_ulibros"
+      href: "/administrador/download_ulibros" + (_vm.fechas.de && _vm.fechas.a ? "?inicio=" + _vm.fechas.de + "&final=" + _vm.fechas.a : "")
     }
   }, [_c("i", {
     staticClass: "fa fa-download"
