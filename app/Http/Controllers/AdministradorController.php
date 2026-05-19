@@ -26,7 +26,7 @@ class AdministradorController extends Controller
         $inicio = Carbon::parse($request->inicio)->startOfDay();
         $final = Carbon::parse($request->final)->endOfDay();
 
-        // 1. Subconsulta para Unidades de Remisiones
+        // 1. Subconsulta para Unidades de Remisiones por fecha
         $subDatos = \DB::table('datos')
             ->join('remisiones', 'datos.remisione_id', '=', 'remisiones.id')
             ->select('libro_id', \DB::raw('SUM(unidades) as unidades_remisiones'))
@@ -35,21 +35,20 @@ class AdministradorController extends Controller
             ->whereBetween('datos.created_at', [$inicio, $final])
             ->groupBy('libro_id');
 
-        // 2. Subconsulta para Unidades de Devoluciones
+        // 2. Subconsulta para Unidades de Devoluciones por fecha (Con filtro de cancelados)
         $subDevoluciones = \DB::table('fechas')
-            ->select('libro_id', \DB::raw('SUM(unidades) as unidades_devoluciones'))
+            ->join('remisiones', 'fechas.remisione_id', '=', 'remisiones.id')
+            ->select('fechas.libro_id', \DB::raw('SUM(fechas.unidades) as unidades_devoluciones'))
+            ->whereNotIn('remisiones.estado', ['Cancelado']) // <-- Consistencia estricta
+            ->where('fechas.unidades', '<>', 0)
             ->whereNull('fechas.deleted_at')
             ->whereBetween('fechas.created_at', [$inicio, $final])
-            ->groupBy('libro_id');
+            ->groupBy('fechas.libro_id');
 
-        // 3. Consulta Principal con Paginación
+        // 3. Consulta Principal
         $registros = \DB::table('libros as l')
-            ->joinSub($subDatos, 'd', function ($join) {
-                $join->on('l.id', '=', 'd.libro_id');
-            })
-            ->leftJoinSub($subDevoluciones, 'dev', function ($join) {
-                $join->on('l.id', '=', 'dev.libro_id');
-            })
+            ->leftJoinSub($subDatos, 'd', 'l.id', '=', 'd.libro_id')
+            ->leftJoinSub($subDevoluciones, 'dev', 'l.id', '=', 'dev.libro_id')
             ->select(
                 'l.id as libro_id',
                 'l.titulo as libro',
@@ -57,8 +56,13 @@ class AdministradorController extends Controller
                 \DB::raw('COALESCE(dev.unidades_devoluciones, 0) as unidades_devoluciones'),
                 \DB::raw('(COALESCE(d.unidades_remisiones, 0) - COALESCE(dev.unidades_devoluciones, 0)) as unidades_vendidas')
             )
-            ->orderBy('l.id', 'asc')
-            ->paginate(15); // Cambia el 15 por el número de registros por página que desees
+            // REGLA: Mostrar el libro si tiene remisiones > 0 O devoluciones > 0 en este rango de fechas
+            ->where(function($query) {
+                $query->whereRaw('COALESCE(d.unidades_remisiones, 0) > 0')
+                    ->orWhereRaw('COALESCE(dev.unidades_devoluciones, 0) > 0');
+            })
+            ->orderBy('l.titulo', 'asc')
+            ->paginate(15); 
 
         return response()->json($registros);
     }
@@ -225,7 +229,7 @@ class AdministradorController extends Controller
     }
 
     public function getULibros() {
-        // 1. Subconsulta para agrupar unidades de remisiones (datos)
+        // 1. Subconsulta para agrupar unidades de remisiones
         $subDatos = \DB::table('datos')
             ->join('remisiones', 'datos.remisione_id', '=', 'remisiones.id')
             ->select('libro_id', \DB::raw('SUM(unidades) as unidades_remisiones'))
@@ -233,24 +237,19 @@ class AdministradorController extends Controller
             ->whereNull('datos.deleted_at')
             ->groupBy('libro_id');
 
-        // 2. Subconsulta para agrupar unidades de devoluciones
+        // 2. Subconsulta para agrupar unidades de devoluciones (Se añade join para filtrar cancelados)
         $subDevoluciones = \DB::table('fechas')
-            ->select('libro_id', \DB::raw('SUM(unidades) as unidades_devoluciones'))
-            ->where('unidades', '<>', 0) // Optimizamos el whereNotIn por un <>
+            ->join('remisiones', 'fechas.remisione_id', '=', 'remisiones.id')
+            ->select('fechas.libro_id', \DB::raw('SUM(fechas.unidades) as unidades_devoluciones'))
+            ->whereNotIn('remisiones.estado', ['Cancelado']) // <-- Consistencia estricta
+            ->where('fechas.unidades', '<>', 0)
             ->whereNull('fechas.deleted_at')
-            ->groupBy('libro_id');
+            ->groupBy('fechas.libro_id');
 
-        // 3. Consulta principal uniendo libros con las subconsultas
+        // 3. Consulta principal
         $registros = \DB::table('libros as l')
-            // Usamos joinSub (INNER JOIN) porque tu código original solo retorna 
-            // libros que tienen unidades_remisiones > 0
-            ->joinSub($subDatos, 'd', function ($join) {
-                $join->on('l.id', '=', 'd.libro_id');
-            })
-            // Usamos leftJoinSub porque un libro puede tener ventas pero NO devoluciones
-            ->leftJoinSub($subDevoluciones, 'dev', function ($join) {
-                $join->on('l.id', '=', 'dev.libro_id');
-            })
+            ->leftJoinSub($subDatos, 'd', 'l.id', '=', 'd.libro_id')
+            ->leftJoinSub($subDevoluciones, 'dev', 'l.id', '=', 'dev.libro_id')
             ->select(
                 'l.id as libro_id',
                 'l.titulo as libro',
@@ -258,8 +257,13 @@ class AdministradorController extends Controller
                 \DB::raw('COALESCE(dev.unidades_devoluciones, 0) as unidades_devoluciones'),
                 \DB::raw('(COALESCE(d.unidades_remisiones, 0) - COALESCE(dev.unidades_devoluciones, 0)) as unidades_vendidas')
             )
-            ->orderBy('l.id', 'asc')
-            ->paginate(20); // Aquí defines cuántos libros por página quieres (ej. 20)
+            // REGLA: Mostrar el libro si tiene remisiones > 0 O devoluciones > 0
+            ->where(function($query) {
+                $query->whereRaw('COALESCE(d.unidades_remisiones, 0) > 0')
+                    ->orWhereRaw('COALESCE(dev.unidades_devoluciones, 0) > 0');
+            })
+            ->orderBy('l.titulo', 'asc')
+            ->paginate(20);
 
         return response()->json($registros);
     }
@@ -267,60 +271,68 @@ class AdministradorController extends Controller
     public function detallesULibro(Request $request){
         $libro_id = $request->libro_id;
         
-        // Validamos fechas
+        // Las fechas son opcionales (si vienes de getULibros van vacías; si vienes de byFechaULibros traen rango)
         $inicio = $request->inicio ? Carbon::parse($request->inicio)->startOfDay() : null;
         $final = $request->final ? Carbon::parse($request->final)->endOfDay() : null;
 
-        // 1. Obtener Remisiones
+        // 1. Obtener Remisiones agrupadas por cliente
         $datos = \DB::table('datos')
             ->join('remisiones', 'datos.remisione_id', '=', 'remisiones.id')
             ->join('clientes', 'remisiones.cliente_id', '=', 'clientes.id')
-            ->where('libro_id', $libro_id)
+            ->where('datos.libro_id', $libro_id)
             ->whereNotIn('remisiones.estado', ['Cancelado'])
             ->whereNull('datos.deleted_at')
             ->when($inicio && $final, function ($query) use ($inicio, $final) {
                 return $query->whereBetween('datos.created_at', [$inicio, $final]);
             })
-            ->select('clientes.id as cliente_id', 'clientes.name as cliente', \DB::raw('SUM(unidades) as unidades'))
+            ->select('clientes.id as cliente_id', 'clientes.name as cliente', \DB::raw('SUM(datos.unidades) as unidades'))
             ->groupBy('clientes.id', 'clientes.name')
-            ->get();
+            ->get()
+            ->keyBy('cliente_id');
 
-        // 2. Obtener Devoluciones indexadas por cliente_id
+        // 2. Obtener Devoluciones agrupadas por cliente (Con filtro estricto de Cancelados)
         $devoluciones = \DB::table('fechas')
             ->join('remisiones', 'fechas.remisione_id', '=', 'remisiones.id')
+            ->join('clientes', 'remisiones.cliente_id', '=', 'clientes.id')
             ->where('fechas.libro_id', $libro_id)
+            ->whereNotIn('remisiones.estado', ['Cancelado']) // <-- Consistencia estricta
             ->where('fechas.unidades', '<>', 0)
             ->whereNull('fechas.deleted_at')
             ->when($inicio && $final, function ($query) use ($inicio, $final) {
                 return $query->whereBetween('fechas.created_at', [$inicio, $final]);
             })
-            ->select('remisiones.cliente_id', \DB::raw('SUM(fechas.unidades) as unidades'))
-            ->groupBy('remisiones.cliente_id')
+            ->select('clientes.id as cliente_id', 'clientes.name as cliente', \DB::raw('SUM(fechas.unidades) as unidades'))
+            ->groupBy('clientes.id', 'clientes.name')
             ->get()
             ->keyBy('cliente_id');
 
-        // 3. Mapear resultados por cliente
-        $vendidos = $datos->map(function ($dato) use ($devoluciones) {
-            $devolucion = $devoluciones->get($dato->cliente_id);
+        // 3. Fusionar los IDs de clientes para no perder a los que SOLO tienen devoluciones
+        $todosClienteIds = $datos->keys()->merge($devoluciones->keys())->unique();
+
+        // 4. Construir la respuesta mapeando ambos lados
+        $vendidos = $todosClienteIds->map(function ($cliente_id) use ($datos, $devoluciones) {
+            $remision = $datos->get($cliente_id);
+            $devolucion = $devoluciones->get($cliente_id);
+
+            $nombreCliente = $remision ? $remision->cliente : ($devolucion ? $devolucion->cliente : 'Desconocido');
+            $u_rem = $remision ? (int)$remision->unidades : 0;
             $u_dev = $devolucion ? (int)$devolucion->unidades : 0;
-            $u_rem = (int)$dato->unidades;
 
             return [
-                'cliente' => $dato->cliente,
+                'cliente' => $nombreCliente,
                 'unidades_remisiones' => $u_rem,
                 'unidades_devoluciones' => $u_dev,
                 'unidades_vendidas' => $u_rem - $u_dev
             ];
-        });
+        })->values();
 
-        // 4. Calcular Totales Globales
+        // 5. Calcular Totales Globales (Ahora serán idénticos a los del listado principal)
         $totales = [
             'total_remisiones' => $vendidos->sum('unidades_remisiones'),
             'total_devoluciones' => $vendidos->sum('unidades_devoluciones'),
             'total_vendidas' => $vendidos->sum('unidades_vendidas'),
         ];
 
-        // Retornamos ambos para que el componente tenga todo
         return response()->json([
             'detalles' => $vendidos,
             'totales' => $totales
