@@ -234,9 +234,10 @@ class AdministradorController extends Controller
             ->groupBy('libro_id');
 
         // 2. Subconsulta para agrupar unidades de devoluciones
-        $subDevoluciones = \DB::table('devoluciones')
+        $subDevoluciones = \DB::table('fechas')
             ->select('libro_id', \DB::raw('SUM(unidades) as unidades_devoluciones'))
             ->where('unidades', '<>', 0) // Optimizamos el whereNotIn por un <>
+            ->whereNull('fechas.deleted_at')
             ->groupBy('libro_id');
 
         // 3. Consulta principal uniendo libros con las subconsultas
