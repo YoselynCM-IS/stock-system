@@ -24444,7 +24444,7 @@ var render = function render() {
     }, {
       key: "cell(editar)",
       fn: function fn(row) {
-        return [(_vm.role_id === 1 || _vm.role_id == 2 || _vm.role_id == 6 || _vm.role_id == 10) && row.item.total == 0 ? _c("b-button", {
+        return [(_vm.role_id === 1 || _vm.role_id == 2 || _vm.role_id == 6 || _vm.role_id == 10 || _vm.role_id == 3 && _vm.user_id == 53) && row.item.total == 0 ? _c("b-button", {
           attrs: {
             variant: "secondary",
             pill: ""

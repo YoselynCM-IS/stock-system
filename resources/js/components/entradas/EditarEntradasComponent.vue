@@ -126,7 +126,7 @@
                             @click="registrarDevolucion(row.item, row.index)"
                             variant="primary">Devolución
                         </b-button> -->
-                        <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10) && row.item.total == 0"
+                        <b-button v-if="(role_id === 1 || role_id == 2 || role_id == 6 || role_id == 10 || (role_id == 3 && user_id == 53)) && row.item.total == 0"
                             @click="editarEntrada(row.item, row.index)" variant="secondary" pill>
                             <i class="fa fa-usd"></i>
                         </b-button>
